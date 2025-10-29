@@ -60,15 +60,20 @@ const RadialProgress: React.FC<RadialProgressProps> = ({ progress }) => {
 
 interface ResultDisplayProps {
   result: AnalysisResult;
+  onChallengeVerdict?: () => void;
+  isChallenged: boolean;
 }
 
-export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result }) => {
+export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onChallengeVerdict, isChallenged }) => {
   const hasHighlights = result.highlights && result.highlights.length > 0;
   const [copied, setCopied] = useState(false);
   const [feedbackGiven, setFeedbackGiven] = useState(false);
   
+  const showChallengeButton = onChallengeVerdict && !isChallenged && result.probability < 50;
+
   const handleShare = () => {
     const shareText = `My Gen-AI Content Sleuth just deduced a ${Math.round(result.probability)}% AI probability! Verdict: "${result.verdict}". What will you discover?`;
+      
     navigator.clipboard.writeText(shareText).then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -82,12 +87,19 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result }) => {
   return (
     <div className="flex flex-col items-center text-center animate-fade-in">
         <RadialProgress progress={result.probability} />
-        <h2 className="mt-6 text-3xl font-bold">{result.verdict}</h2>
+        
+        {isChallenged && (
+            <p className="mt-6 font-semibold text-cyan-600 dark:text-cyan-400">Second Opinion</p>
+        )}
+        <h2 className={`text-3xl font-bold ${isChallenged ? 'mt-1' : 'mt-6'}`}>{result.verdict}</h2>
+
         <p className="mt-2 text-slate-600 dark:text-slate-300 max-w-xl">{result.explanation}</p>
         
         {hasHighlights && (
           <div className="mt-8 w-full max-w-xl text-left">
-            <h3 className="text-lg font-semibold text-center text-cyan-600 dark:text-cyan-400 mb-4">Key Indicators Found</h3>
+            <h3 className="text-lg font-semibold text-center text-cyan-600 dark:text-cyan-400 mb-4">
+              Key Indicators Found
+            </h3>
             <div className="space-y-4">
               {result.highlights?.map((highlight, index) => (
                 <div key={index} className="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
@@ -101,6 +113,19 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ result }) => {
           </div>
         )}
         
+        {showChallengeButton && (
+           <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 w-full max-w-xl flex flex-col items-center">
+                <p className="font-semibold text-slate-700 dark:text-slate-200">Think I've missed something?</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Let's solve this case together.</p>
+                <button
+                    onClick={onChallengeVerdict}
+                    className="px-6 py-2 font-bold text-white bg-fuchsia-600 rounded-full shadow-lg shadow-fuchsia-500/30 hover:bg-fuchsia-500 transform hover:-translate-y-0.5 transition-all duration-200"
+                >
+                    Challenge the Verdict &amp; Look Closer 🔬
+                </button>
+           </div>
+        )}
+
         <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 w-full max-w-xl flex flex-col items-center">
           <button
             onClick={handleShare}

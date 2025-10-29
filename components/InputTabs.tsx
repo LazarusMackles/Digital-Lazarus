@@ -2,14 +2,16 @@ import React, { useState, useRef } from 'react';
 import { UploadIcon } from './icons/UploadIcon';
 import { TextIcon } from './icons/TextIcon';
 import { LinkIcon } from './icons/LinkIcon';
+import { XMarkIcon } from './icons/XMarkIcon';
 
 interface InputTabsProps {
   onTextChange: (text: string) => void;
-  onFileChange: (fileName: string, content: string | null, imageBase64: string | null) => void;
+  onFilesChange: (files: { name: string, content?: string | null, imageBase64?: string | null }[]) => void;
+  onClearFiles: () => void;
   onUrlChange: (url: string) => void;
   textContent: string;
-  fileName: string | null;
-  imageData: string | null;
+  fileNames: string[] | null;
+  imageData: string[] | null;
   url: string;
   isUrlValid?: boolean;
 }
@@ -35,49 +37,62 @@ const TabButton: React.FC<{
   );
 };
 
-export const InputTabs: React.FC<InputTabsProps> = ({ onTextChange, onFileChange, onUrlChange, textContent, fileName, imageData, url, isUrlValid = true }) => {
+export const InputTabs: React.FC<InputTabsProps> = ({ onTextChange, onFilesChange, onClearFiles, onUrlChange, textContent, fileNames, imageData, url, isUrlValid = true }) => {
   const [activeTab, setActiveTab] = useState<InputType>('text');
   const [unsupportedFile, setUnsupportedFile] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = (file: File | null) => {
-    setUnsupportedFile(null);
-    if (file) {
-      const reader = new FileReader();
-      const supportedImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
-      const supportedTextExtensions = ['.txt', '.md', '.html', '.js', '.py', '.java', '.c', '.cpp', '.cs'];
+  const handleFilePromises = (files: File[]) => {
+    const supportedImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const supportedTextExtensions = ['.txt', '.md', '.html', '.js', '.py', '.java', '.c', '.cpp', '.cs'];
 
-      if (supportedImageTypes.includes(file.type)) {
-        reader.onload = (e) => {
-          const imageBase64 = e.target?.result as string;
-          onFileChange(file.name, null, imageBase64);
-          setActiveTab('file');
-        };
-        reader.readAsDataURL(file);
-      } else if (file.type.startsWith('text/') || supportedTextExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
-        reader.onload = (e) => {
-          const content = e.target?.result as string;
-          onFileChange(file.name, content, null);
-          setActiveTab('file');
-        };
-        reader.readAsText(file);
-      } else {
-        setUnsupportedFile(file.name);
-        onFileChange(file.name, null, null); // Clear content in parent
-        setActiveTab('file');
-      }
+    if (files.length > 1 && !files.every(f => supportedImageTypes.includes(f.type))) {
+      setUnsupportedFile('For multi-file uploads, please select only images (jpg, png, webp).');
+      onFilesChange([]);
+      return;
     }
-  };
+    
+    setUnsupportedFile(null);
+
+    const promises = files.map(file => {
+      return new Promise<{ name: string, content?: string | null, imageBase64?: string | null }>((resolve) => {
+        const reader = new FileReader();
+
+        if (supportedImageTypes.includes(file.type)) {
+          reader.onload = (e) => resolve({ name: file.name, imageBase64: e.target?.result as string });
+          reader.readAsDataURL(file);
+        } else if (file.type.startsWith('text/') || supportedTextExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
+          reader.onload = (e) => resolve({ name: file.name, content: e.target?.result as string });
+          reader.readAsText(file);
+        } else {
+          setUnsupportedFile(file.name);
+          resolve({ name: file.name }); // Resolve with just the name for unsupported type
+        }
+      });
+    });
+
+    Promise.all(promises).then(results => {
+      const allFilesSupported = results.every(r => r.imageBase64 || r.content);
+      if(allFilesSupported) {
+          onFilesChange(results);
+          setActiveTab('file');
+      } else {
+          onFilesChange(results.filter(r => r.imageBase64 || r.content));
+      }
+    });
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleFile(e.target.files?.[0] || null);
+    if (e.target.files) {
+      handleFilePromises(Array.from(e.target.files));
+    }
   };
   
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    if(e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFile(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFilePromises(Array.from(e.dataTransfer.files));
     }
   };
 
@@ -100,7 +115,7 @@ export const InputTabs: React.FC<InputTabsProps> = ({ onTextChange, onFileChange
         </TabButton>
         <TabButton active={activeTab === 'file'} onClick={() => selectTab('file')}>
           <UploadIcon className="w-5 h-5" />
-          Upload File
+          Upload File(s)
         </TabButton>
         <TabButton active={activeTab === 'url'} onClick={() => selectTab('url')}>
           <LinkIcon className="w-5 h-5" />
@@ -108,7 +123,7 @@ export const InputTabs: React.FC<InputTabsProps> = ({ onTextChange, onFileChange
         </TabButton>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6 min-h-[12rem] flex flex-col justify-center">
         {activeTab === 'text' && (
           <textarea
             value={textContent}
@@ -119,25 +134,29 @@ export const InputTabs: React.FC<InputTabsProps> = ({ onTextChange, onFileChange
           />
         )}
         {activeTab === 'file' && (
-          imageData ? (
-            <div className="w-full h-48 relative rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900">
-              <img src={imageData} alt={fileName || 'Uploaded preview'} className="w-full h-full object-contain" />
-              <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                <p className="text-white font-semibold text-center break-all px-4">{fileName}<span className="block text-sm font-normal text-slate-300 mt-1">Click to change</span></p>
+           imageData && imageData.length > 0 ? (
+            <div className="relative group">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {imageData.map((src, index) => (
+                  <div key={index} className="relative aspect-square bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700">
+                    <img src={src} alt={`Uploaded preview ${index + 1}`} className="w-full h-full object-contain" />
+                    {index === 0 && (
+                       <div className="absolute top-1 left-1 bg-cyan-600 text-white text-xs font-bold px-2 py-0.5 rounded">PRIMARY</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="absolute inset-0 bg-black/70 flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer flex rounded-lg" onClick={onClearFiles}>
+                <XMarkIcon className="w-10 h-10 text-white bg-slate-800/50 rounded-full p-2" />
+                <p className="mt-2 text-white font-semibold text-center break-all px-4">Clear and upload new file(s)</p>
               </div>
             </div>
-          ) : unsupportedFile ? (
+           ) : unsupportedFile ? (
             <div
               onClick={() => fileInputRef.current?.click()}
               className="w-full h-48 p-4 bg-red-100 dark:bg-red-900/20 border-2 border-dashed border-red-300 dark:border-red-500/50 rounded-lg flex flex-col items-center justify-center text-center cursor-pointer hover:border-red-400 dark:hover:border-red-500 transition-colors duration-300"
             >
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                className="hidden"
-                accept="image/png, image/jpeg, image/webp, .txt,.md,.html,.js,.py,.java,.c,.cpp,.cs"
-              />
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/webp, .txt,.md,.html,.js,.py,.java,.c,.cpp,.cs" multiple />
               <UploadIcon className="w-8 h-8 text-red-500 dark:text-red-400 mb-2" />
               <p className="font-semibold text-slate-800 dark:text-white break-all px-2">{unsupportedFile}</p>
               <p className="text-sm text-red-600 dark:text-red-400 mt-1">Zis file type is most peculiar! I cannot analyze it.</p>
@@ -148,20 +167,14 @@ export const InputTabs: React.FC<InputTabsProps> = ({ onTextChange, onFileChange
               onClick={() => fileInputRef.current?.click()}
               className="w-full h-48 p-4 bg-slate-100 dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg flex flex-col items-center justify-center text-center cursor-pointer hover:border-cyan-500 transition-colors duration-300"
             >
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                className="hidden"
-                accept="image/png, image/jpeg, image/webp, .txt,.md,.html,.js,.py,.java,.c,.cpp,.cs"
-              />
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/webp, .txt,.md,.html,.js,.py,.java,.c,.cpp,.cs" multiple />
               <UploadIcon className="w-8 h-8 text-slate-400 dark:text-slate-500 mb-2" />
-              {fileName && !imageData ? (
-                <p className="text-slate-800 dark:text-white font-medium">{fileName}</p>
+              {fileNames && fileNames.length > 0 && !imageData ? (
+                <p className="text-slate-800 dark:text-white font-medium">{fileNames.join(', ')}</p>
               ) : (
                 <>
                   <p className="font-semibold text-slate-800 dark:text-white">Submit digital artifacts for inspection</p>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">A photograph? A manuscript? All are welcome.</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Upload multiple images for detailed analysis.</p>
                 </>
               )}
             </div>

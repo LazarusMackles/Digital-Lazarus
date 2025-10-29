@@ -13,15 +13,16 @@ type Theme = 'light' | 'dark';
 
 const App: React.FC = () => {
   const [textContent, setTextContent] = useState<string>('');
-  const [imageData, setImageData] = useState<string | null>(null);
+  const [imageData, setImageData] = useState<string[] | null>(null);
   const [url, setUrl] = useState<string>('');
   const [isUrlValid, setIsUrlValid] = useState<boolean>(true);
-  const [fileName, setFileName] = useState<string | null>(null);
+  const [fileNames, setFileNames] = useState<string[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('deep');
   const [showWelcome, setShowWelcome] = useState<boolean>(false);
+  const [isChallenged, setIsChallenged] = useState<boolean>(false);
   const [theme, setTheme] = useState<Theme>(() => {
     const savedTheme = localStorage.getItem('theme') as Theme;
     if (savedTheme) return savedTheme;
@@ -61,7 +62,7 @@ const App: React.FC = () => {
   };
 
   const handleAnalyze = useCallback(async () => {
-    if ((!textContent.trim() && !imageData && !url.trim()) || (url.trim() && !isUrlValid)) {
+    if ((!textContent.trim() && (!imageData || imageData.length === 0) && !url.trim()) || (url.trim() && !isUrlValid)) {
       setError('Mon Dieu! You must provide some valid evidence for me to analyze!');
       return;
     }
@@ -69,9 +70,10 @@ const App: React.FC = () => {
     setIsLoading(true);
     setError(null);
     setAnalysisResult(null);
+    setIsChallenged(false);
 
     try {
-      const result = await analyzeContent(textContent, imageData, url, analysisMode);
+      const result = await analyzeContent(textContent, imageData, url, analysisMode, false);
       setAnalysisResult(result);
     } catch (err) {
       console.error(err);
@@ -84,19 +86,65 @@ const App: React.FC = () => {
       setIsLoading(false);
     }
   }, [textContent, imageData, url, analysisMode, isUrlValid]);
+
+  const handleChallenge = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    setIsChallenged(true);
+    // Intentionally not clearing analysisResult to feel like an update
+    try {
+      const result = await analyzeContent(textContent, imageData, url, analysisMode, true); // Re-run in challenge mode
+      setAnalysisResult(result);
+    } catch (err) {
+      console.error(err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Sacre bleu! An unidentifiable error has occurred in the digital ether. Most mysterious!');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [textContent, imageData, url, analysisMode]);
   
   const handleReset = () => {
     setTextContent('');
     setImageData(null);
     setUrl('');
     setIsUrlValid(true);
-    setFileName(null);
+    setFileNames(null);
     setAnalysisResult(null);
     setError(null);
     setIsLoading(false);
+    setIsChallenged(false);
+  };
+  
+  const handleFilesChange = (files: { name: string; content?: string | null; imageBase64?: string | null }[]) => {
+    // Clear other inputs when files are selected
+    setTextContent('');
+    setUrl('');
+    setIsUrlValid(true);
+
+    const images = files.filter(f => f.imageBase64).map(f => f.imageBase64!);
+    const names = files.map(f => f.name);
+    const textFile = files.find(f => f.content);
+
+    if (images.length > 0) {
+      setImageData(images);
+      setFileNames(names);
+    } else if (textFile) {
+      setTextContent(textFile.content || '');
+      setFileNames([textFile.name]);
+      setImageData(null);
+    } else {
+      // Handle unsupported file types or other cases
+      setImageData(null);
+      setFileNames(names); // Show the name of the unsupported file
+    }
   };
 
-  const isFormValid = (textContent.trim() !== '' || imageData !== null || (url.trim() !== '' && isUrlValid));
+  const isFormValid = (textContent.trim() !== '' || (imageData && imageData.length > 0) || (url.trim() !== '' && isUrlValid));
+  const buttonText = 'Deduce Origin!';
 
   return (
     <>
@@ -121,29 +169,22 @@ const App: React.FC = () => {
                   <Loader />
                 ) : analysisResult ? (
                   <div className="animate-fade-in-up">
-                    <ResultDisplay result={analysisResult} />
+                    <ResultDisplay result={analysisResult} onChallengeVerdict={handleChallenge} isChallenged={isChallenged} />
                   </div>
                 ) : (
                   <>
                     <InputTabs
                       onTextChange={(text) => {
                         setTextContent(text);
-                        if (imageData) setImageData(null);
-                        if (fileName) setFileName(null);
-                        if (url) setUrl('');
+                        setImageData(null);
+                        setFileNames(null);
+                        setUrl('');
                         setIsUrlValid(true);
                       }}
-                      onFileChange={(name, content, image) => {
-                        setFileName(name);
-                        if (url) setUrl('');
-                        setIsUrlValid(true);
-                        if (image) {
-                          setImageData(image);
-                          setTextContent('');
-                        } else {
-                          setTextContent(content || '');
-                          setImageData(null);
-                        }
+                      onFilesChange={handleFilesChange}
+                      onClearFiles={() => {
+                        setImageData(null);
+                        setFileNames(null);
                       }}
                       onUrlChange={(newUrl) => {
                           const isValid = validateUrl(newUrl);
@@ -151,10 +192,10 @@ const App: React.FC = () => {
                           setIsUrlValid(isValid);
                           setTextContent('');
                           setImageData(null);
-                          setFileName(null);
+                          setFileNames(null);
                       }}
                       textContent={textContent}
-                      fileName={fileName}
+                      fileNames={fileNames}
                       imageData={imageData}
                       url={url}
                       isUrlValid={isUrlValid}
@@ -163,13 +204,13 @@ const App: React.FC = () => {
                     
                     <ModeSelector selectedMode={analysisMode} onModeChange={setAnalysisMode} />
 
-                    <div className="mt-6 flex justify-center">
+                    <div className="mt-8 flex justify-center">
                       <button
                         onClick={handleAnalyze}
                         disabled={!isFormValid || isLoading}
                         className="w-full sm:w-auto px-10 py-3 text-lg font-bold text-white bg-cyan-600 rounded-full shadow-lg shadow-cyan-500/30 hover:bg-cyan-500 transform hover:-translate-y-1 transition-all duration-300 ease-in-out disabled:bg-slate-400 dark:disabled:bg-slate-700 disabled:shadow-none disabled:cursor-not-allowed disabled:transform-none"
                       >
-                        Deduce Origin!
+                        {buttonText}
                       </button>
                     </div>
                   </>

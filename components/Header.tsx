@@ -16,7 +16,7 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme }) => {
         Gen-AI Content Sleuth
       </h1>
       <p className="mt-4 text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-        In an age of brilliant collaboration between humans and AI, clarity is key. Let's explore the digital world with curiosity. I am here when you need me.
+        In this new age of brilliant collaboration between humans and AI, clarity is key. Let's analyze text, images, and URLs to trace their digital origins and see if they've been enhanced by AI. Present your evidence below, and let us begin the investigation.
       </p>
     </header>
   );
