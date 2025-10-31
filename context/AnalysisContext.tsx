@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
 import { analyzeContent } from '../services/geminiService';
 import type { AnalysisResult, AnalysisMode, ForensicMode } from '../types';
 
@@ -87,14 +87,14 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         localStorage.setItem('theme', theme);
     }, [theme]);
     
-    const clearPersistedInputs = () => {
+    const clearPersistedInputs = useCallback(() => {
         localStorage.removeItem('analysisTextContent');
         localStorage.removeItem('analysisImageData');
         localStorage.removeItem('analysisUrl');
         localStorage.removeItem('analysisFileNames');
-    };
+    }, []);
 
-    const runAnalysis = async (analysisFn: () => Promise<AnalysisResult>) => {
+    const runAnalysis = useCallback(async (analysisFn: () => Promise<AnalysisResult>) => {
         setIsLoading(true);
         setError(null);
         try {
@@ -116,25 +116,24 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [textContent, imageData, url, fileNames, clearPersistedInputs]);
 
-    const handleAnalyze = async () => {
+    const handleAnalyze = useCallback(async () => {
         if ((!textContent.trim() && (!imageData || imageData.length === 0) && !url.trim()) || (url.trim() && !isUrlValid)) {
             setError('Mon Dieu! You must provide some valid evidence for me to analyse!');
             return;
         }
         setAnalysisResult(null);
         localStorage.removeItem('analysisResult');
-        clearPersistedInputs();
         
         await runAnalysis(async () => {
             const result = await analyzeContent({ text: textContent, images: imageData, url, analysisMode, forensicMode });
             result.isSecondOpinion = false;
             return result;
         });
-    };
+    }, [runAnalysis, textContent, imageData, url, analysisMode, forensicMode, isUrlValid]);
 
-    const handleChallenge = async (mode: ForensicMode) => {
+    const handleChallenge = useCallback(async (mode: ForensicMode) => {
         await runAnalysis(async () => {
             const result = await analyzeContent({ 
                 text: textContent, 
@@ -147,22 +146,17 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
             result.isSecondOpinion = true; // Explicitly mark as a second opinion
             return result;
         });
-    };
+    }, [runAnalysis, textContent, imageData, url, analysisMode]);
     
-    const handleNewAnalysis = () => {
-        setAnalysisResult(null);
-        setError(null);
-        setTextContent('');
-        setImageData(null);
-        setUrl('');
-        setFileNames(null);
-        setAnalysisMode('quick');
-        setForensicMode('standard');
-        localStorage.removeItem('analysisResult');
-        clearPersistedInputs();
-    };
+    const handleNewAnalysis = useCallback(() => {
+        setAnalysisResult(null); // Return to the input screen
+        setError(null); // Clear any previous errors
+        setAnalysisMode('quick'); // Reset to default mode
+        setForensicMode('standard'); // Reset to default mode
+        localStorage.removeItem('analysisResult'); // Clear the persisted result
+    }, []);
     
-    const handleFilesChange = (files: { name: string, content?: string | null, imageBase64?: string | null }[]) => {
+    const handleFilesChange = useCallback((files: { name: string, content?: string | null, imageBase64?: string | null }[]) => {
         setTextContent('');
         setImageData(null);
         setUrl('');
@@ -181,13 +175,13 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
                 setTextContent(textFile.content);
             }
         }
-    };
+    }, []);
 
-    const handleClearFiles = () => {
+    const handleClearFiles = useCallback(() => {
         setImageData(null);
         setFileNames(null);
         setTextContent('');
-    };
+    }, []);
     
     const value = {
         textContent,

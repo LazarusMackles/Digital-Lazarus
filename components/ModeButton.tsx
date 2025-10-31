@@ -9,7 +9,7 @@ interface ModeButtonProps {
     titleStyle?: 'default' | 'gradient';
 }
 
-export const ModeButton: React.FC<ModeButtonProps> = ({ active, onClick, title, description, size = 'md', titleStyle = 'default' }) => {
+export const ModeButton: React.FC<ModeButtonProps> = React.memo(({ active, onClick, title, description, size = 'md', titleStyle = 'default' }) => {
     const padding = size === 'md' ? 'p-4' : 'p-3';
     const titleSize = size === 'md' ? 'font-bold' : 'font-bold text-sm';
     
@@ -30,4 +30,4 @@ export const ModeButton: React.FC<ModeButtonProps> = ({ active, onClick, title, 
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{description}</p>
         </button>
     );
-};
+});

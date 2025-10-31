@@ -6,7 +6,7 @@ interface HeaderProps {
     setTheme: (theme: 'light' | 'dark') => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ theme, setTheme }) => {
+export const Header: React.FC<HeaderProps> = React.memo(({ theme, setTheme }) => {
   return (
     <header className="relative text-center">
       <div className="absolute top-0 right-0">
@@ -20,4 +20,4 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme }) => {
       </p>
     </header>
   );
-};
+});

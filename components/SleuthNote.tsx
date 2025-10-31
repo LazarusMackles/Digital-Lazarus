@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const SleuthNote: React.FC = () => {
+export const SleuthNote: React.FC = React.memo(() => {
     return (
         <div className="mt-8 w-full max-w-xl bg-cyan-100 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-500/20 rounded-lg p-4 text-center">
             <h4 className="font-semibold text-cyan-700 dark:text-cyan-400">A Note from the Sleuth</h4>
@@ -9,4 +9,4 @@ export const SleuthNote: React.FC = () => {
             </p>
         </div>
     );
-};
+});

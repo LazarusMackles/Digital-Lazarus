@@ -7,7 +7,7 @@ interface ModeSelectorProps {
   onModeChange: (mode: AnalysisMode) => void;
 }
 
-export const ModeSelector: React.FC<ModeSelectorProps> = ({ selectedMode, onModeChange }) => {
+export const ModeSelector: React.FC<ModeSelectorProps> = React.memo(({ selectedMode, onModeChange }) => {
   return (
     <div className="mt-6 mb-8">
         <p className="text-sm font-medium text-center text-slate-500 dark:text-slate-400 mb-3">Select Deductive Method</p>
@@ -29,4 +29,4 @@ export const ModeSelector: React.FC<ModeSelectorProps> = ({ selectedMode, onMode
         </div>
     </div>
   );
-};
+});

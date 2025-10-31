@@ -10,7 +10,7 @@ interface FileUploadDisplayProps {
     fileInputRef: React.RefObject<HTMLInputElement>;
 }
 
-export const FileUploadDisplay: React.FC<FileUploadDisplayProps> = ({
+export const FileUploadDisplay: React.FC<FileUploadDisplayProps> = React.memo(({
     imageData,
     unsupportedFile,
     fileNames,
@@ -71,4 +71,4 @@ export const FileUploadDisplay: React.FC<FileUploadDisplayProps> = ({
             )}
         </div>
     );
-};
+});

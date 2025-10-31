@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ThumbsUpIcon, ThumbsDownIcon } from './icons';
 
-export const Feedback: React.FC = () => {
+export const Feedback: React.FC = React.memo(() => {
   const [feedbackGiven, setFeedbackGiven] = useState(false);
 
   const handleFeedback = () => {
@@ -27,4 +27,4 @@ export const Feedback: React.FC = () => {
       )}
     </div>
   );
-};
+});

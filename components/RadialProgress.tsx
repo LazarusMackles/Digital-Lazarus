@@ -4,7 +4,7 @@ interface RadialProgressProps {
     progress: number;
 }
 
-export const RadialProgress: React.FC<RadialProgressProps> = ({ progress }) => {
+export const RadialProgress: React.FC<RadialProgressProps> = React.memo(({ progress }) => {
     const radius = 80;
     const stroke = 12;
     const normalizedRadius = radius - stroke * 2;
@@ -52,4 +52,4 @@ export const RadialProgress: React.FC<RadialProgressProps> = ({ progress }) => {
             </div>
         </div>
     );
-};
+});

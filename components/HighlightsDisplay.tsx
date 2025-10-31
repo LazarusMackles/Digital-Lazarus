@@ -5,7 +5,7 @@ interface HighlightsDisplayProps {
   highlights: NonNullable<AnalysisResult['highlights']>;
 }
 
-export const HighlightsDisplay: React.FC<HighlightsDisplayProps> = ({ highlights }) => {
+export const HighlightsDisplay: React.FC<HighlightsDisplayProps> = React.memo(({ highlights }) => {
   return (
     <div className="mt-8 w-full max-w-xl text-left">
       <h3 className="text-lg font-semibold text-center text-cyan-600 dark:text-cyan-400 mb-4">
@@ -23,4 +23,4 @@ export const HighlightsDisplay: React.FC<HighlightsDisplayProps> = ({ highlights
       </div>
     </div>
   );
-};
+});

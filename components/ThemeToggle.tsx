@@ -6,7 +6,7 @@ interface ThemeToggleProps {
   setTheme: (theme: 'light' | 'dark') => void;
 }
 
-export const ThemeToggle: React.FC<ThemeToggleProps> = ({ theme, setTheme }) => {
+export const ThemeToggle: React.FC<ThemeToggleProps> = React.memo(({ theme, setTheme }) => {
   const toggleTheme = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
   };
@@ -24,4 +24,4 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ theme, setTheme }) => 
       )}
     </button>
   );
-};
+});

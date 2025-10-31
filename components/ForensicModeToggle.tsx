@@ -7,7 +7,7 @@ interface ForensicModeToggleProps {
   onModeChange: (mode: ForensicMode) => void;
 }
 
-export const ForensicModeToggle: React.FC<ForensicModeToggleProps> = ({ selectedMode, onModeChange }) => {
+export const ForensicModeToggle: React.FC<ForensicModeToggleProps> = React.memo(({ selectedMode, onModeChange }) => {
   return (
     <div className="mt-6 mb-8 animate-fade-in">
         <p className="text-sm font-medium text-center text-slate-500 dark:text-slate-400 mb-3">Select Forensic Angle</p>
@@ -36,4 +36,4 @@ export const ForensicModeToggle: React.FC<ForensicModeToggleProps> = ({ selected
         </div>
     </div>
   );
-};
+});

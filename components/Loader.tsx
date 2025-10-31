@@ -1,11 +1,12 @@
 
+
 import React from 'react';
 
 interface LoaderProps {
   message?: string;
 }
 
-export const Loader: React.FC<LoaderProps> = ({ message = "Deducing the Digital DNA ... " }) => {
+export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Deducing the Digital DNA ... " }) => {
   return (
     <div className="flex flex-col items-center justify-center h-64 text-center">
       <svg className="animate-spin h-12 w-12 text-cyan-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -16,4 +17,4 @@ export const Loader: React.FC<LoaderProps> = ({ message = "Deducing the Digital 
       <p className="text-slate-500 dark:text-slate-400">The clues are revealing themselves. One moment while I consult my circuits.</p>
     </div>
   );
-};
+});
