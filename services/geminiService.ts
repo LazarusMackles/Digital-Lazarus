@@ -122,10 +122,10 @@ async function withRetry<T>(apiCall: () => Promise<T>, maxRetries = 3): Promise<
 
       // Only retry on rate limit errors, and if we haven't exhausted retries
       if (isRateLimitError && attempt < maxRetries - 1) {
-        // Exponential backoff: 0.5s, 1s, 2s...
-        const baseBackoff = Math.pow(2, attempt) * 500;
-        // Jitter: add a random delay of up to 500ms to prevent thundering herd
-        const jitter = Math.random() * 500;
+        // Exponential backoff: 2s, 4s...
+        const baseBackoff = Math.pow(2, attempt) * 2000;
+        // Jitter: add a random delay of up to 1000ms to prevent thundering herd
+        const jitter = Math.random() * 1000;
         const backoffTime = baseBackoff + jitter;
         
         console.log(`Rate limit hit. Retrying in ${backoffTime.toFixed(0)}ms... (Retry ${attempt + 1}/${maxRetries - 1})`);
