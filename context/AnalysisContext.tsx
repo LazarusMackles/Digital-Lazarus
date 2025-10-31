@@ -4,6 +4,8 @@ import type { AnalysisResult, AnalysisMode, ForensicMode } from '../types';
 
 type Theme = 'light' | 'dark';
 
+const secondOpinionPreamble = `CRITICAL RE-EVALUATION: Your trusted human partner has challenged your initial verdict, believing you have overlooked critical evidence. Your previous analysis may have been biased by "conceptual plausibility" (e.g., recognizing a real brand name). You are now under direct orders to re-evaluate the evidence using a different, more skeptical forensic protocol. Acknowledge this re-evaluation and your new, specific focus in your explanation.`;
+
 interface AnalysisContextState {
     textContent: string;
     setTextContent: (text: string) => void;
@@ -23,7 +25,6 @@ interface AnalysisContextState {
     setForensicMode: (mode: ForensicMode) => void;
     showWelcome: boolean;
     setShowWelcome: (show: boolean) => void;
-    isChallenged: boolean;
     theme: Theme;
     setTheme: (theme: Theme) => void;
     handleAnalyze: () => void;
@@ -36,47 +37,29 @@ interface AnalysisContextState {
 const AnalysisContext = createContext<AnalysisContextState | undefined>(undefined);
 
 export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) => {
+    // Helper to safely get item from localStorage
+    const getStoredItem = <T,>(key: string, defaultValue: T): T => {
+        try {
+            const saved = localStorage.getItem(key);
+            return saved ? JSON.parse(saved) : defaultValue;
+        } catch (e) {
+            console.error(`Could not parse stored item '${key}':`, e);
+            localStorage.removeItem(key);
+            return defaultValue;
+        }
+    };
+    
     const [textContent, setTextContent] = useState<string>(() => localStorage.getItem('analysisTextContent') || '');
-    const [imageData, setImageData] = useState<string[] | null>(() => {
-        const saved = localStorage.getItem('analysisImageData');
-        try {
-            return saved ? JSON.parse(saved) : null;
-        } catch { return null; }
-    });
+    const [imageData, setImageData] = useState<string[] | null>(() => getStoredItem('analysisImageData', null));
     const [url, setUrl] = useState<string>(() => localStorage.getItem('analysisUrl') || '');
-    const [fileNames, setFileNames] = useState<string[] | null>(() => {
-        const saved = localStorage.getItem('analysisFileNames');
-        try {
-            return saved ? JSON.parse(saved) : null;
-        } catch { return null; }
-    });
-
+    const [fileNames, setFileNames] = useState<string[] | null>(() => getStoredItem('analysisFileNames', null));
     const [isUrlValid, setIsUrlValid] = useState<boolean>(true);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(() => {
-        try {
-            const saved = localStorage.getItem('analysisResult');
-            return saved ? JSON.parse(saved) : null;
-        } catch (e) {
-            console.error("Could not parse saved analysis result:", e);
-            localStorage.removeItem('analysisResult');
-            return null;
-        }
-    });
+    const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(() => getStoredItem('analysisResult', null));
     const [error, setError] = useState<string | null>(null);
     const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('quick');
     const [forensicMode, setForensicMode] = useState<ForensicMode>('standard');
     const [showWelcome, setShowWelcome] = useState<boolean>(false);
-    const [isChallenged, setIsChallenged] = useState<boolean>(() => {
-        try {
-            const saved = localStorage.getItem('isChallenged');
-            return saved ? JSON.parse(saved) : false;
-        } catch (e) {
-            console.error("Could not parse saved challenged state:", e);
-            localStorage.removeItem('isChallenged');
-            return false;
-        }
-    });
     const [theme, setTheme] = useState<Theme>(() => {
         const savedTheme = localStorage.getItem('theme') as Theme;
         if (savedTheme) return savedTheme;
@@ -125,12 +108,8 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
             localStorage.setItem('analysisFileNames', JSON.stringify(fileNames));
         } catch (err) {
             console.error(err);
-            if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError('Sacre bleu! An unidentifiable error has occurred in the digital ether. Most mysterious!');
-            }
-            // Clear results and inputs on error so user isn't stuck on result screen
+            const errorMessage = err instanceof Error ? err.message : 'Sacre bleu! An unidentifiable error has occurred in the digital ether. Most mysterious!';
+            setError(errorMessage);
             setAnalysisResult(null);
             localStorage.removeItem('analysisResult');
             clearPersistedInputs();
@@ -147,30 +126,39 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         setAnalysisResult(null);
         localStorage.removeItem('analysisResult');
         clearPersistedInputs();
-        setIsChallenged(false);
-        localStorage.setItem('isChallenged', 'false');
-        await runAnalysis(() => analyzeContent({ text: textContent, images: imageData, url, analysisMode, forensicMode, isChallenge: false }));
+        
+        await runAnalysis(async () => {
+            const result = await analyzeContent({ text: textContent, images: imageData, url, analysisMode, forensicMode });
+            result.isSecondOpinion = false;
+            return result;
+        });
     };
 
     const handleChallenge = async (mode: ForensicMode) => {
-        setIsChallenged(true);
-        localStorage.setItem('isChallenged', 'true');
-        // Intentionally not clearing analysisResult to feel like an update
-        await runAnalysis(() => analyzeContent({ text: textContent, images: imageData, url, analysisMode, forensicMode: mode, isChallenge: true }));
+        await runAnalysis(async () => {
+            const result = await analyzeContent({ 
+                text: textContent, 
+                images: imageData, 
+                url, 
+                analysisMode, 
+                forensicMode: mode, 
+                systemInstructionPreamble: secondOpinionPreamble 
+            });
+            result.isSecondOpinion = true; // Explicitly mark as a second opinion
+            return result;
+        });
     };
     
     const handleNewAnalysis = () => {
         setAnalysisResult(null);
         setError(null);
-        setIsChallenged(false);
-        // Clear state
         setTextContent('');
         setImageData(null);
         setUrl('');
         setFileNames(null);
-        // Clear storage
+        setAnalysisMode('quick');
+        setForensicMode('standard');
         localStorage.removeItem('analysisResult');
-        localStorage.setItem('isChallenged', 'false');
         clearPersistedInputs();
     };
     
@@ -220,14 +208,13 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         setForensicMode,
         showWelcome,
         setShowWelcome,
-        isChallenged,
         theme,
         setTheme,
         handleAnalyze,
         handleChallenge,
         handleNewAnalysis,
         handleFilesChange,
-        handleClearFiles
+        handleClearFiles,
     };
 
     return <AnalysisContext.Provider value={value}>{children}</AnalysisContext.Provider>;

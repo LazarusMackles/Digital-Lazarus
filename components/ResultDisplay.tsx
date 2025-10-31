@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import type { ForensicMode } from '../types';
 import { ShareIcon, ArrowPathIcon } from './icons';
 import { ShareModal } from './ShareModal';
 import { RadialProgress } from './RadialProgress';
@@ -14,17 +13,16 @@ export const ResultDisplay: React.FC = () => {
   const { 
     analysisResult: result, 
     handleChallenge, 
-    isChallenged, 
     handleNewAnalysis, 
     isLoading 
   } = useAnalysis();
     
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   
-  if (!result) return null; // Should not happen if rendered, but a good safeguard
+  if (!result) return null;
 
   const hasHighlights = result.highlights && result.highlights.length > 0;
-  const showChallengeButton = !isChallenged;
+  const showChallengeSection = !result.isSecondOpinion;
 
   return (
     <>
@@ -49,38 +47,41 @@ export const ResultDisplay: React.FC = () => {
         <div className="flex flex-col items-center text-center animate-fade-in bg-white dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700/50">
             <RadialProgress progress={result.probability} />
             
-            {isChallenged && (
+            {result.isSecondOpinion && (
                 <p className="mt-6 font-semibold text-cyan-600 dark:text-cyan-400">Second Opinion</p>
             )}
-            <h2 className={`text-3xl font-bold ${isChallenged ? 'mt-1' : 'mt-6'}`}>{result.verdict}</h2>
+            <h2 className={`text-3xl font-bold ${result.isSecondOpinion ? 'mt-1' : 'mt-6'}`}>{result.verdict}</h2>
 
             <p className="mt-2 text-slate-600 dark:text-slate-300 max-w-xl">{result.explanation}</p>
             
             {hasHighlights && <HighlightsDisplay highlights={result.highlights!} />}
             
-            {showChallengeButton && (
-              <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 w-full max-w-xl flex flex-col items-center">
-                    <p className="font-semibold text-slate-700 dark:text-slate-200">Think I've missed something?</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Let's solve this case together.</p>
-                    <div className="w-full animate-fade-in-up">
-                        <p className="text-sm font-medium text-center text-slate-500 dark:text-slate-400 mb-3">How should I re-evaluate the evidence?</p>
-                         <div className="flex flex-col sm:flex-row gap-2">
-                            <ModeButton
-                                active={false}
-                                onClick={() => handleChallenge('technical')}
-                                title="Focus on Technical Clues"
-                                description="Analyse pixels, lighting, and textures."
-                                size="sm"
-                            />
-                            <ModeButton
-                                active={false}
-                                onClick={() => handleChallenge('conceptual')}
-                                title="Focus on Conceptual Clues"
-                                description="Analyse context, subject, and overall 'feel'."
-                                size="sm"
-                            />
-                        </div>
+            {showChallengeSection && (
+              <div className="mt-8 pt-6 border-t border-fuchsia-400/30 dark:border-fuchsia-500/30 w-full max-w-xl">
+                <div className="bg-slate-100 dark:bg-slate-900/50 p-6 rounded-lg border border-slate-200 dark:border-slate-700 animate-fade-in-up">
+                    <h3 className="text-2xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500">Challenge the Verdict & Look Closer</h3>
+                    <p className="text-sm text-center text-slate-500 dark:text-slate-400 mt-1 mb-5">
+                        My deduction may be flawed. Guide my re-analysis by choosing a forensic angle below.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <ModeButton
+                            active={false}
+                            onClick={() => handleChallenge('technical')}
+                            title="Focus on Technical Clues"
+                            description="Analyse pixels, lighting, and textures."
+                            size="sm"
+                            titleStyle="gradient"
+                        />
+                        <ModeButton
+                            active={false}
+                            onClick={() => handleChallenge('conceptual')}
+                            title="Focus on Conceptual Clues"
+                            description="Analyse context, subject, and overall 'feel'."
+                            size="sm"
+                            titleStyle="gradient"
+                        />
                     </div>
+                </div>
               </div>
             )}
 

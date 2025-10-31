@@ -40,8 +40,6 @@ const analysisSchema = {
 
 // --- SYSTEM INSTRUCTIONS ---
 
-const secondOpinionPreamble = `CRITICAL RE-EVALUATION: Your trusted human partner has challenged your initial verdict, believing you have overlooked critical evidence. Your previous analysis may have been biased by "conceptual plausibility" (e.g., recognizing a real brand name). You are now under direct orders to re-evaluate the evidence using a different, more skeptical forensic protocol. Acknowledge this re-evaluation and your new, specific focus in your explanation.`;
-
 const textAndUrlSystemInstruction = `You are a world-class digital content analyst, a sleuth specialising in text analysis. Your primary directive is to analyse the provided text and determine its origin on the 'Spectrum of Creation'. Your final \`verdict\` MUST be one of the following three options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', or 3. 'Appears Human-Crafted'.
 
 **Indicators of 'Fully AI-Generated' Text:**
@@ -109,7 +107,7 @@ const performImageAnalysis = async (
   ai: GoogleGenAI,
   analysisMode: AnalysisMode,
   forensicMode: ForensicMode,
-  isChallenge: boolean
+  systemInstructionPreamble?: string
 ): Promise<AnalysisResult> => {
   const modelName = analysisMode === 'deep' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
 
@@ -132,7 +130,7 @@ const performImageAnalysis = async (
   }
   
   const baseSystemInstruction = imageSystemInstructions[forensicMode];
-  const systemInstruction = (isChallenge ? secondOpinionPreamble + ' ' : '') + baseSystemInstruction;
+  const systemInstruction = (systemInstructionPreamble ? systemInstructionPreamble + ' ' : '') + baseSystemInstruction;
   
   const prompt = `Perform a forensic analysis of the provided image(s) according to your system instructions and provide your findings in the required JSON format.`;
   const fullContent = [{ text: prompt }, ...contentParts];
@@ -157,7 +155,7 @@ interface AnalyzeContentParams {
     url?: string | null;
     analysisMode?: AnalysisMode;
     forensicMode?: ForensicMode;
-    isChallenge?: boolean;
+    systemInstructionPreamble?: string;
 }
 
 export const analyzeContent = async ({
@@ -166,7 +164,7 @@ export const analyzeContent = async ({
     url,
     analysisMode = 'deep',
     forensicMode = 'standard',
-    isChallenge = false
+    systemInstructionPreamble
 }: AnalyzeContentParams): Promise<AnalysisResult> => {
   if (!process.env.API_KEY) {
     throw new Error("API_KEY environment variable is not set.");
@@ -183,12 +181,12 @@ export const analyzeContent = async ({
       if (!images.every(img => typeof img === 'string' && img.startsWith('data:image/') && img.includes(';base64,'))) {
         throw new Error("A peculiar corruption has occurred in the image evidence. The base64 data is invalid.");
       }
-      return await performImageAnalysis(images, ai, analysisMode, forensicMode, isChallenge);
+      return await performImageAnalysis(images, ai, analysisMode, forensicMode, systemInstructionPreamble);
     }
 
     // --- Text and URL Analysis ---
     const baseSystemInstruction = textAndUrlSystemInstruction;
-    const systemInstruction = isChallenge ? secondOpinionPreamble + baseSystemInstruction : baseSystemInstruction;
+    const systemInstruction = systemInstructionPreamble ? systemInstructionPreamble + ' ' + baseSystemInstruction : baseSystemInstruction;
     
     let promptText = `Please analyse the following text according to your system instructions and provide your findings in the required JSON format.\n\nText to Analyse:\n---\n${text.slice(0, 15000)}\n---`;
     if (url) {

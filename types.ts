@@ -9,4 +9,5 @@ export interface AnalysisResult {
     text: string;
     reason: string;
   }[];
+  isSecondOpinion?: boolean;
 }
