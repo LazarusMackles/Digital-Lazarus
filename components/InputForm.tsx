@@ -4,6 +4,7 @@ import { ModeSelector } from './ModeSelector';
 import { ForensicModeToggle } from './ForensicModeToggle';
 import { SpinnerIcon } from './icons';
 import { useAnalysis } from '../context/AnalysisContext';
+import { HowItWorks } from './HowItWorks';
 
 const validateUrl = (value: string): boolean => {
     if (!value) return true;
@@ -74,6 +75,8 @@ export const InputForm: React.FC = () => {
                 isUrlValid={isUrlValid}
             />
             
+            <HowItWorks />
+
             {imageData && imageData.length > 0 && <ForensicModeToggle selectedMode={forensicMode} onModeChange={setForensicMode} />}
             
             <ModeSelector selectedMode={analysisMode} onModeChange={setAnalysisMode} />

@@ -125,6 +125,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
 
             if (errorMessage.includes('overheating') || errorMessage.includes('quota')) {
                 setCooldown(30); // Start a 30-second cooldown
+                setAnalysisMode('quick'); // Automatically switch to a less intensive mode
             }
         } finally {
             setIsLoading(false);

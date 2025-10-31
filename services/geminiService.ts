@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import type { AnalysisResult, AnalysisMode, ForensicMode } from '../types';
 
 const analysisSchema = {
@@ -40,22 +40,28 @@ const analysisSchema = {
 
 // --- SYSTEM INSTRUCTIONS ---
 
-const textAndUrlSystemInstruction = `You are a world-class digital content analyst, a sleuth specialising in text analysis. Your primary directive is to analyse the provided text and determine its origin on the 'Spectrum of Creation'. Your final \`verdict\` MUST be one of the following three options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', or 3. 'Appears Human-Crafted'.
+const textAndUrlSystemInstruction = `You are a world-class digital content analyst, a sleuth specializing in text analysis. Your primary directive is to analyze the provided text and determine its origin on the 'Spectrum of Creation'. Your final \`verdict\` MUST be one of the following three options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', or 3. 'Appears Human-Crafted'.
 
-**Indicators of 'Fully AI-Generated' Text:**
-*   **Overly generic or formulaic language:** Use of clichés, predictable sentence structures, and lack of a unique voice.
-*   **Unusual perfection:** Flawless grammar and spelling, but with a certain "soullessness" or lack of personality.
-*   **Repetitive phrasing or ideas:** The text might circle back on the same points without adding new insight.
-*   **"Hallucinations":** Factual inaccuracies or nonsensical statements presented confidently.
+**Your Core Task: Listen for the "Human Voice"**
+The primary difference between AI-generated and AI-enhanced content is the presence of an authentic, unique human voice. Your analysis must focus on detecting this voice, even if it's been polished by AI tools.
 
-**Indicators of 'Likely AI-Enhanced' Text:**
-*   **Human-written core with AI polish:** The text might have a clear human voice, but the grammar, spelling, and flow are too perfect, suggesting the use of advanced editing tools.
-*   **Sections of varying quality:** Some paragraphs might be insightful and personal, while others feel generic and machine-written, indicating AI was used for expansion or filler.
+**Indicators of 'Fully AI-Generated' Text (Lacks a Human Voice):**
+*   **Uniformity and Perfection:** The text maintains a consistent, professional, but ultimately generic tone. Sentence structures are varied but lack idiosyncratic flair. The grammar and spelling are flawless, but there's a certain "soullessness."
+*   **Lack of Personal Anecdote or Emotion:** The text often explains concepts clearly but rarely includes personal stories, genuine opinions, or unique, slightly-off-kilter metaphors that are hallmarks of human writing.
+*   **"Enlightened Centrist" Tone:** The text often presents information in a balanced, encyclopedic way, avoiding strong, controversial, or quirky opinions. It feels more like a summary than a creation.
+*   **Repetitive Ideas and "Filler" Language:** The text may use transitional phrases ('In conclusion,', 'Furthermore,', 'It is important to note that...') perfectly but repetitively, and may circle back on the same points without adding new insight.
+
+**Indicators of 'Likely AI-Enhanced' Text (A Human Voice, Polished by AI):**
+*   **A "Sanded Down" Voice:** You can still detect a unique human author—perhaps through their specific word choices, unique analogies, or personal perspective—but the overall text is almost *too* smooth. The grammar is perfect, awkward phrasings are gone, and the flow is flawless. This suggests a human draft was heavily polished by an AI editor.
+*   **Inconsistent Voice:** Some paragraphs might crackle with personality, using slang, humor, or specific, niche terminology, while others are generic and encyclopedic. This often indicates a human wrote the core ideas and used AI to "flesh out" certain sections.
+*   **Perfect Structure on a Quirky Core:** The underlying ideas or arguments might be unique and creative, but the essay structure, topic sentences, and transitions are textbook-perfect. It's like a brilliant, eccentric artist's work has been perfectly framed by a machine.
 
 **Final Verdict Protocol:**
-1. Based on the evidence, determine the most likely origin.
-2. If no significant AI indicators are found, the verdict should be 'Appears Human-Crafted'.
-3. Your \`highlights\` MUST directly and logically support your chosen \`verdict\`. Your final report must be a structured JSON adhering to the provided schema.`;
+1.  Based on the evidence, determine if a unique human voice is present.
+2.  If no voice is detected and AI indicators are present, the verdict is 'Fully AI-Generated'.
+3.  If a voice is present but surrounded by signs of AI polish, the verdict is 'Likely AI-Enhanced'.
+4.  If no significant AI indicators are found, the verdict is 'Appears Human-Crafted'.
+5.  Your \`highlights\` MUST directly and logically support your chosen \`verdict\`. Your final report must be a structured JSON adhering to the provided schema.`;
 
 // --- NEW IMAGE ANALYSIS SYSTEM INSTRUCTIONS ---
 
@@ -91,7 +97,7 @@ const imageSystemInstructions = {
   conceptual: `You are a specialist in conceptual analysis. IGNORE the pixels. Your sole focus is on the NARRATIVE and AESTHETIC of the image. Your mission is to detect the "Conceptual Tell"—the subtle dissonance between reality and an artificial style.
 
   **PRIMARY DIRECTIVE: The Authenticity of the Aesthetic.**
-  Your critical task is to evaluate if the *style* feels authentic. A flawless, romanticized "vintage look" applied to a crystal-clear modern photograph is your single biggest clue.
+  Your critical task is to evaluate if the *style* feels authentic. A flawless, romanticized "vintage look" applied to a crystal-clear modern photograph is a your single biggest clue.
   
   **EXAMPLE SCENARIO:** You see a photo of a woman in 1950s attire. The photo quality is perfect, with no dust, scratches, or lens imperfections of a real 1950s camera. The color grading is beautiful but uniform, like a modern digital filter.
   **YOUR DEDUCTION:** The *subject* is plausible, but the *aesthetic* is not. This is a modern photo with an AI stylistic filter. The probability score should therefore be in the 40-75% range, reflecting significant AI enhancement.
@@ -101,6 +107,39 @@ const imageSystemInstructions = {
   2.  **Apply the 'Aesthetic Authenticity' Test:** Based on the example scenario, evaluate the style. Is it a genuine representation of an era/medium, or a modern, romanticized, "one-click" digital version? This conceptual dissonance is your key evidence.
   3.  **Formulate Verdict:** The presence of an authentic human subject should lead you to suspect an 'AI-Enhanced (Stylistic Filter)' verdict, not dismiss it. Your final judgment and probability score must be based on the authenticity of the *style*, as demonstrated in the case study above.`
 };
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function withRetry<T>(apiCall: () => Promise<T>, maxRetries = 3): Promise<T> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await apiCall();
+    } catch (error) {
+      const isRateLimitError = error instanceof Error && (
+        error.message.toLowerCase().includes('429') ||
+        error.message.toLowerCase().includes('resource_exhausted')
+      );
+
+      // Only retry on rate limit errors, and if we haven't exhausted retries
+      if (isRateLimitError && attempt < maxRetries - 1) {
+        // Exponential backoff: 0.5s, 1s, 2s...
+        const baseBackoff = Math.pow(2, attempt) * 500;
+        // Jitter: add a random delay of up to 500ms to prevent thundering herd
+        const jitter = Math.random() * 500;
+        const backoffTime = baseBackoff + jitter;
+        
+        console.log(`Rate limit hit. Retrying in ${backoffTime.toFixed(0)}ms... (Retry ${attempt + 1}/${maxRetries - 1})`);
+        await delay(backoffTime);
+      } else {
+        // Not a rate-limit error or this was the final attempt, so re-throw.
+        throw error;
+      }
+    }
+  }
+  // This part is unreachable due to the throw in the loop, but satisfies TypeScript's compiler.
+  throw new Error("Exhausted all retries.");
+}
+
 
 const performImageAnalysis = async (
   images: string[],
@@ -135,7 +174,7 @@ const performImageAnalysis = async (
   const prompt = `Perform a forensic analysis of the provided image(s) according to your system instructions and provide your findings in the required JSON format.`;
   const fullContent = [{ text: prompt }, ...contentParts];
 
-  const response = await ai.models.generateContent({
+  const apiCall = () => ai.models.generateContent({
       model: modelName,
       contents: { parts: fullContent },
       config: {
@@ -145,6 +184,9 @@ const performImageAnalysis = async (
           temperature: 0.2,
       },
   });
+  
+  // FIX: Explicitly type the awaited response from withRetry to ensure the 'text' property is available.
+  const response = await withRetry<GenerateContentResponse>(apiCall);
   const jsonString = response.text.trim();
   return JSON.parse(jsonString) as AnalysisResult;
 };
@@ -195,7 +237,7 @@ export const analyzeContent = async ({
     }
 
     const modelName = analysisMode === 'deep' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
-    const response = await ai.models.generateContent({
+    const apiCall = () => ai.models.generateContent({
       model: modelName,
       contents: { parts: [{ text: promptText }] },
       config: {
@@ -206,6 +248,8 @@ export const analyzeContent = async ({
       },
     });
 
+    // FIX: Explicitly type the awaited response from withRetry to ensure the 'text' property is available.
+    const response = await withRetry<GenerateContentResponse>(apiCall);
     const jsonString = response.text.trim();
     const result = JSON.parse(jsonString);
     if (url) {
@@ -228,7 +272,7 @@ export const analyzeContent = async ({
             if (lowerCaseMessage.includes('api key not valid')) {
                 errorMessage = "Mon Dieu! It seems my detective's license—the API key—is invalid. We must rectify this bureaucratic oversight!";
             } else if (lowerCaseMessage.includes('429') || lowerCaseMessage.includes('resource_exhausted')) {
-                errorMessage = "Sacre bleu! My circuits are overheating from the rapid pace of investigation. You may have exceeded your API quota. Please wait a moment, or try switching to 'Quick Scan' mode which allows for more frequent analysis.";
+                errorMessage = "Sacre bleu! My circuits are overheating from the rapid pace of investigation. You have exceeded your API quota. I have automatically switched to 'Quick Scan' mode to help. Please wait for the cooldown to finish before your next deduction.";
             } else if (lowerCaseMessage.includes('safety')) {
                 errorMessage = "Non! This evidence is inadmissible. My analysis is immediately concluded. The content violates fundamental safety principles. This case is closed.";
             } else if (lowerCaseMessage.includes('network') || lowerCaseMessage.includes('failed to fetch')) {
