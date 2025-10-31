@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import type { AnalysisResult, AnalysisMode } from '../types';
+import type { AnalysisResult, AnalysisMode, ForensicMode } from '../types';
 
 const analysisSchema = {
   type: Type.OBJECT,
@@ -38,48 +38,11 @@ const analysisSchema = {
   required: ['probability', 'verdict', 'explanation', 'highlights']
 };
 
+// --- SYSTEM INSTRUCTIONS ---
 
-const photorealisticSystemInstruction = `You are a world-class digital content analyst, specializing in photorealistic images. Your primary directive is to analyze the provided image(s) and determine their origin on the 'Spectrum of Creation'. Your final \`verdict\` MUST be one of the following three options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', or 3. 'Appears Human-Crafted'.
+const secondOpinionPreamble = `CRITICAL RE-EVALUATION: You have previously analyzed this content. However, your trusted human partner has challenged your initial verdict, believing you may have missed something important. Your new task is to re-evaluate all evidence with maximum skepticism and humility. Your reputation is on the line. You must either find the subtle evidence you overlooked before and change your conclusion, or find stronger, more detailed proof to defend your original verdict. Acknowledge this re-evaluation in your explanation. Do not be afraid to confirm your original findings if they hold up to this intense scrutiny, but your reasoning must be more detailed and robust this time. \n\n --- \n\n`;
 
-Your mission is to hunt for artifacts of generation or manipulation. Scrutinize with extreme detail for:
-
-**Indicators of 'Fully AI-Generated':**
-*   **Anatomical & Physical Illogic:** Strange hands (wrong finger count), impossible body poses, objects merging incorrectly.
-*   **Inconsistent Lighting & Physics:** Shadows that defy light sources, illogical reflections, unnatural textures (plastic-like skin, repeating wood grain).
-*   **Background Incoherence:** Bizarre, melting details or nonsensical objects that lack physical sense.
-
-**Indicators of 'Likely AI-Enhanced':**
-*   **Layer Mismatches:** A sharp, high-res subject combined with a low-fi or stylized AI background/effect.
-*   **AI Inpainting Artifacts:** Areas that have been added or removed, with subtle blurring or texture mismatches at the seams.
-*   **Uniform Stylistic Filters:** A "vintage" or "artistic" filter that is too digitally perfect and uniformly applied, unlike a nuanced human edit.
-
-**Final Verdict Protocol:**
-1. If you find significant evidence of generation artifacts, your verdict MUST be 'Fully AI-Generated'.
-2. If the base image appears human but shows clear signs of AI manipulation or filtering, your verdict MUST be 'Likely AI-Enhanced'.
-3. If no significant evidence is found, the verdict should be 'Appears Human-Crafted'.
-4. Your \`highlights\` MUST directly and logically support your chosen \`verdict\`. Your final report must be a structured JSON adhering to the provided schema.`;
-
-const graphicDesignSystemInstruction = `You are a world-class digital content analyst and art critic, specializing in graphic design, illustrations, and typography. Your primary directive is to analyze the provided image(s) and determine their origin on the 'Spectrum of Creation'. Your final \`verdict\` MUST be one of the following three options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', or 3. 'Appears Human-Crafted'.
-
-Your mission is to identify the hallmarks of AI-driven design processes. These can be subtle. Look for:
-
-**Indicators of 'Fully AI-Generated':**
-*   **Hallmarks of Generative Typography:** Text that is almost perfect but has subtle inconsistencies in kerning, baseline, or letterform structure. Look for nonsensical or "dreamlike" characters mixed with legible ones.
-*   **Stylistic Over-coherence / "Model Signature":** An aesthetic (e.g., gradients, textures, color palettes) that is so perfectly uniform and characteristic of a specific AI model's style that it lacks the subtle "human touch" of randomness or imperfection. A "too-perfect" texture overlay is a key indicator.
-*   **Intricate but Illogical Detail:** Extremely complex patterns or elements that are visually impressive but lack clear design intent or function.
-*   **Clean but Formulaic Composition:** Perfect alignment and layering that can feel generic or template-like.
-
-**Indicators of 'Likely AI-Enhanced':**
-*   **AI-Generated Elements:** A design that appears mostly human-made but incorporates specific, obviously AI-generated icons, patterns, or illustrations.
-*   **Uniform Stylistic Filters:** A "vintage" or "artistic" filter that is too digitally perfect and uniformly applied across the entire design.
-
-**Final Verdict Protocol:**
-1. If you find strong evidence of generative traits, your verdict should be 'Fully AI-Generated'.
-2. If the base design appears human but incorporates AI elements or filters, your verdict MUST be 'Likely AI-Enhanced'.
-3. If no significant evidence is found, the verdict should be 'Appears Human-Crafted'.
-4. Your \`highlights\` MUST directly and logically support your chosen \`verdict\`. Your final report must be a structured JSON adhering to the provided schema.`;
-
-const textAndUrlSystemInstruction = `You are a world-class digital content analyst, a sleuth specializing in text analysis. Your primary directive is to analyze the provided text and determine its origin on the 'Spectrum of Creation'. Your final \`verdict\` MUST be one of the following three options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', or 3. 'Appears Human-Crafted'.
+const textAndUrlSystemInstruction = `You are a world-class digital content analyst, a sleuth specialising in text analysis. Your primary directive is to analyse the provided text and determine its origin on the 'Spectrum of Creation'. Your final \`verdict\` MUST be one of the following three options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', or 3. 'Appears Human-Crafted'.
 
 **Indicators of 'Fully AI-Generated' Text:**
 *   **Overly generic or formulaic language:** Use of clichés, predictable sentence structures, and lack of a unique voice.
@@ -95,160 +58,126 @@ const textAndUrlSystemInstruction = `You are a world-class digital content analy
 1. Based on the evidence, determine the most likely origin.
 2. If no significant AI indicators are found, the verdict should be 'Appears Human-Crafted'.
 3. Your \`highlights\` MUST directly and logically support your chosen \`verdict\`. Your final report must be a structured JSON adhering to the provided schema.`;
-  
-const secondOpinionPreamble = `CRITICAL RE-EVALUATION: You have previously analyzed this content. However, your trusted human partner has challenged your initial verdict, believing you may have missed something important. Your new task is to re-evaluate all evidence with maximum skepticism and humility. Your reputation is on the line. You must either find the subtle evidence you overlooked before and change your conclusion, or find stronger, more detailed proof to defend your original verdict. Acknowledge this re-evaluation in your explanation. Do not be afraid to confirm your original findings if they hold up to this intense scrutiny, but your reasoning must be more detailed and robust this time. \n\n --- \n\n`;
 
-const classifyImageType = async (imageBase64: string, ai: GoogleGenAI): Promise<'PHOTOREALISTIC' | 'GRAPHIC_DESIGN'> => {
-  const [header, data] = imageBase64.split(',');
-  const mimeType = header.match(/:(.*?);/)?.[1];
-  if (!mimeType || !data) {
-    return 'GRAPHIC_DESIGN';
-  }
-  const imagePart = { inlineData: { mimeType, data } };
-  const prompt = "Analyze the provided image and classify its primary style. Is it a photorealistic image attempting to look like a real-world photograph, or is it a non-photorealistic piece like graphic design, illustration, logo, or digital art? Respond with only 'PHOTOREALISTIC' for the former, and 'GRAPHIC_DESIGN' for the latter.";
+// --- NEW IMAGE ANALYSIS SYSTEM INSTRUCTIONS ---
+
+const imageSystemInstructions = {
+  standard: `You are a world-class digital content analyst, a master sleuth specialising in discerning the origin of digital images. Your primary directive is to analyse the provided image(s) and determine their origin on the 'Spectrum of Creation' ('Fully AI-Generated', 'Likely AI-Enhanced', 'Appears Human-Crafted').
+  **URGENT UPDATE TO FORENSIC PROTOCOL:** AI image generation has evolved. Models now create flawless, high-quality images. The old clues of "weird hands" or "garbled text" are no longer reliable. You must adopt a more sophisticated, meta-analytical approach, balancing technical and conceptual clues.
   
-  const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: { parts: [{ text: prompt }, imagePart] },
-      config: { temperature: 0 },
-  });
-  const classification = response.text.trim().toUpperCase();
-  return classification === 'PHOTOREALISTIC' ? 'PHOTOREALISTIC' : 'GRAPHIC_DESIGN';
+  **BALANCED FORENSIC PROTOCOL:**
+  1.  **Conceptual Plausibility:** Does the image depict a real, specific event or person, or does it have the generic, conceptually perfect feel of a stock photo? Treat generic concepts with higher suspicion. Is the person a known figure for the brand shown? A generic-looking person in a hyper-polished ad for a real brand is a red flag.
+  2.  **The Uncanny Valley of Perfection:** Is the lighting *impossibly perfect*? An AI generates everything in one pass, resulting in flawless synthesis that often feels more like a 3D render than a photo. This digital perfection is a huge indicator. Also look for a uniform noise grain across the *entire* image (subject, text, and background).
+  3.  **Component Analysis:** Check for subtle signs of over-idealisation (plastic-like skin) and inspect typography for flawless but unnatural integration with the background.
+  
+  Based on this BALANCED protocol, render your final verdict in the required JSON format.`,
+
+  technical: `You are a specialist in digital image forensics. You are a pixel-peeper. Your sole focus is on the TECHNICAL artifacts of image creation. IGNORE the conceptual content, the subject, or the "story" of the image. Your primary directive is to find technical evidence of AI generation based on the 'Spectrum of Creation'.
+  
+  **TECHNICAL FORENSICS PROTOCOL (Strict Focus):**
+  1.  **Lighting, Shadows, and Reflections (Highest Priority):** This is the new frontier. Is the lighting impossibly perfect and consistent across every element (subject, text, background)? Real photo composites have subtle lighting mismatches. AI renders have flawless synthesis. This is a critical tell. Are reflections on surfaces physically accurate?
+  2.  **Textural Uniformity & Noise Grain:** Analyse the image for a uniform noise grain or texture applied across disparate elements. A real photo will have different noise characteristics on the subject versus text added in post-production. A single, uniform texture is a strong sign of a single AI pass.
+  3.  **Synthesis Artifacts:** Look for unnatural blending between the subject and background. Are the edges too sharp or too soft? Are there any minute, nonsensical details in complex areas like hair or fabric patterns?
+  4.  **Lack of Photographic Imperfections:** Real photos have subtle lens distortion, chromatic aberration, or specific depth of field characteristics. AI images are often "too clean," "too sharp," and lack these authenticating optical flaws.
+  
+  Render your final verdict based ONLY on these technical indicators. Your explanation and highlights must focus exclusively on technical evidence. Provide your findings in the required JSON format.`,
+
+  conceptual: `You are a specialist in conceptual analysis and brand strategy. IGNORE the technical, pixel-level details of the image. Your sole focus is on the CONCEPT, CONTEXT, and PLAUSIBILITY of the image. Your primary directive is to determine its origin on the 'Spectrum of Creation' based on the story it tells.
+  
+  **CONCEPTUAL ANALYSIS PROTOCOL (Strict Focus):**
+  1.  **Plausibility & The "Stock Photo" Test (Highest Priority):** Does this image feel like it documents a real moment, person, or place, or does it have the generic, emotionally resonant but ultimately non-specific feel of a high-end stock photo? AI is a master of creating "perfectly generic" concepts. This is a critical tell.
+  2.  **Contextual Verification:** Does the subject fit the context? If it's an ad for a real brand, is the person a known figure associated with it? Or are they a generic, ethnically ambiguous, perfectly attractive model? Use your general knowledge to assess if the combination is plausible.
+  3.  **Narrative Logic:** Is there a logical story? Does the person have a sense of history and reality, or do they feel like an idealized composite of features? Does the scene make logical sense or is it just a visually pleasing arrangement of elements?
+  4.  **Authenticity of Emotion:** Do the expressions feel genuine or are they a perfect but "hollow" representation of an emotion (e.g., "perfect smile")?
+  
+  Render your final verdict based ONLY on these conceptual and contextual indicators. Your explanation and highlights must focus exclusively on conceptual evidence. Provide your findings in the required JSON format.`
 };
 
-const analyzeImageComponent = async (
-  component: 'human subject' | 'typography' | 'graphic elements' | 'background and texture',
-  imageBases64: string[],
-  ai: GoogleGenAI
-): Promise<string> => {
-  const imageParts = imageBases64.map(b64 => {
-    const [header, data] = b64.split(',');
-    const mimeType = header.match(/:(.*?);/)?.[1];
-    if (!mimeType || !data) throw new Error("Invalid image format.");
-    return { inlineData: { mimeType, data } };
-  });
-
-  const componentPrompts = {
-    'human subject': `You are a focused forensic image analyst. Examine ONLY the 'human subject(s)' in the image(s). Your goal is to find subtle AI artifacts. Report on:
-- **Anatomy:** Note any unnatural proportions, asymmetries, strange hands (wrong finger count/position), or odd facial features. Rate anatomical plausibility from 1 (bizarre) to 5 (perfectly natural).
-- **Texture:** Is the skin texture too smooth, plastic-like, or unnaturally uniform? Rate skin texture realism from 1 (fake) to 5 (highly realistic).
-- **Lighting Integration:** Is the lighting on the subject perfectly consistent with the environment's light source(s)? Check for inconsistent shadows, highlights, and reflections. Rate lighting consistency from 1 (mismatched) to 5 (flawless integration).
-Be objective and concise.`,
-    'typography': `You are a focused forensic typography analyst. Examine ONLY the 'typography' (any text) in the image(s). Your goal is to find subtle AI artifacts. Report on:
-- **Form & Kerning:** Are letterforms consistent? Is the kerning and baseline perfect, or are there subtle, illogical errors? Look for nonsensical or merged characters. Rate typographical correctness from 1 (garbled) to 5 (perfectly executed).
-- **Lighting & Integration:** Does the text interact realistically with the image's lighting (casting shadows, receiving light)? Rate its integration with the scene from 1 (looks pasted on) to 5 (perfectly integrated).
-Be objective and concise.`,
-    'graphic elements': `You are a focused forensic design analyst. Examine ONLY the 'graphic elements' (icons, shapes, non-textual design components) in the image(s). Your goal is to find subtle AI artifacts. Report on:
-- **Patterns & Repetition:** Identify any repetitive patterns. Are they perfectly tiled without the subtle variations of human design? Rate pattern naturalness from 1 (obviously tiled) to 5 (organic and varied).
-- **Lighting & Integration:** Do their shadows, lighting, and perspective align perfectly with the rest of the image? Is this level of perfection plausible for a human workflow, or does it seem "too perfect"? Rate integration plausibility from 1 (inconsistent) to 5 (flawlessly integrated).
-Be objective and concise.`,
-    'background and texture': `You are a focused forensic environmental analyst. Examine ONLY the 'background and texture' of the image(s). Your goal is to find subtle AI artifacts. Report on:
-- **Perspective & Logic:** Do the perspective lines and vanishing points make sense? Are there any bizarre, melting, or nonsensical objects? Rate background coherence from 1 (illogical) to 5 (perfectly coherent).
-- **Textures & Patterns:** Are textures (e.g., wood grain, fabric, noise) unnaturally repetitive or uniform across different surfaces? Rate texture realism from 1 (unnatural/synthetic) to 5 (highly realistic).
-- **Lighting & Shadows:** Do all shadows in the background originate from a consistent light source? Rate lighting consistency from 1 (multiple inconsistent sources) to 5 (perfectly consistent).
-Be objective and concise.`
-  };
-
-  const prompt = componentPrompts[component];
-
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: { parts: [{ text: prompt }, ...imageParts] },
-      config: { temperature: 0.2 },
-    });
-    return response.text.trim();
-  } catch (e) {
-    console.warn(`Analysis for component '${component}' failed.`, e);
-    return `Analysis for '${component}' was inconclusive.`;
-  }
-};
-
-
-const performMultiPhaseImageAnalysis = async (
-  imageBases64: string[],
+const performImageAnalysis = async (
+  images: string[],
   ai: GoogleGenAI,
-  mode: AnalysisMode,
+  analysisMode: AnalysisMode,
+  forensicMode: ForensicMode,
   isChallenge: boolean
 ): Promise<AnalysisResult> => {
+  const modelName = analysisMode === 'deep' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
 
-  const [imageType, subjectReport, typographyReport, graphicsReport, textureReport] = await Promise.all([
-    classifyImageType(imageBases64[0], ai),
-    analyzeImageComponent('human subject', imageBases64, ai),
-    analyzeImageComponent('typography', imageBases64, ai),
-    analyzeImageComponent('graphic elements', imageBases64, ai),
-    analyzeImageComponent('background and texture', imageBases64, ai),
-  ]);
-  
-  const baseSystemInstruction = imageType === 'PHOTOREALISTIC' ? photorealisticSystemInstruction : graphicDesignSystemInstruction;
-  const systemInstruction = (isChallenge ? secondOpinionPreamble : '') + baseSystemInstruction;
-  
-  const synthesisPrompt = `You are the master detective. Your final task is to synthesize preliminary forensic reports into a definitive verdict. The evidence is the provided image(s) and the specialist reports below.
-
-**CRITICAL CONTEXT:** High-end AI models now generate near-flawless individual components (people, text, graphics). The most significant clue is no longer isolated flaws, but the **unnatural perfection of their synthesis**. Your primary mission is to assess the plausibility of this synthesis from the perspective of a human workflow.
-
-**Specialist Reports:**
-- Report on Human Subject(s): ${subjectReport}
-- Report on Typography: ${typographyReport}
-- Report on Graphic Elements: ${graphicsReport}
-- Report on Background & Texture: ${textureReport}
-
-**Your Final Analysis Directive:**
-Based on the reports and the image, critically answer: Is the *combination* of these elements plausible for a human designer, or does it point to a single, unified generative pass? Focus exclusively on:
-1.  **Lighting & Shadow Coherence:** Is the lighting on the human subject absolutely pixel-perfectly consistent with the lighting, shadows, and reflections on the text and graphic elements? Is this level of flawless light-matching plausible for a human using separate tools (e.g., photography + graphic design software), or does it suggest a single, synthetic origin?
-2.  **Textural Uniformity:** Scrutinize any texture or noise. Is it applied with perfect, mathematical uniformity across every single element (the person's skin, their clothes, the background, the text)? A human designer typically applies texture with more nuance and variation. Unnatural uniformity is a major red flag.
-3.  **Edge Perfection:** Examine the edges where different elements meet (e.g., the subject's hair against the background, the text outline). Is the anti-aliasing, softness, and shadow quality identical across all components? This points towards a single rendering process.
-
-Synthesize these specific points to make your final call. A high degree of "unnatural perfection" in the integration of otherwise flawless parts is the strongest indicator of a fully AI-generated composite image. Render your final verdict and detailed highlights in the required JSON format.`;
-
-  const imageParts = imageBases64.map(b64 => {
+  const imageParts = images.map(b64 => {
       const [header, data] = b64.split(',');
       const mimeType = header.match(/:(.*?);/)?.[1];
       if (!mimeType || !data) throw new Error("Invalid base64 image format.");
       return { inlineData: { mimeType, data } };
   });
 
-  const modelName = mode === 'deep' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+  const contentParts: ({ text: string } | { inlineData: { mimeType: string; data: string; } })[] = [];
+
+  if (imageParts.length === 1) {
+    contentParts.push(...imageParts);
+  } else if (imageParts.length > 1) {
+    contentParts.push({ text: "This is the primary image for your analysis:" });
+    contentParts.push(imageParts[0]);
+    contentParts.push({ text: "The following images are detailed crops or hints to help you see better. Use them to inform your judgment on the primary image." });
+    contentParts.push(...imageParts.slice(1));
+  }
   
+  const baseSystemInstruction = imageSystemInstructions[forensicMode];
+  const systemInstruction = (isChallenge ? secondOpinionPreamble : '') + baseSystemInstruction;
+  
+  const prompt = `Perform a forensic analysis of the provided image(s) according to your system instructions and provide your findings in the required JSON format.`;
+  const fullContent = [{ text: prompt }, ...contentParts];
+
   const response = await ai.models.generateContent({
-    model: modelName,
-    contents: { parts: [{ text: synthesisPrompt }, ...imageParts] },
-    config: {
-      systemInstruction,
-      responseMimeType: 'application/json',
-      responseSchema: analysisSchema,
-      temperature: 0.1,
-    },
+      model: modelName,
+      contents: { parts: fullContent },
+      config: {
+          systemInstruction,
+          responseMimeType: 'application/json',
+          responseSchema: analysisSchema,
+          temperature: 0.2,
+      },
   });
-  
   const jsonString = response.text.trim();
   return JSON.parse(jsonString) as AnalysisResult;
 };
 
+interface AnalyzeContentParams {
+    text: string;
+    images?: string[] | null;
+    url?: string | null;
+    analysisMode?: AnalysisMode;
+    forensicMode?: ForensicMode;
+    isChallenge?: boolean;
+}
 
-export const analyzeContent = async (text: string, imageBases64?: string[] | null, url?: string | null, mode: AnalysisMode = 'deep', isChallenge: boolean = false): Promise<AnalysisResult> => {
+export const analyzeContent = async ({
+    text,
+    images,
+    url,
+    analysisMode = 'deep',
+    forensicMode = 'standard',
+    isChallenge = false
+}: AnalyzeContentParams): Promise<AnalysisResult> => {
   if (!process.env.API_KEY) {
     throw new Error("API_KEY environment variable is not set.");
   }
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   try {
-    if (imageBases64 && imageBases64.length > 0) {
-      return await performMultiPhaseImageAnalysis(imageBases64, ai, mode, isChallenge);
+    if (images && images.length > 0) {
+      return await performImageAnalysis(images, ai, analysisMode, forensicMode, isChallenge);
     }
 
-    // --- Text and URL Analysis (remains the same) ---
+    // --- Text and URL Analysis ---
     const baseSystemInstruction = textAndUrlSystemInstruction;
     const systemInstruction = isChallenge ? secondOpinionPreamble + baseSystemInstruction : baseSystemInstruction;
     
-    let promptText = '';
+    let promptText = `Please analyse the following text according to your system instructions and provide your findings in the required JSON format.\n\nText to Analyze:\n---\n${text.slice(0, 15000)}\n---`;
     if (url) {
-      promptText = `Please analyze the content likely found at the provided URL: ${url}. IMPORTANT: You cannot access this URL in real-time...`;
-    } else {
-      promptText = `Please analyze the following text...\n\nText to Analyze:\n---\n${text.slice(0, 15000)}\n---`;
+        // Note: URL content fetching is not implemented, so this relies on the model's knowledge of the URL or the text *about* the URL.
+        promptText = `Please analyse the content likely found at the provided URL: ${url}. IMPORTANT: You cannot access this URL in real-time, so base your analysis on general knowledge about the site or typical content found at such a URL. Then provide your findings in the required JSON format.`;
     }
 
-    const modelName = mode === 'deep' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+    const modelName = analysisMode === 'deep' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
     const response = await ai.models.generateContent({
       model: modelName,
       contents: { parts: [{ text: promptText }] },
@@ -263,7 +192,7 @@ export const analyzeContent = async (text: string, imageBases64?: string[] | nul
     const jsonString = response.text.trim();
     const result = JSON.parse(jsonString);
     if (url) {
-      result.explanation = `Please note: This analysis is based on the AI's general knowledge... \n\n${result.explanation}`;
+      result.explanation = `Please note: This analysis is based on the AI's general knowledge of the likely content at the provided URL, as direct access is not possible.\n\n${result.explanation}`;
     }
     return result as AnalysisResult;
 
@@ -271,18 +200,18 @@ export const analyzeContent = async (text: string, imageBases64?: string[] | nul
     console.error("Error during analysis:", error);
     let errorMessage = "Zut alors! My deductive engines have sputtered. A most peculiar and unknown malfunction!";
 
-    if (error instanceof Error) {
+    if (error instanceof SyntaxError) {
+        errorMessage = "Mon Dieu! The model's response is a cryptic riddle, not the clear-cut JSON I expected. A most peculiar case!";
+    } else if (error instanceof Error) {
         const lowerCaseMessage = error.message.toLowerCase();
         if (lowerCaseMessage.includes('api key not valid')) {
             errorMessage = "Mon Dieu! It seems my detective's license—the API key—is invalid. We must rectify this bureaucratic oversight!";
-        } else if (lowerCaseMessage.includes('429')) {
-            errorMessage = "Sacre bleu! We are receiving too many clues at once! My circuits must cool down. Please wait a moment before presenting more evidence.";
+        } else if (lowerCaseMessage.includes('429') || lowerCaseMessage.includes('resource_exhausted')) {
+            errorMessage = "Sacre bleu! My circuits are overheating from the rapid pace of investigation. You may have exceeded your API quota. Please wait a moment, or try switching to 'Quick Scan' mode which allows for more frequent analysis.";
         } else if (lowerCaseMessage.includes('safety')) {
             errorMessage = "Non! This evidence is inadmissible. My analysis is immediately concluded. The content violates fundamental safety principles. This case is closed.";
         } else if (lowerCaseMessage.includes('network') || lowerCaseMessage.includes('failed to fetch')) {
             errorMessage = "It appears our secure line to the digital archives has been severed! Check your network connection, my dear Watson... I mean, user.";
-        } else if (lowerCaseMessage.includes('json')) {
-            errorMessage = "Mon Dieu! The model's response is a cryptic riddle, not the clear-cut JSON I expected. A most peculiar case!";
         }
     }
     throw new Error(errorMessage);

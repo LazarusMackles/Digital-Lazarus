@@ -1,6 +1,5 @@
 import React from 'react';
-import { SunIcon } from './icons/SunIcon';
-import { MoonIcon } from './icons/MoonIcon';
+import { SunIcon, MoonIcon } from './icons';
 
 interface ThemeToggleProps {
   theme: 'light' | 'dark';
@@ -15,7 +14,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ theme, setTheme }) => 
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-full bg-slate-200/50 hover:bg-slate-200 dark:bg-slate-700/50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
+      className="p-2 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
       aria-label="Toggle theme"
     >
       {theme === 'light' ? (

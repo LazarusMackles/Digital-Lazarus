@@ -4,10 +4,11 @@ import { InputTabs } from './components/InputTabs';
 import { ResultDisplay } from './components/ResultDisplay';
 import { Loader } from './components/Loader';
 import { analyzeContent } from './services/geminiService';
-import type { AnalysisResult, AnalysisMode } from './types';
-import { ArrowPathIcon } from './components/icons/ArrowPathIcon';
+import type { AnalysisResult, AnalysisMode, ForensicMode } from './types';
 import { ModeSelector } from './components/ModeSelector';
 import { WelcomeModal } from './components/WelcomeModal';
+import { ForensicModeToggle } from './components/ForensicModeToggle';
+import { SpinnerIcon } from './components/icons';
 
 type Theme = 'light' | 'dark';
 
@@ -21,13 +22,13 @@ const App: React.FC = () => {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('deep');
+  const [forensicMode, setForensicMode] = useState<ForensicMode>('standard');
   const [showWelcome, setShowWelcome] = useState<boolean>(false);
   const [isChallenged, setIsChallenged] = useState<boolean>(false);
   const [theme, setTheme] = useState<Theme>(() => {
     const savedTheme = localStorage.getItem('theme') as Theme;
     if (savedTheme) return savedTheme;
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
-    return 'light';
+    return 'dark';
   });
 
   useEffect(() => {
@@ -57,13 +58,14 @@ const App: React.FC = () => {
       new URL(value);
       return value.includes('.') && !value.startsWith('http://.') && !value.startsWith('https://.');
     } catch (_) {
-      return value.includes('.') && !value.startsWith('.') && !value.endsWith('.');
+      // Fallback for simple validation without full URL object
+      return value.includes('.') && !value.startsWith('.') && !value.endsWith('.') && !value.includes(' ');
     }
   };
 
   const handleAnalyze = useCallback(async () => {
     if ((!textContent.trim() && (!imageData || imageData.length === 0) && !url.trim()) || (url.trim() && !isUrlValid)) {
-      setError('Mon Dieu! You must provide some valid evidence for me to analyze!');
+      setError('Mon Dieu! You must provide some valid evidence for me to analyse!');
       return;
     }
 
@@ -73,7 +75,7 @@ const App: React.FC = () => {
     setIsChallenged(false);
 
     try {
-      const result = await analyzeContent(textContent, imageData, url, analysisMode, false);
+      const result = await analyzeContent({ text: textContent, images: imageData, url, analysisMode, forensicMode, isChallenge: false });
       setAnalysisResult(result);
     } catch (err) {
       console.error(err);
@@ -85,7 +87,7 @@ const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [textContent, imageData, url, analysisMode, isUrlValid]);
+  }, [textContent, imageData, url, analysisMode, forensicMode, isUrlValid]);
 
   const handleChallenge = useCallback(async () => {
     setIsLoading(true);
@@ -93,7 +95,7 @@ const App: React.FC = () => {
     setIsChallenged(true);
     // Intentionally not clearing analysisResult to feel like an update
     try {
-      const result = await analyzeContent(textContent, imageData, url, analysisMode, true); // Re-run in challenge mode
+      const result = await analyzeContent({ text: textContent, images: imageData, url, analysisMode, forensicMode, isChallenge: true }); // Re-run in challenge mode
       setAnalysisResult(result);
     } catch (err) {
       console.error(err);
@@ -105,122 +107,122 @@ const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [textContent, imageData, url, analysisMode]);
+  }, [textContent, imageData, url, analysisMode, forensicMode]);
   
-  const handleReset = () => {
-    setTextContent('');
-    setImageData(null);
-    setUrl('');
-    setIsUrlValid(true);
-    setFileNames(null);
+  const handleNewAnalysis = () => {
     setAnalysisResult(null);
     setError(null);
-    setIsLoading(false);
     setIsChallenged(false);
   };
   
-  const handleFilesChange = (files: { name: string; content?: string | null; imageBase64?: string | null }[]) => {
-    // Clear other inputs when files are selected
+  const handleFilesChange = (files: { name: string, content?: string | null, imageBase64?: string | null }[]) => {
     setTextContent('');
+    setImageData(null);
     setUrl('');
-    setIsUrlValid(true);
-
-    const images = files.filter(f => f.imageBase64).map(f => f.imageBase64!);
-    const names = files.map(f => f.name);
-    const textFile = files.find(f => f.content);
-
-    if (images.length > 0) {
-      setImageData(images);
+    
+    if (files.length > 0) {
+      const names = files.map(f => f.name);
       setFileNames(names);
-    } else if (textFile) {
-      setTextContent(textFile.content || '');
-      setFileNames([textFile.name]);
-      setImageData(null);
-    } else {
-      // Handle unsupported file types or other cases
-      setImageData(null);
-      setFileNames(names); // Show the name of the unsupported file
+
+      const images = files.map(f => f.imageBase64).filter((b64): b64 is string => !!b64);
+      if (images.length > 0) {
+        setImageData(images);
+      }
+
+      const textFile = files.find(f => f.content);
+      if (textFile && textFile.content) {
+        setTextContent(textFile.content);
+      }
     }
   };
 
-  const isFormValid = (textContent.trim() !== '' || (imageData && imageData.length > 0) || (url.trim() !== '' && isUrlValid));
-  const buttonText = 'Deduce Origin!';
+  const handleClearFiles = () => {
+    setImageData(null);
+    setFileNames(null);
+    setTextContent('');
+  }
+
+  const handleUrlChange = (value: string) => {
+    setUrl(value);
+    setIsUrlValid(validateUrl(value));
+  }
+  
+  const isInputEmpty = !textContent.trim() && (!imageData || imageData.length === 0) && !url.trim();
+
+  const renderContent = () => {
+    if (isLoading && !analysisResult) {
+      return (
+        <div className="bg-white dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700/50">
+          <Loader />
+        </div>
+      );
+    }
+
+    if (analysisResult) {
+      return (
+        <div className="animate-fade-in-up">
+          <ResultDisplay
+            result={analysisResult}
+            onChallengeVerdict={handleChallenge}
+            isChallenged={isChallenged}
+            onNewAnalysis={handleNewAnalysis}
+            isLoading={isLoading}
+          />
+        </div>
+      );
+    }
+
+    return (
+       <div className="bg-white dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700/50">
+        <InputTabs
+          onTextChange={setTextContent}
+          onFilesChange={handleFilesChange}
+          onClearFiles={handleClearFiles}
+          onUrlChange={handleUrlChange}
+          textContent={textContent}
+          fileNames={fileNames}
+          imageData={imageData}
+          url={url}
+          isUrlValid={isUrlValid}
+        />
+        
+        {imageData && imageData.length > 0 && <ForensicModeToggle selectedMode={forensicMode} onModeChange={setForensicMode} />}
+        
+        <ModeSelector selectedMode={analysisMode} onModeChange={setAnalysisMode} />
+        
+        {error && <p className="my-4 text-center text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20 p-3 rounded-lg animate-fade-in">{error}</p>}
+        
+        <div className="flex justify-center">
+          <button
+            onClick={handleAnalyze}
+            disabled={isInputEmpty || !isUrlValid || (isLoading && !analysisResult)}
+            className={`w-full sm:w-auto px-10 py-4 text-lg font-bold text-white bg-fuchsia-600 rounded-full shadow-lg shadow-fuchsia-500/30 hover:bg-fuchsia-500 disabled:opacity-60 disabled:shadow-none transform hover:-translate-y-0.5 transition-all duration-200 disabled:cursor-wait flex items-center justify-center ${
+              isLoading && !analysisResult ? 'animate-pulse-deduce' : ''
+            }`}
+          >
+            {isLoading && !analysisResult ? (
+              <>
+                <SpinnerIcon className="animate-spin w-6 h-6 mr-3" />
+                <span>Deducing...</span>
+              </>
+            ) : (
+              'Deduce the Digital DNA'
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <>
       {showWelcome && <WelcomeModal onClose={() => setShowWelcome(false)} />}
-      <div className="min-h-screen bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-white flex flex-col items-center p-4 sm:p-6 lg:p-8">
-        <div className="w-full max-w-3xl mx-auto">
+      <div className="min-h-screen p-4 sm:p-6 md:p-8 text-slate-800 dark:text-white transition-colors duration-300">
+        <div className="max-w-4xl mx-auto">
           <Header theme={theme} setTheme={setTheme} />
-          <main className="mt-8">
-            <div className="relative bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-cyan-500/20 rounded-2xl shadow-lg dark:shadow-2xl dark:shadow-cyan-500/10 transition-all duration-300">
-              {analysisResult && (
-                <button
-                  onClick={handleReset}
-                  className="absolute top-4 right-4 z-20 p-2 text-slate-500 hover:text-slate-900 bg-slate-200/50 hover:bg-slate-200 dark:text-slate-400 dark:hover:text-white dark:bg-slate-700/50 dark:hover:bg-slate-700 rounded-full transition-all duration-200"
-                  aria-label="Analyze new content"
-                >
-                  <ArrowPathIcon className="w-5 h-5" />
-                </button>
-              )}
-
-              <div className="p-6 sm:p-8">
-                {isLoading ? (
-                  <Loader />
-                ) : analysisResult ? (
-                  <div className="animate-fade-in-up">
-                    <ResultDisplay result={analysisResult} onChallengeVerdict={handleChallenge} isChallenged={isChallenged} />
-                  </div>
-                ) : (
-                  <>
-                    <InputTabs
-                      onTextChange={(text) => {
-                        setTextContent(text);
-                        setImageData(null);
-                        setFileNames(null);
-                        setUrl('');
-                        setIsUrlValid(true);
-                      }}
-                      onFilesChange={handleFilesChange}
-                      onClearFiles={() => {
-                        setImageData(null);
-                        setFileNames(null);
-                      }}
-                      onUrlChange={(newUrl) => {
-                          const isValid = validateUrl(newUrl);
-                          setUrl(newUrl);
-                          setIsUrlValid(isValid);
-                          setTextContent('');
-                          setImageData(null);
-                          setFileNames(null);
-                      }}
-                      textContent={textContent}
-                      fileNames={fileNames}
-                      imageData={imageData}
-                      url={url}
-                      isUrlValid={isUrlValid}
-                    />
-                    {error && <p className="mt-4 text-center text-red-500 dark:text-red-400 text-sm">{error}</p>}
-                    
-                    <ModeSelector selectedMode={analysisMode} onModeChange={setAnalysisMode} />
-
-                    <div className="mt-8 flex justify-center">
-                      <button
-                        onClick={handleAnalyze}
-                        disabled={!isFormValid || isLoading}
-                        className="w-full sm:w-auto px-10 py-3 text-lg font-bold text-white bg-cyan-600 rounded-full shadow-lg shadow-cyan-500/30 hover:bg-cyan-500 transform hover:-translate-y-1 transition-all duration-300 ease-in-out disabled:bg-slate-400 dark:disabled:bg-slate-700 disabled:shadow-none disabled:cursor-not-allowed disabled:transform-none"
-                      >
-                        {buttonText}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
+          <main className="mt-12">
+            {renderContent()}
           </main>
-          <footer className="text-center mt-8 text-slate-500 text-sm">
-            <p>&copy; {new Date().getFullYear()} Gen-AI Content Sleuth. Here's to a future of clarity and brilliant collaboration.</p>
-          </footer>
         </div>
       </div>
     </>
