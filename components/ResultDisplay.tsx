@@ -20,21 +20,11 @@ export const ResultDisplay: React.FC = () => {
   } = useAnalysis();
     
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [challengeStep, setChallengeStep] = useState<'initial' | 'options'>('initial');
   
   if (!result) return null; // Should not happen if rendered, but a good safeguard
 
   const hasHighlights = result.highlights && result.highlights.length > 0;
-  const showChallengeButton = !isChallenged && result.probability < 50;
-
-  const handleChallengeClick = () => {
-    setChallengeStep('options');
-  }
-
-  const handleChallengeOptionClick = (mode: ForensicMode) => {
-    handleChallenge(mode);
-    setChallengeStep('initial'); // Reset for next potential result
-  }
+  const showChallengeButton = !isChallenged;
 
   return (
     <>
@@ -72,35 +62,25 @@ export const ResultDisplay: React.FC = () => {
               <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 w-full max-w-xl flex flex-col items-center">
                     <p className="font-semibold text-slate-700 dark:text-slate-200">Think I've missed something?</p>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Let's solve this case together.</p>
-                    {challengeStep === 'initial' && (
-                       <button
-                           onClick={handleChallengeClick}
-                           className="px-6 py-2 font-bold text-white bg-fuchsia-600 rounded-full shadow-lg shadow-fuchsia-500/30 hover:bg-fuchsia-500 transform hover:-translate-y-0.5 transition-all duration-200"
-                       >
-                           Challenge the Verdict &amp; Look Closer 🔬
-                       </button>
-                    )}
-                    {challengeStep === 'options' && (
-                        <div className="w-full animate-fade-in-up">
-                            <p className="text-sm font-medium text-center text-slate-500 dark:text-slate-400 mb-3">How should I re-evaluate the evidence?</p>
-                             <div className="flex flex-col sm:flex-row gap-2">
-                                <ModeButton
-                                    active={false}
-                                    onClick={() => handleChallengeOptionClick('technical')}
-                                    title="Focus on Technical Clues"
-                                    description="Analyse pixels, lighting, and textures."
-                                    size="sm"
-                                />
-                                <ModeButton
-                                    active={false}
-                                    onClick={() => handleChallengeOptionClick('conceptual')}
-                                    title="Focus on Conceptual Clues"
-                                    description="Analyse context, subject, and overall 'feel'."
-                                    size="sm"
-                                />
-                            </div>
+                    <div className="w-full animate-fade-in-up">
+                        <p className="text-sm font-medium text-center text-slate-500 dark:text-slate-400 mb-3">How should I re-evaluate the evidence?</p>
+                         <div className="flex flex-col sm:flex-row gap-2">
+                            <ModeButton
+                                active={false}
+                                onClick={() => handleChallenge('technical')}
+                                title="Focus on Technical Clues"
+                                description="Analyse pixels, lighting, and textures."
+                                size="sm"
+                            />
+                            <ModeButton
+                                active={false}
+                                onClick={() => handleChallenge('conceptual')}
+                                title="Focus on Conceptual Clues"
+                                description="Analyse context, subject, and overall 'feel'."
+                                size="sm"
+                            />
                         </div>
-                    )}
+                    </div>
               </div>
             )}
 
@@ -117,13 +97,6 @@ export const ResultDisplay: React.FC = () => {
             </div>
 
             <SleuthNote />
-
-            <div className="mt-8 flex justify-center">
-              <button onClick={handleNewAnalysis} className="flex items-center gap-2 px-6 py-2 font-semibold text-white bg-cyan-600 rounded-full shadow-lg shadow-cyan-500/30 hover:bg-cyan-500 transform hover:-translate-y-0.5 transition-all duration-200">
-                <ArrowPathIcon className="w-5 h-5" />
-                New Analysis
-              </button>
-            </div>
         </div>
       </div>
     </>

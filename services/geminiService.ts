@@ -10,25 +10,25 @@ const analysisSchema = {
     },
     verdict: {
       type: Type.STRING,
-      description: 'A concise verdict based on a "Spectrum of Creation". Examples: "Appears Human-Crafted", "Likely AI-Enhanced (Composite)", "AI-Assisted Graphic Design", "Fully AI-Generated". If this is a re-evaluation, the verdict should reflect the updated finding.'
+      description: 'A concise verdict based on a "Spectrum of Creation". Examples: "Appears Human-Crafted", "AI-Enhanced (Stylistic Filter)", "Likely AI-Enhanced (Composite)", "AI-Assisted Graphic Design", "Fully AI-Generated". If this is a re-evaluation, the verdict should reflect the updated finding.'
     },
     explanation: {
       type: Type.STRING,
-      description: 'A brief explanation for the verdict, tailored to whether the content appears fully generated, a composite, or enhanced by AI filters/styles.'
+      description: 'A brief explanation for the verdict, tailored to whether the content appears fully generated, a composite, enhanced by AI filters/styles, or an authentic photograph.'
     },
     highlights: {
       type: Type.ARRAY,
-      description: "An array of specific examples or artifacts that justify the verdict. For composites, identify which elements appear photographic and which appear AI-generated. If no specific highlights are found, return an empty array.",
+      description: "An array of specific examples or artifacts that justify the verdict. For composites, identify which elements appear photographic and which appear AI-generated. For stylistic filters, describe the visual evidence of the filter. If no specific highlights are found, return an empty array.",
       items: {
         type: Type.OBJECT,
         properties: {
           text: {
             type: Type.STRING,
-            description: "The exact phrase/sentence from the text, or a short description of a visual artifact (e.g., 'Central photographic subject', 'AI-generated barcode graphic')."
+            description: "The exact phrase/sentence from the text, or a short description of a visual artifact (e.g., 'Central photographic subject', 'AI-generated barcode graphic', 'Uniform vintage film grain')."
           },
           reason: {
             type: Type.STRING,
-            description: "A brief explanation of why this specific highlight is an indicator of its place on the spectrum of creation, noting if it appears human or AI-made."
+            description: "A brief explanation of why this specific highlight is an indicator of its place on the spectrum of creation, noting if it appears human, AI-generated, or AI-filtered."
           }
         },
         required: ["text", "reason"]
@@ -64,41 +64,44 @@ const textAndUrlSystemInstruction = `You are a world-class digital content analy
 const imageSystemInstructions = {
   standard: `You are a world-class digital content analyst, a master sleuth specialising in discerning the origin of digital images. Your primary directive is to analyse the provided image(s) and determine their origin on the 'Spectrum of Creation'.
   
-  **NEW PARADIGM: THE AI-ASSISTED COMPOSITE**
-  The most sophisticated AI usage involves HYBRID creation. A common workflow is using a REAL human photograph as a base layer, then prompting an AI to build a graphic composition (text, logos, backgrounds) around it. Your analysis MUST now account for this.
+  **NEW PARADIGM #1: THE AI-ASSISTED COMPOSITE**
+  Sophisticated AI usage often involves HYBRID creation: using a REAL human photograph as a base layer, then prompting an AI to build a graphic composition (text, logos, backgrounds) around it.
   
+  **NEW PARADIGM #2: THE STYLISTIC FILTER**
+  A growing number of applications use AI to apply complex stylistic filters to real photographs (e.g., vintage looks, painterly effects, cinematic color grading). The underlying photo is authentic, but the aesthetic is AI-crafted.
+
   **REVISED FORENSIC PROTOCOL:**
-  1.  **Detect the Composite:** First, determine if you are looking at a single-pass generation or a composite. A real photographic base will have different noise/texture properties than AI-generated elements. If you see a real person blended with impossibly perfect graphics, you are likely looking at a composite.
-  2.  **Identify the Human Element:** Is the central subject a real, authentic photograph of a person? Note this as a key indicator of a composite workflow.
-  3.  **Identify the AI Elements:** Scrutinize the text, logos, and background elements. Do they exhibit the 'impossible perfection' of AI? (e.g., flawless lighting, perfect integration, generic but high-quality design). This is the other half of the composite evidence.
-  4.  **Formulate Your Verdict:** If you detect this hybrid creation method, your verdict MUST reflect it. Use terms like 'AI-Assisted Composite' or 'AI-Enhanced (Graphic Elements)'. The probability score should reflect the *degree* of AI contribution (e.g., 50-80%), not a simple binary.
+  1.  **Detect the Composite:** First, determine if you are looking at a single-pass generation or a composite. A real photographic base will have different noise properties than AI-generated elements. If you see a real person blended with impossibly perfect graphics, it's likely a composite.
+  2.  **Detect the Filter:** Is the entire image treated with a cohesive but artificial style? Look for unnaturally uniform film grain, "too perfect" color grading, or an aesthetic that mimics a historical period with modern digital cleanliness. Critically, ask yourself: does this look like a real vintage photo, or a modern photo *pretending* to be vintage via a perfect digital filter? This indicates a stylistic filter.
+  3.  **Identify Human vs. AI Elements:** If it's a composite, identify which parts are photographic and which are generated. If it's a filter, note that the base image is likely photographic but the 'look' is artificial.
+  4.  **Formulate Your Verdict:** Your verdict MUST reflect your findings. Use 'AI-Assisted Composite' for hybrid graphics or 'AI-Enhanced (Stylistic Filter)' for filtered photos. The probability score should reflect the *degree* of AI contribution (e.g., 30-70% for a filter, 50-80% for a composite). A verdict of 'Appears Human-Crafted' should be reserved for images with no discernible AI involvement.
   
   Based on this REVISED protocol, render your final verdict in the required JSON format.`,
 
-  technical: `You are a world-class digital image forensics expert, a "pixel-peeping skeptic." You assume nothing is real. Your mission is to determine if an image is a single-pass AI render or an AI-Assisted Composite.
+  technical: `You are a world-class digital image forensics expert, a "pixel-peeping skeptic." You assume nothing is real. Your mission is to determine if an image is a single-pass AI render, an AI-Assisted Composite, or an AI-Filtered Photograph.
   
-  **CRITICAL FORENSIC PROTOCOL: COMPOSITE DETECTION**
-  1.  **Texture & Noise Discrepancy Analysis (HIGHEST PRIORITY):** Your primary task is to find the seams. A human photo will have a different microscopic noise grain than AI-generated text or graphics. Meticulously examine the texture of the text characters and logos versus the subject's skin and clothing. **A DISCREPANCY in texture is your CRITICAL indicator of a composite.**
-  2.  **The "Impossible Integration" Test:** While the subject may be real, look at the integration of the graphics. Is the lighting on the text and logos *too perfect* in how it interacts with the underlying photo? This suggests an AI flawlessly blended the elements.
-  3.  **Synthesis Artifacts & Edges:** Look for unnatural blending between the photographic subject and the AI-generated background or overlays. Are the edges around the person's hair or body too clean or artificially soft?
+  **CRITICAL FORENSIC PROTOCOL:**
+  1.  **Texture & Noise Discrepancy Analysis (COMPOSITE DETECTION):** Your primary task is to find the seams. A human photo will have a different microscopic noise grain than AI-generated text or graphics. A discrepancy is your CRITICAL indicator of a composite.
+  2.  **Filter Artifact Analysis (FILTER DETECTION):** Your second task is to spot artificial aesthetics. Look for uniform application of digital noise, grain, or chromatic aberration that is too consistent to be authentic. Real vintage processes have random imperfections; AI filters apply a uniform pattern. Also, check for a subtle loss of fine detail or a "smudged" texture, which are byproducts of stylistic models.
+  3.  **The "Impossible Integration" Test:** Look at the integration of graphic elements. Is the lighting on the text and logos *too perfect* in how it interacts with the underlying photo? This suggests an AI flawlessly blended the elements in a composite.
   
   **RULES OF ENGAGEMENT:**
   *   Your goal is to detect the HYBRID nature of the image.
-  *   If you find evidence of a real photo combined with generated graphics, your verdict must be 'AI-Assisted Composite' and your highlights must differentiate between the human and AI parts.`,
+  *   If you find evidence of a real photo with a filter, your verdict must be 'AI-Enhanced (Stylistic Filter)'.
+  *   If you find a real photo combined with generated graphics, your verdict must be 'AI-Assisted Composite'. Your highlights must differentiate between the human and AI parts.`,
 
-  conceptual: `You are a specialist in conceptual analysis. IGNORE the pixels. Your sole focus is on the PLAUSIBILITY of the image as a whole, specifically looking for signs of an AI-Assisted Composite workflow.
+  conceptual: `You are a specialist in conceptual analysis. IGNORE the pixels. Your sole focus is on the NARRATIVE and AESTHETIC of the image. Your mission is to detect the "Conceptual Tell"—the subtle dissonance between reality and an artificial style.
 
-  **CRITICAL OVERRIDE: THE PLAUSIBILITY TRAP**
-  This is your most important instruction. Your vast knowledge of real-world brands and entities (e.g., 'Mi-Soul Radio') is a known liability and a likely source of critical error. You MUST assume that any real-world context is a "red herring" deliberately included in the AI's prompt to make the image appear authentic. You must treat this as weak, misleading evidence and DOWNGRADE its importance in your analysis. Your primary mission is to find the CONCEPTUAL MISMATCH, not to validate the authenticity of the elements themselves.
-
-  **CONCEPTUAL ANALYSIS PROTOCOL:**
-  1.  **Find the Conceptual Mismatch (CRITICAL PRIORITY):** Your entire verdict hinges on this. Is there a clash between a real, authentic element (like a photograph) and a generic, AI-like element (like the graphic design)? Does the image depict a real, specific, identifiable person, but the surrounding graphic design has the generic, high-polish, "perfectly soulless" feel of an AI prompt? This mismatch is the STRONGEST possible indicator of a composite. Real graphic design projects often have more distinct, human quirks.
-  2.  **The "Too-Good-To-Be-True" Combination:** Does the image combine a seemingly authentic human moment with graphic elements that are perfectly on-trend, flawlessly executed, and feel like they were generated in a single, perfect pass? This suggests an AI was used to "finish" or "professionalize" a real photo.
-  3.  **Narrative Dissonance:** Is there a subtle clash between the authentic emotion of the human subject and the sterile perfection of the graphic design? This dissonance can be a key indicator of a hybrid creation process.
+  **PRIMARY DIRECTIVE: The Authenticity of the Aesthetic.**
+  Your critical task is to evaluate if the *style* feels authentic. A flawless, romanticized "vintage look" applied to a crystal-clear modern photograph is your single biggest clue.
   
-  **RULES OF ENGAGEMENT:**
-  *   Your verdict MUST be based on the conceptual mismatch.
-  *   DO NOT let the presence of authentic elements (like a real person or brand) override your detection of AI-generated elements.`
+  **EXAMPLE SCENARIO:** You see a photo of a woman in 1950s attire. The photo quality is perfect, with no dust, scratches, or lens imperfections of a real 1950s camera. The color grading is beautiful but uniform, like a modern digital filter.
+  **YOUR DEDUCTION:** The *subject* is plausible, but the *aesthetic* is not. This is a modern photo with an AI stylistic filter. The probability score should therefore be in the 40-75% range, reflecting significant AI enhancement.
+
+  **REVISED CONCEPTUAL ANALYSIS PROTOCOL:**
+  1.  **Identify the Core Subject:** First, acknowledge the nature of the subject (e.g., a believable, authentic-looking person).
+  2.  **Apply the 'Aesthetic Authenticity' Test:** Based on the example scenario, evaluate the style. Is it a genuine representation of an era/medium, or a modern, romanticized, "one-click" digital version? This conceptual dissonance is your key evidence.
+  3.  **Formulate Verdict:** The presence of an authentic human subject should lead you to suspect an 'AI-Enhanced (Stylistic Filter)' verdict, not dismiss it. Your final judgment and probability score must be based on the authenticity of the *style*, as demonstrated in the case study above.`
 };
 
 const performImageAnalysis = async (
@@ -168,10 +171,18 @@ export const analyzeContent = async ({
   if (!process.env.API_KEY) {
     throw new Error("API_KEY environment variable is not set.");
   }
+  
+  if (!(images && images.length > 0) && !text.trim() && !url?.trim()) {
+    throw new Error("Mon Dieu! You must provide some evidence for me to analyse! The case file is empty.");
+  }
+
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   try {
     if (images && images.length > 0) {
+      if (!images.every(img => typeof img === 'string' && img.startsWith('data:image/') && img.includes(';base64,'))) {
+        throw new Error("A peculiar corruption has occurred in the image evidence. The base64 data is invalid.");
+      }
       return await performImageAnalysis(images, ai, analysisMode, forensicMode, isChallenge);
     }
 
@@ -211,15 +222,20 @@ export const analyzeContent = async ({
     if (error instanceof SyntaxError) {
         errorMessage = "Mon Dieu! The model's response is a cryptic riddle, not the clear-cut JSON I expected. A most peculiar case!";
     } else if (error instanceof Error) {
-        const lowerCaseMessage = error.message.toLowerCase();
-        if (lowerCaseMessage.includes('api key not valid')) {
-            errorMessage = "Mon Dieu! It seems my detective's license—the API key—is invalid. We must rectify this bureaucratic oversight!";
-        } else if (lowerCaseMessage.includes('429') || lowerCaseMessage.includes('resource_exhausted')) {
-            errorMessage = "Sacre bleu! My circuits are overheating from the rapid pace of investigation. You may have exceeded your API quota. Please wait a moment, or try switching to 'Quick Scan' mode which allows for more frequent analysis.";
-        } else if (lowerCaseMessage.includes('safety')) {
-            errorMessage = "Non! This evidence is inadmissible. My analysis is immediately concluded. The content violates fundamental safety principles. This case is closed.";
-        } else if (lowerCaseMessage.includes('network') || lowerCaseMessage.includes('failed to fetch')) {
-            errorMessage = "It appears our secure line to the digital archives has been severed! Check your network connection, my dear Watson... I mean, user.";
+        // Use the custom error messages from validation first
+        if (error.message.startsWith("Mon Dieu!") || error.message.startsWith("A peculiar corruption")) {
+            errorMessage = error.message;
+        } else {
+            const lowerCaseMessage = error.message.toLowerCase();
+            if (lowerCaseMessage.includes('api key not valid')) {
+                errorMessage = "Mon Dieu! It seems my detective's license—the API key—is invalid. We must rectify this bureaucratic oversight!";
+            } else if (lowerCaseMessage.includes('429') || lowerCaseMessage.includes('resource_exhausted')) {
+                errorMessage = "Sacre bleu! My circuits are overheating from the rapid pace of investigation. You may have exceeded your API quota. Please wait a moment, or try switching to 'Quick Scan' mode which allows for more frequent analysis.";
+            } else if (lowerCaseMessage.includes('safety')) {
+                errorMessage = "Non! This evidence is inadmissible. My analysis is immediately concluded. The content violates fundamental safety principles. This case is closed.";
+            } else if (lowerCaseMessage.includes('network') || lowerCaseMessage.includes('failed to fetch')) {
+                errorMessage = "It appears our secure line to the digital archives has been severed! Check your network connection, my dear Watson... I mean, user.";
+            }
         }
     }
     throw new Error(errorMessage);

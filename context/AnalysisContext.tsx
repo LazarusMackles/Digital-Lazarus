@@ -1,4 +1,4 @@
-import React, { createContext, useState, useCallback, useEffect, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { analyzeContent } from '../services/geminiService';
 import type { AnalysisResult, AnalysisMode, ForensicMode } from '../types';
 
@@ -36,18 +36,47 @@ interface AnalysisContextState {
 const AnalysisContext = createContext<AnalysisContextState | undefined>(undefined);
 
 export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) => {
-    const [textContent, setTextContent] = useState<string>('');
-    const [imageData, setImageData] = useState<string[] | null>(null);
-    const [url, setUrl] = useState<string>('');
+    const [textContent, setTextContent] = useState<string>(() => localStorage.getItem('analysisTextContent') || '');
+    const [imageData, setImageData] = useState<string[] | null>(() => {
+        const saved = localStorage.getItem('analysisImageData');
+        try {
+            return saved ? JSON.parse(saved) : null;
+        } catch { return null; }
+    });
+    const [url, setUrl] = useState<string>(() => localStorage.getItem('analysisUrl') || '');
+    const [fileNames, setFileNames] = useState<string[] | null>(() => {
+        const saved = localStorage.getItem('analysisFileNames');
+        try {
+            return saved ? JSON.parse(saved) : null;
+        } catch { return null; }
+    });
+
     const [isUrlValid, setIsUrlValid] = useState<boolean>(true);
-    const [fileNames, setFileNames] = useState<string[] | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+    const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(() => {
+        try {
+            const saved = localStorage.getItem('analysisResult');
+            return saved ? JSON.parse(saved) : null;
+        } catch (e) {
+            console.error("Could not parse saved analysis result:", e);
+            localStorage.removeItem('analysisResult');
+            return null;
+        }
+    });
     const [error, setError] = useState<string | null>(null);
     const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('quick');
     const [forensicMode, setForensicMode] = useState<ForensicMode>('standard');
     const [showWelcome, setShowWelcome] = useState<boolean>(false);
-    const [isChallenged, setIsChallenged] = useState<boolean>(false);
+    const [isChallenged, setIsChallenged] = useState<boolean>(() => {
+        try {
+            const saved = localStorage.getItem('isChallenged');
+            return saved ? JSON.parse(saved) : false;
+        } catch (e) {
+            console.error("Could not parse saved challenged state:", e);
+            localStorage.removeItem('isChallenged');
+            return false;
+        }
+    });
     const [theme, setTheme] = useState<Theme>(() => {
         const savedTheme = localStorage.getItem('theme') as Theme;
         if (savedTheme) return savedTheme;
@@ -75,12 +104,25 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         localStorage.setItem('theme', theme);
     }, [theme]);
     
-    const runAnalysis = useCallback(async (analysisFn: () => Promise<AnalysisResult>) => {
+    const clearPersistedInputs = () => {
+        localStorage.removeItem('analysisTextContent');
+        localStorage.removeItem('analysisImageData');
+        localStorage.removeItem('analysisUrl');
+        localStorage.removeItem('analysisFileNames');
+    };
+
+    const runAnalysis = async (analysisFn: () => Promise<AnalysisResult>) => {
         setIsLoading(true);
         setError(null);
         try {
             const result = await analysisFn();
             setAnalysisResult(result);
+            // Persist result and the inputs that generated it
+            localStorage.setItem('analysisResult', JSON.stringify(result));
+            localStorage.setItem('analysisTextContent', textContent);
+            localStorage.setItem('analysisImageData', JSON.stringify(imageData));
+            localStorage.setItem('analysisUrl', url);
+            localStorage.setItem('analysisFileNames', JSON.stringify(fileNames));
         } catch (err) {
             console.error(err);
             if (err instanceof Error) {
@@ -88,33 +130,48 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
             } else {
                 setError('Sacre bleu! An unidentifiable error has occurred in the digital ether. Most mysterious!');
             }
-            // Clear results on error so user isn't stuck on result screen
+            // Clear results and inputs on error so user isn't stuck on result screen
             setAnalysisResult(null);
+            localStorage.removeItem('analysisResult');
+            clearPersistedInputs();
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    };
 
-    const handleAnalyze = useCallback(async () => {
+    const handleAnalyze = async () => {
         if ((!textContent.trim() && (!imageData || imageData.length === 0) && !url.trim()) || (url.trim() && !isUrlValid)) {
             setError('Mon Dieu! You must provide some valid evidence for me to analyse!');
             return;
         }
         setAnalysisResult(null);
+        localStorage.removeItem('analysisResult');
+        clearPersistedInputs();
         setIsChallenged(false);
+        localStorage.setItem('isChallenged', 'false');
         await runAnalysis(() => analyzeContent({ text: textContent, images: imageData, url, analysisMode, forensicMode, isChallenge: false }));
-    }, [textContent, imageData, url, analysisMode, forensicMode, isUrlValid, runAnalysis]);
+    };
 
-    const handleChallenge = useCallback(async (mode: ForensicMode) => {
+    const handleChallenge = async (mode: ForensicMode) => {
         setIsChallenged(true);
+        localStorage.setItem('isChallenged', 'true');
         // Intentionally not clearing analysisResult to feel like an update
         await runAnalysis(() => analyzeContent({ text: textContent, images: imageData, url, analysisMode, forensicMode: mode, isChallenge: true }));
-    }, [textContent, imageData, url, analysisMode, runAnalysis]);
+    };
     
     const handleNewAnalysis = () => {
         setAnalysisResult(null);
         setError(null);
         setIsChallenged(false);
+        // Clear state
+        setTextContent('');
+        setImageData(null);
+        setUrl('');
+        setFileNames(null);
+        // Clear storage
+        localStorage.removeItem('analysisResult');
+        localStorage.setItem('isChallenged', 'false');
+        clearPersistedInputs();
     };
     
     const handleFilesChange = (files: { name: string, content?: string | null, imageBase64?: string | null }[]) => {
@@ -142,7 +199,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         setImageData(null);
         setFileNames(null);
         setTextContent('');
-    }
+    };
     
     const value = {
         textContent,

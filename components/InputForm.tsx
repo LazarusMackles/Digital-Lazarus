@@ -5,6 +5,15 @@ import { ForensicModeToggle } from './ForensicModeToggle';
 import { SpinnerIcon } from './icons';
 import { useAnalysis } from '../context/AnalysisContext';
 
+const validateUrl = (value: string): boolean => {
+    if (!value) return true;
+    try {
+        new URL(value);
+        return value.includes('.') && !value.startsWith('http://.') && !value.startsWith('https://.');
+    } catch (_) {
+        return value.includes('.') && !value.startsWith('.') && !value.endsWith('.') && !value.includes(' ');
+    }
+};
 
 export const InputForm: React.FC = () => {
     const {
@@ -26,16 +35,6 @@ export const InputForm: React.FC = () => {
         isLoading,
         handleAnalyze
     } = useAnalysis();
-    
-    const validateUrl = (value: string): boolean => {
-        if (!value) return true;
-        try {
-            new URL(value);
-            return value.includes('.') && !value.startsWith('http://.') && !value.startsWith('https://.');
-        } catch (_) {
-            return value.includes('.') && !value.startsWith('.') && !value.endsWith('.') && !value.includes(' ');
-        }
-    };
 
     const handleUrlChange = (value: string) => {
         setUrl(value);
