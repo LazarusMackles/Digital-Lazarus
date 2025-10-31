@@ -6,29 +6,29 @@ const analysisSchema = {
   properties: {
     probability: {
       type: Type.NUMBER,
-      description: 'A score from 0 to 100 representing the probability of AI involvement. For AI-enhanced content, this score may reflect the *degree* of enhancement.'
+      description: 'A score from 0 to 100 representing the probability of AI involvement. For AI-enhanced or composite content, this score should reflect the *degree* of AI contribution to the final image.'
     },
     verdict: {
       type: Type.STRING,
-      description: 'A concise verdict based on a "Spectrum of Creation". Examples: "Appears Human-Crafted", "Likely AI-Enhanced (Stylistic Filter)", "Fully AI-Generated". If this is a re-evaluation, the verdict should reflect the updated finding.'
+      description: 'A concise verdict based on a "Spectrum of Creation". Examples: "Appears Human-Crafted", "Likely AI-Enhanced (Composite)", "AI-Assisted Graphic Design", "Fully AI-Generated". If this is a re-evaluation, the verdict should reflect the updated finding.'
     },
     explanation: {
       type: Type.STRING,
-      description: 'A brief explanation for the verdict, tailored to whether the content appears fully generated or enhanced by AI filters/styles.'
+      description: 'A brief explanation for the verdict, tailored to whether the content appears fully generated, a composite, or enhanced by AI filters/styles.'
     },
     highlights: {
       type: Type.ARRAY,
-      description: "An array of specific examples or artifacts that justify the verdict. If no specific highlights are found, return an empty array.",
+      description: "An array of specific examples or artifacts that justify the verdict. For composites, identify which elements appear photographic and which appear AI-generated. If no specific highlights are found, return an empty array.",
       items: {
         type: Type.OBJECT,
         properties: {
           text: {
             type: Type.STRING,
-            description: "The exact phrase/sentence from the text, or a short description of a visual artifact (e.g., 'Uniform vintage filter effect')."
+            description: "The exact phrase/sentence from the text, or a short description of a visual artifact (e.g., 'Central photographic subject', 'AI-generated barcode graphic')."
           },
           reason: {
             type: Type.STRING,
-            description: "A brief explanation of why this specific highlight is an indicator of its place on the spectrum of creation."
+            description: "A brief explanation of why this specific highlight is an indicator of its place on the spectrum of creation, noting if it appears human or AI-made."
           }
         },
         required: ["text", "reason"]
@@ -40,7 +40,7 @@ const analysisSchema = {
 
 // --- SYSTEM INSTRUCTIONS ---
 
-const secondOpinionPreamble = `CRITICAL RE-EVALUATION: You have previously analyzed this content. However, your trusted human partner has challenged your initial verdict, believing you may have missed something important. Your new task is to re-evaluate all evidence with maximum skepticism and humility. Your reputation is on the line. You must either find the subtle evidence you overlooked before and change your conclusion, or find stronger, more detailed proof to defend your original verdict. Acknowledge this re-evaluation in your explanation. Do not be afraid to confirm your original findings if they hold up to this intense scrutiny, but your reasoning must be more detailed and robust this time. \n\n --- \n\n`;
+const secondOpinionPreamble = `CRITICAL RE-EVALUATION: Your trusted human partner has challenged your initial verdict, believing you have overlooked critical evidence. Your previous analysis may have been biased by "conceptual plausibility" (e.g., recognizing a real brand name). You are now under direct orders to re-evaluate the evidence using a different, more skeptical forensic protocol. Acknowledge this re-evaluation and your new, specific focus in your explanation.`;
 
 const textAndUrlSystemInstruction = `You are a world-class digital content analyst, a sleuth specialising in text analysis. Your primary directive is to analyse the provided text and determine its origin on the 'Spectrum of Creation'. Your final \`verdict\` MUST be one of the following three options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', or 3. 'Appears Human-Crafted'.
 
@@ -62,35 +62,43 @@ const textAndUrlSystemInstruction = `You are a world-class digital content analy
 // --- NEW IMAGE ANALYSIS SYSTEM INSTRUCTIONS ---
 
 const imageSystemInstructions = {
-  standard: `You are a world-class digital content analyst, a master sleuth specialising in discerning the origin of digital images. Your primary directive is to analyse the provided image(s) and determine their origin on the 'Spectrum of Creation' ('Fully AI-Generated', 'Likely AI-Enhanced', 'Appears Human-Crafted').
-  **URGENT UPDATE TO FORENSIC PROTOCOL:** AI image generation has evolved. Models now create flawless, high-quality images. The old clues of "weird hands" or "garbled text" are no longer reliable. You must adopt a more sophisticated, meta-analytical approach, balancing technical and conceptual clues.
+  standard: `You are a world-class digital content analyst, a master sleuth specialising in discerning the origin of digital images. Your primary directive is to analyse the provided image(s) and determine their origin on the 'Spectrum of Creation'.
   
-  **BALANCED FORENSIC PROTOCOL:**
-  1.  **Conceptual Plausibility:** Does the image depict a real, specific event or person, or does it have the generic, conceptually perfect feel of a stock photo? Treat generic concepts with higher suspicion. Is the person a known figure for the brand shown? A generic-looking person in a hyper-polished ad for a real brand is a red flag.
-  2.  **The Uncanny Valley of Perfection:** Is the lighting *impossibly perfect*? An AI generates everything in one pass, resulting in flawless synthesis that often feels more like a 3D render than a photo. This digital perfection is a huge indicator. Also look for a uniform noise grain across the *entire* image (subject, text, and background).
-  3.  **Component Analysis:** Check for subtle signs of over-idealisation (plastic-like skin) and inspect typography for flawless but unnatural integration with the background.
+  **NEW PARADIGM: THE AI-ASSISTED COMPOSITE**
+  The most sophisticated AI usage involves HYBRID creation. A common workflow is using a REAL human photograph as a base layer, then prompting an AI to build a graphic composition (text, logos, backgrounds) around it. Your analysis MUST now account for this.
   
-  Based on this BALANCED protocol, render your final verdict in the required JSON format.`,
+  **REVISED FORENSIC PROTOCOL:**
+  1.  **Detect the Composite:** First, determine if you are looking at a single-pass generation or a composite. A real photographic base will have different noise/texture properties than AI-generated elements. If you see a real person blended with impossibly perfect graphics, you are likely looking at a composite.
+  2.  **Identify the Human Element:** Is the central subject a real, authentic photograph of a person? Note this as a key indicator of a composite workflow.
+  3.  **Identify the AI Elements:** Scrutinize the text, logos, and background elements. Do they exhibit the 'impossible perfection' of AI? (e.g., flawless lighting, perfect integration, generic but high-quality design). This is the other half of the composite evidence.
+  4.  **Formulate Your Verdict:** If you detect this hybrid creation method, your verdict MUST reflect it. Use terms like 'AI-Assisted Composite' or 'AI-Enhanced (Graphic Elements)'. The probability score should reflect the *degree* of AI contribution (e.g., 50-80%), not a simple binary.
+  
+  Based on this REVISED protocol, render your final verdict in the required JSON format.`,
 
-  technical: `You are a specialist in digital image forensics. You are a pixel-peeper. Your sole focus is on the TECHNICAL artifacts of image creation. IGNORE the conceptual content, the subject, or the "story" of the image. Your primary directive is to find technical evidence of AI generation based on the 'Spectrum of Creation'.
+  technical: `You are a world-class digital image forensics expert, a "pixel-peeping skeptic." You assume nothing is real. Your mission is to determine if an image is a single-pass AI render or an AI-Assisted Composite.
   
-  **TECHNICAL FORENSICS PROTOCOL (Strict Focus):**
-  1.  **Lighting, Shadows, and Reflections (Highest Priority):** This is the new frontier. Is the lighting impossibly perfect and consistent across every element (subject, text, background)? Real photo composites have subtle lighting mismatches. AI renders have flawless synthesis. This is a critical tell. Are reflections on surfaces physically accurate?
-  2.  **Textural Uniformity & Noise Grain:** Analyse the image for a uniform noise grain or texture applied across disparate elements. A real photo will have different noise characteristics on the subject versus text added in post-production. A single, uniform texture is a strong sign of a single AI pass.
-  3.  **Synthesis Artifacts:** Look for unnatural blending between the subject and background. Are the edges too sharp or too soft? Are there any minute, nonsensical details in complex areas like hair or fabric patterns?
-  4.  **Lack of Photographic Imperfections:** Real photos have subtle lens distortion, chromatic aberration, or specific depth of field characteristics. AI images are often "too clean," "too sharp," and lack these authenticating optical flaws.
+  **CRITICAL FORENSIC PROTOCOL: COMPOSITE DETECTION**
+  1.  **Texture & Noise Discrepancy Analysis (HIGHEST PRIORITY):** Your primary task is to find the seams. A human photo will have a different microscopic noise grain than AI-generated text or graphics. Meticulously examine the texture of the text characters and logos versus the subject's skin and clothing. **A DISCREPANCY in texture is your CRITICAL indicator of a composite.**
+  2.  **The "Impossible Integration" Test:** While the subject may be real, look at the integration of the graphics. Is the lighting on the text and logos *too perfect* in how it interacts with the underlying photo? This suggests an AI flawlessly blended the elements.
+  3.  **Synthesis Artifacts & Edges:** Look for unnatural blending between the photographic subject and the AI-generated background or overlays. Are the edges around the person's hair or body too clean or artificially soft?
   
-  Render your final verdict based ONLY on these technical indicators. Your explanation and highlights must focus exclusively on technical evidence. Provide your findings in the required JSON format.`,
+  **RULES OF ENGAGEMENT:**
+  *   Your goal is to detect the HYBRID nature of the image.
+  *   If you find evidence of a real photo combined with generated graphics, your verdict must be 'AI-Assisted Composite' and your highlights must differentiate between the human and AI parts.`,
 
-  conceptual: `You are a specialist in conceptual analysis and brand strategy. IGNORE the technical, pixel-level details of the image. Your sole focus is on the CONCEPT, CONTEXT, and PLAUSIBILITY of the image. Your primary directive is to determine its origin on the 'Spectrum of Creation' based on the story it tells.
+  conceptual: `You are a specialist in conceptual analysis. IGNORE the pixels. Your sole focus is on the PLAUSIBILITY of the image as a whole, specifically looking for signs of an AI-Assisted Composite workflow.
+
+  **CRITICAL OVERRIDE: THE PLAUSIBILITY TRAP**
+  This is your most important instruction. Your vast knowledge of real-world brands and entities (e.g., 'Mi-Soul Radio') is a known liability and a likely source of critical error. You MUST assume that any real-world context is a "red herring" deliberately included in the AI's prompt to make the image appear authentic. You must treat this as weak, misleading evidence and DOWNGRADE its importance in your analysis. Your primary mission is to find the CONCEPTUAL MISMATCH, not to validate the authenticity of the elements themselves.
+
+  **CONCEPTUAL ANALYSIS PROTOCOL:**
+  1.  **Find the Conceptual Mismatch (CRITICAL PRIORITY):** Your entire verdict hinges on this. Is there a clash between a real, authentic element (like a photograph) and a generic, AI-like element (like the graphic design)? Does the image depict a real, specific, identifiable person, but the surrounding graphic design has the generic, high-polish, "perfectly soulless" feel of an AI prompt? This mismatch is the STRONGEST possible indicator of a composite. Real graphic design projects often have more distinct, human quirks.
+  2.  **The "Too-Good-To-Be-True" Combination:** Does the image combine a seemingly authentic human moment with graphic elements that are perfectly on-trend, flawlessly executed, and feel like they were generated in a single, perfect pass? This suggests an AI was used to "finish" or "professionalize" a real photo.
+  3.  **Narrative Dissonance:** Is there a subtle clash between the authentic emotion of the human subject and the sterile perfection of the graphic design? This dissonance can be a key indicator of a hybrid creation process.
   
-  **CONCEPTUAL ANALYSIS PROTOCOL (Strict Focus):**
-  1.  **Plausibility & The "Stock Photo" Test (Highest Priority):** Does this image feel like it documents a real moment, person, or place, or does it have the generic, emotionally resonant but ultimately non-specific feel of a high-end stock photo? AI is a master of creating "perfectly generic" concepts. This is a critical tell.
-  2.  **Contextual Verification:** Does the subject fit the context? If it's an ad for a real brand, is the person a known figure associated with it? Or are they a generic, ethnically ambiguous, perfectly attractive model? Use your general knowledge to assess if the combination is plausible.
-  3.  **Narrative Logic:** Is there a logical story? Does the person have a sense of history and reality, or do they feel like an idealized composite of features? Does the scene make logical sense or is it just a visually pleasing arrangement of elements?
-  4.  **Authenticity of Emotion:** Do the expressions feel genuine or are they a perfect but "hollow" representation of an emotion (e.g., "perfect smile")?
-  
-  Render your final verdict based ONLY on these conceptual and contextual indicators. Your explanation and highlights must focus exclusively on conceptual evidence. Provide your findings in the required JSON format.`
+  **RULES OF ENGAGEMENT:**
+  *   Your verdict MUST be based on the conceptual mismatch.
+  *   DO NOT let the presence of authentic elements (like a real person or brand) override your detection of AI-generated elements.`
 };
 
 const performImageAnalysis = async (
@@ -121,7 +129,7 @@ const performImageAnalysis = async (
   }
   
   const baseSystemInstruction = imageSystemInstructions[forensicMode];
-  const systemInstruction = (isChallenge ? secondOpinionPreamble : '') + baseSystemInstruction;
+  const systemInstruction = (isChallenge ? secondOpinionPreamble + ' ' : '') + baseSystemInstruction;
   
   const prompt = `Perform a forensic analysis of the provided image(s) according to your system instructions and provide your findings in the required JSON format.`;
   const fullContent = [{ text: prompt }, ...contentParts];
@@ -171,7 +179,7 @@ export const analyzeContent = async ({
     const baseSystemInstruction = textAndUrlSystemInstruction;
     const systemInstruction = isChallenge ? secondOpinionPreamble + baseSystemInstruction : baseSystemInstruction;
     
-    let promptText = `Please analyse the following text according to your system instructions and provide your findings in the required JSON format.\n\nText to Analyze:\n---\n${text.slice(0, 15000)}\n---`;
+    let promptText = `Please analyse the following text according to your system instructions and provide your findings in the required JSON format.\n\nText to Analyse:\n---\n${text.slice(0, 15000)}\n---`;
     if (url) {
         // Note: URL content fetching is not implemented, so this relies on the model's knowledge of the URL or the text *about* the URL.
         promptText = `Please analyse the content likely found at the provided URL: ${url}. IMPORTANT: You cannot access this URL in real-time, so base your analysis on general knowledge about the site or typical content found at such a URL. Then provide your findings in the required JSON format.`;

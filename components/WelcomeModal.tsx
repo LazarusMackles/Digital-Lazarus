@@ -42,6 +42,12 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
                        <span className="font-semibold text-slate-800 dark:text-white">Choose Your Method.</span> Use 'Deep Analysis' for thoroughness or 'Quick Scan' for speed. You are in control of the investigation.
                     </div>
                 </li>
+                <li className="flex items-start gap-3">
+                    <span className="text-cyan-500 font-bold mt-0.5">4.</span>
+                    <div>
+                       <span className="font-semibold text-slate-800 dark:text-white">Powered by Google's Gemini API.</span> This tool uses advanced generative models to perform its analysis. You can <a href="https://ai.google.dev/gemini-api/docs" target="_blank" rel="noopener noreferrer" className="text-cyan-500 hover:underline">learn more here</a>.
+                    </div>
+                </li>
             </ul>
             <div className="mt-6 flex justify-end">
                 <button
