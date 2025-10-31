@@ -27,6 +27,7 @@ interface AnalysisContextState {
     setShowWelcome: (show: boolean) => void;
     theme: Theme;
     setTheme: (theme: Theme) => void;
+    cooldown: number;
     handleAnalyze: () => void;
     handleChallenge: (mode: ForensicMode) => void;
     handleNewAnalysis: () => void;
@@ -60,6 +61,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('quick');
     const [forensicMode, setForensicMode] = useState<ForensicMode>('standard');
     const [showWelcome, setShowWelcome] = useState<boolean>(false);
+    const [cooldown, setCooldown] = useState<number>(0);
     const [theme, setTheme] = useState<Theme>(() => {
         const savedTheme = localStorage.getItem('theme') as Theme;
         if (savedTheme) return savedTheme;
@@ -87,6 +89,13 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         localStorage.setItem('theme', theme);
     }, [theme]);
     
+    useEffect(() => {
+        if (cooldown > 0) {
+            const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [cooldown]);
+
     const clearPersistedInputs = useCallback(() => {
         localStorage.removeItem('analysisTextContent');
         localStorage.removeItem('analysisImageData');
@@ -113,6 +122,10 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
             setAnalysisResult(null);
             localStorage.removeItem('analysisResult');
             clearPersistedInputs();
+
+            if (errorMessage.includes('overheating') || errorMessage.includes('quota')) {
+                setCooldown(30); // Start a 30-second cooldown
+            }
         } finally {
             setIsLoading(false);
         }
@@ -204,6 +217,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         setShowWelcome,
         theme,
         setTheme,
+        cooldown,
         handleAnalyze,
         handleChallenge,
         handleNewAnalysis,

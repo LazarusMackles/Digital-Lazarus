@@ -7,7 +7,7 @@ interface ShareModalProps {
   onClose: () => void;
 }
 
-export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose }) => {
+export const ShareModal: React.FC<ShareModalProps> = React.memo(({ result, onClose }) => {
   const [copied, setCopied] = useState(false);
   const [canShare, setCanShare] = useState(false);
 
@@ -104,4 +104,4 @@ export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose }) => {
       </div>
     </div>
   );
-};
+});

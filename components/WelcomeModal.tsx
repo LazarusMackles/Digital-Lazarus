@@ -5,7 +5,7 @@ interface WelcomeModalProps {
   onClose: () => void;
 }
 
-export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
+export const WelcomeModal: React.FC<WelcomeModalProps> = React.memo(({ onClose }) => {
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 modal-overlay-fade-in" aria-modal="true" role="dialog">
       <div className="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 animate-fade-in-up">
@@ -61,4 +61,4 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
       </div>
     </div>
   );
-};
+});

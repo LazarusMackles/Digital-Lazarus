@@ -35,7 +35,7 @@ const TabButton: React.FC<{
   );
 };
 
-export const InputTabs: React.FC<InputTabsProps> = ({ onTextChange, onFilesChange, onClearFiles, onUrlChange, textContent, fileNames, imageData, url, isUrlValid = true }) => {
+export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, onFilesChange, onClearFiles, onUrlChange, textContent, fileNames, imageData, url, isUrlValid = true }) => {
   const [activeTab, setActiveTab] = useState<InputType>('text');
   const [unsupportedFile, setUnsupportedFile] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -160,4 +160,4 @@ export const InputTabs: React.FC<InputTabsProps> = ({ onTextChange, onFilesChang
       </div>
     </div>
   );
-};
+});
