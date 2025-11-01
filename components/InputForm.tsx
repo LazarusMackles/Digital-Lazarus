@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { InputTabs } from './InputTabs';
 import { ModeSelector } from './ModeSelector';
@@ -36,7 +35,9 @@ export const InputForm: React.FC = () => {
         error,
         isLoading,
         cooldown,
-        handleAnalyze
+        handleAnalyze,
+        activeInput,
+        setActiveInput
     } = useAnalysis();
 
     const handleUrlChange = (value: string) => {
@@ -74,6 +75,8 @@ export const InputForm: React.FC = () => {
                 imageData={imageData}
                 url={url}
                 isUrlValid={isUrlValid}
+                activeInput={activeInput}
+                setActiveInput={setActiveInput}
             />
             
             <HowItWorks />

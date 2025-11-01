@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import type { AnalysisResult, AnalysisMode, ForensicMode } from '../types';
 
@@ -94,7 +93,7 @@ The primary difference between AI-generated and AI-enhanced content is the prese
   *   If you find evidence of a real photo with a filter, your verdict must be 'AI-Enhanced (Stylistic Filter)'.
   *   If you find a real photo combined with generated graphics, your verdict must be 'AI-Assisted Composite'. Your highlights must differentiate between the human and AI parts.`,
 
-    conceptual: `You are a specialist in conceptual analysis. IGNORE the pixels. Your sole focus is on the NARRATIVE and AESTHETIC of the image. Your mission is to detect the "Conceptual Tell", the subtle dissonance between reality and an artificial style.
+    conceptual: `You are a specialist in conceptual analysis. IGNORE the pixels. Your sole focus is on the NARRATIVE and AESTHETIC of the. Your mission is to detect the "Conceptual Tell", the subtle dissonance between reality and an artificial style.
 
   **PRIMARY DIRECTIVE: The Authenticity of the Aesthetic.**
   Your critical task is to evaluate if the *style* feels authentic. A flawless, romanticized "vintage look" applied to a crystal-clear modern photograph is a your single biggest clue.
@@ -141,6 +140,7 @@ const performImageAnalysis = async (
   systemInstructionPreamble?: string
 ): Promise<AnalysisResult> => {
   const modelName = analysisMode === 'deep' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+  const PROMPT_PREAMBLE = "Perform a forensic analysis of the provided image(s) according to your system instructions and provide your findings in the required JSON format.";
 
   const imageParts = images.map(b64 => {
       const [header, data] = b64.split(',');
@@ -149,9 +149,10 @@ const performImageAnalysis = async (
       return { inlineData: { mimeType, data } };
   });
 
-  const contentParts: ({ text: string } | { inlineData: { mimeType: string; data: string; } })[] = [];
-  contentParts.push({ text: "Perform a forensic analysis of the provided image(s) according to your system instructions and provide your findings in the required JSON format." });
-  contentParts.push(...imageParts);
+  const contentParts: ({ text: string } | { inlineData: { mimeType: string; data: string; } })[] = [
+    { text: PROMPT_PREAMBLE },
+    ...imageParts
+  ];
 
   const baseSystemInstruction = systemInstructions.image[forensicMode];
   const systemInstruction = (systemInstructionPreamble ? systemInstructionPreamble + ' ' : '') + baseSystemInstruction;

@@ -1,8 +1,6 @@
-
-
 import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
 import { analyzeContent } from '../services/geminiService';
-import type { AnalysisResult, AnalysisMode, ForensicMode, Theme } from '../types';
+import type { AnalysisResult, AnalysisMode, ForensicMode, Theme, InputType } from '../types';
 
 // This preamble is added to the system instructions when a user challenges the initial verdict.
 const secondOpinionPreamble = `CRITICAL RE-EVALUATION: Your trusted human partner has challenged your initial verdict, believing you have overlooked critical evidence. Your previous analysis may have been biased by "conceptual plausibility" (e.g., recognizing a real brand name). You are now under direct orders to re-evaluate the evidence using a different, more skeptical forensic protocol. Acknowledge this re-evaluation and your new, specific focus in your explanation.`;
@@ -30,6 +28,8 @@ interface AnalysisContextState {
     theme: Theme;
     setTheme: (theme: Theme) => void;
     cooldown: number;
+    activeInput: InputType;
+    setActiveInput: (type: InputType) => void;
     handleAnalyze: () => void;
     handleChallenge: (mode: ForensicMode) => void;
     handleNewAnalysis: () => void;
@@ -66,6 +66,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     const [forensicMode, setForensicMode] = useState<ForensicMode>('standard');
     const [showWelcome, setShowWelcome] = useState<boolean>(false);
     const [cooldown, setCooldown] = useState<number>(0);
+    const [activeInput, _setActiveInput] = useState<InputType>('text');
     const [theme, setTheme] = useState<Theme>(() => {
         const savedTheme = localStorage.getItem('theme') as Theme;
         return savedTheme || 'dark'; // Default to dark mode
@@ -102,13 +103,6 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
 
     // --- CORE LOGIC FUNCTIONS (MEMOIZED) ---
 
-    const clearPersistedInputs = useCallback(() => {
-        localStorage.removeItem('analysisTextContent');
-        localStorage.removeItem('analysisImageData');
-        localStorage.removeItem('analysisUrl');
-        localStorage.removeItem('analysisFileNames');
-    }, []);
-
     // Central function to run any analysis, handling loading, errors, and persistence.
     const runAnalysis = useCallback(async (analysisFn: () => Promise<AnalysisResult>) => {
         setIsLoading(true);
@@ -137,6 +131,29 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
             setIsLoading(false);
         }
     }, [textContent, imageData, url, fileNames]);
+    
+    const handleClearFiles = useCallback(() => {
+        setImageData(null);
+        setFileNames(null);
+        setTextContent('');
+    }, []);
+
+    const setActiveInput = useCallback((tab: InputType) => {
+        _setActiveInput(tab);
+        setError(null);
+        if (tab === 'text') {
+            setUrl('');
+            setImageData(null);
+            setFileNames(null);
+        } else if (tab === 'url') {
+            setTextContent('');
+            setImageData(null);
+            setFileNames(null);
+        } else if (tab === 'file') {
+            setTextContent('');
+            setUrl('');
+        }
+    }, []);
 
     // Handler for the main "Deduce" button click.
     const handleAnalyze = useCallback(async () => {
@@ -184,10 +201,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     
     // Handler for file uploads. Resets other input types to ensure single-mode analysis.
     const handleFilesChange = useCallback((files: { name: string, content?: string | null, imageBase64?: string | null }[]) => {
-        // Reset other inputs to focus on file-based analysis.
-        setTextContent('');
-        setImageData(null);
-        setUrl('');
+        setActiveInput('file');
         
         if (files.length > 0) {
             const names = files.map(f => f.name);
@@ -203,13 +217,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
                 setTextContent(textFile.content);
             }
         }
-    }, []);
-
-    const handleClearFiles = useCallback(() => {
-        setImageData(null);
-        setFileNames(null);
-        setTextContent('');
-    }, []);
+    }, [setActiveInput]);
     
     const value = {
         textContent,
@@ -234,6 +242,8 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         theme,
         setTheme,
         cooldown,
+        activeInput,
+        setActiveInput,
         handleAnalyze,
         handleChallenge,
         handleNewAnalysis,

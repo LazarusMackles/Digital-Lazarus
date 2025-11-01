@@ -1,7 +1,8 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { UploadIcon, TextIcon, LinkIcon } from './icons';
 import { FileUploadDisplay } from './FileUploadDisplay';
+import type { InputType } from '../types';
 
 interface InputTabsProps {
   onTextChange: (text: string) => void;
@@ -13,9 +14,9 @@ interface InputTabsProps {
   imageData: string[] | null;
   url: string;
   isUrlValid?: boolean;
+  activeInput: InputType;
+  setActiveInput: (type: InputType) => void;
 }
-
-type InputType = 'text' | 'file' | 'url';
 
 const TabButton: React.FC<{
   active: boolean;
@@ -49,8 +50,7 @@ const TabButton: React.FC<{
 };
 
 
-export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, onFilesChange, onClearFiles, onUrlChange, textContent, fileNames, imageData, url, isUrlValid = true }) => {
-  const [activeTab, setActiveTab] = useState<InputType>('text');
+export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, onFilesChange, onClearFiles, onUrlChange, textContent, fileNames, imageData, url, isUrlValid = true, activeInput, setActiveInput }) => {
   const [unsupportedFile, setUnsupportedFile] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -87,7 +87,6 @@ export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, o
       const allFilesSupported = results.every(r => r.imageBase64 || r.content);
       if(allFilesSupported) {
           onFilesChange(results);
-          setActiveTab('file');
       } else {
           onFilesChange(results.filter(r => r.imageBase64 || r.content));
       }
@@ -112,37 +111,37 @@ export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, o
     e.preventDefault();
     e.stopPropagation();
   };
-
-  const selectTab = (tab: InputType) => {
-    setActiveTab(tab);
-    setUnsupportedFile(null); // Reset when changing tabs
+  
+  const handleTabClick = (tab: InputType) => {
+    setUnsupportedFile(null);
+    setActiveInput(tab);
   };
 
   return (
     <div onDrop={handleDrop} onDragOver={handleDragOver}>
       <div className="flex border-b border-slate-300 dark:border-slate-700">
         <TabButton 
-            active={activeTab === 'text'} 
-            onClick={() => selectTab('text')}
+            active={activeInput === 'text'} 
+            onClick={() => handleTabClick('text')}
             icon={<TextIcon className="w-5 h-5" />}
             label="Paste Text"
         />
         <TabButton 
-            active={activeTab === 'file'} 
-            onClick={() => selectTab('file')}
+            active={activeInput === 'file'} 
+            onClick={() => handleTabClick('file')}
             icon={<UploadIcon className="w-5 h-5" />}
             label="Upload File(s)"
         />
         <TabButton 
-            active={activeTab === 'url'} 
-            onClick={() => selectTab('url')}
+            active={activeInput === 'url'} 
+            onClick={() => handleTabClick('url')}
             icon={<LinkIcon className="w-5 h-5" />}
             label="Analyse URL"
         />
       </div>
 
       <div className="mt-6 min-h-[12rem] flex flex-col justify-center">
-        {activeTab === 'text' && (
+        {activeInput === 'text' && (
           <textarea
             value={textContent}
             onChange={(e) => onTextChange(e.target.value)}
@@ -151,7 +150,7 @@ export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, o
             maxLength={15000}
           />
         )}
-        {activeTab === 'file' && (
+        {activeInput === 'file' && (
            <FileUploadDisplay 
              imageData={imageData}
              unsupportedFile={unsupportedFile}
@@ -161,7 +160,7 @@ export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, o
              fileInputRef={fileInputRef}
            />
         )}
-        {activeTab === 'url' && (
+        {activeInput === 'url' && (
             <div>
               <input
                   type="text"
