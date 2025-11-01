@@ -21,7 +21,7 @@ const AppContent: React.FC = () => {
   const renderContent = () => {
     if (isLoading) {
       const loaderMessage = isReanalyzing 
-        ? "Re-analysing with a critical eye..." 
+        ? "Re-analysing with a critical eye ..." 
         : "Deducing the Digital DNA ...";
       return (
         <div className="bg-white dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700/50">

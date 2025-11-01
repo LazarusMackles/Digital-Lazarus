@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import type { AnalysisResult } from '../types';
 import { XMarkIcon, ShareIcon } from './icons';
@@ -90,7 +91,7 @@ export const ShareModal: React.FC<ShareModalProps> = React.memo(({ result, onClo
                 className="flex-1 sm:flex-none px-6 py-2 font-bold text-white bg-fuchsia-600 rounded-full shadow-lg shadow-fuchsia-500/30 hover:bg-fuchsia-500 transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
               >
                 <ShareIcon className="w-5 h-5" />
-                Share via...
+                Share via ...
               </button>
             )}
             <button

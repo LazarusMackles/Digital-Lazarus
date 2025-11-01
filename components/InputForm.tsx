@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { InputTabs } from './InputTabs';
 import { ModeSelector } from './ModeSelector';
@@ -51,7 +52,7 @@ export const InputForm: React.FC = () => {
             return (
                 <>
                     <SpinnerIcon className="animate-spin w-6 h-6 mr-3" />
-                    <span>Deducing...</span>
+                    <span>Deducing ...</span>
                 </>
             );
         }

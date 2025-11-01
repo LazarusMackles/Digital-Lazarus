@@ -122,7 +122,7 @@ async function withRetry<T>(apiCall: () => Promise<T>, maxRetries = 3): Promise<
       );
       if (isRateLimitError && attempt < maxRetries - 1) {
         const backoffTime = Math.pow(2, attempt) * 2000 + Math.random() * 1000;
-        console.log(`Rate limit hit. Retrying in ${backoffTime.toFixed(0)}ms...`);
+        console.log(`Rate limit hit. Retrying in ${backoffTime.toFixed(0)}ms ...`);
         await delay(backoffTime);
       } else {
         throw error;
@@ -267,7 +267,7 @@ export const analyzeContent = async ({
             } else if (lowerCaseMessage.includes('safety')) {
                 errorMessage = "Non! This evidence is inadmissible. My analysis is immediately concluded. The content violates fundamental safety principles. This case is closed.";
             } else if (lowerCaseMessage.includes('network') || lowerCaseMessage.includes('failed to fetch')) {
-                errorMessage = "It appears our secure line to the digital archives has been severed! Check your network connection, my dear Watson... I mean, user.";
+                errorMessage = "It appears our secure line to the digital archives has been severed! Check your network connection, my dear Watson ... I mean, user.";
             }
         }
     }

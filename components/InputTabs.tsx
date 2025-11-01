@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { UploadIcon, TextIcon, LinkIcon } from './icons';
 import { FileUploadDisplay } from './FileUploadDisplay';
@@ -145,7 +146,7 @@ export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, o
           <textarea
             value={textContent}
             onChange={(e) => onTextChange(e.target.value)}
-            placeholder="Present the textual evidence here... I am examining every character."
+            placeholder="Present the textual evidence here ... I am examining every character."
             className="w-full h-48 p-4 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-colors duration-300 resize-none"
             maxLength={15000}
           />
@@ -166,7 +167,7 @@ export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, o
                   type="text"
                   value={url}
                   onChange={(e) => onUrlChange(e.target.value)}
-                  placeholder="Provide the web address of the scene... I shall investigate."
+                  placeholder="Provide the web address of the scene ... I shall investigate."
                   className={`w-full h-14 px-4 bg-slate-100 dark:bg-slate-900 border rounded-lg focus:ring-2 focus:outline-none transition-colors duration-300 ${
                     isUrlValid ? 'border-slate-300 dark:border-slate-700 focus:ring-cyan-500' : 'border-red-500 dark:border-red-500/80 ring-1 ring-red-500 focus:ring-red-500'
                   }`}
