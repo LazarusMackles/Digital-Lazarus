@@ -1,8 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
 import { analyzeContent } from '../services/geminiService';
-import type { AnalysisResult, AnalysisMode, ForensicMode } from '../types';
-
-type Theme = 'light' | 'dark';
+import type { AnalysisResult, AnalysisMode, ForensicMode, Theme } from '../types';
 
 const secondOpinionPreamble = `CRITICAL RE-EVALUATION: Your trusted human partner has challenged your initial verdict, believing you have overlooked critical evidence. Your previous analysis may have been biased by "conceptual plausibility" (e.g., recognizing a real brand name). You are now under direct orders to re-evaluate the evidence using a different, more skeptical forensic protocol. Acknowledge this re-evaluation and your new, specific focus in your explanation.`;
 
@@ -17,6 +15,7 @@ interface AnalysisContextState {
     setIsUrlValid: (isValid: boolean) => void;
     fileNames: string[] | null;
     isLoading: boolean;
+    isReanalyzing: boolean;
     analysisResult: AnalysisResult | null;
     error: string | null;
     analysisMode: AnalysisMode;
@@ -56,6 +55,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     const [fileNames, setFileNames] = useState<string[] | null>(() => getStoredItem('analysisFileNames', null));
     const [isUrlValid, setIsUrlValid] = useState<boolean>(true);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isReanalyzing, setIsReanalyzing] = useState<boolean>(false);
     const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(() => getStoredItem('analysisResult', null));
     const [error, setError] = useState<string | null>(null);
     const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('quick');
@@ -137,6 +137,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
             setError('Mon Dieu! You must provide some valid evidence for me to analyse!');
             return;
         }
+        setIsReanalyzing(false);
         setAnalysisResult(null);
         localStorage.removeItem('analysisResult');
         
@@ -148,6 +149,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     }, [runAnalysis, textContent, imageData, url, analysisMode, forensicMode, isUrlValid]);
 
     const handleChallenge = useCallback(async (mode: ForensicMode) => {
+        setIsReanalyzing(true);
         await runAnalysis(async () => {
             const result = await analyzeContent({ 
                 text: textContent, 
@@ -168,6 +170,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         setAnalysisMode('quick'); // Reset to default mode
         setForensicMode('standard'); // Reset to default mode
         localStorage.removeItem('analysisResult'); // Clear the persisted result
+        window.scrollTo({ top: 0, behavior: 'smooth' }); // Ensure user is at the top of the page
     }, []);
     
     const handleFilesChange = useCallback((files: { name: string, content?: string | null, imageBase64?: string | null }[]) => {
@@ -208,6 +211,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         setIsUrlValid,
         fileNames,
         isLoading,
+        isReanalyzing,
         analysisResult,
         error,
         analysisMode,

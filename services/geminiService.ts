@@ -52,7 +52,7 @@ The primary difference between AI-generated and AI-enhanced content is the prese
 *   **Repetitive Ideas and "Filler" Language:** The text may use transitional phrases ('In conclusion,', 'Furthermore,', 'It is important to note that...') perfectly but repetitively, and may circle back on the same points without adding new insight.
 
 **Indicators of 'Likely AI-Enhanced' Text (A Human Voice, Polished by AI):**
-*   **A "Sanded Down" Voice:** You can still detect a unique human author—perhaps through their specific word choices, unique analogies, or personal perspective—but the overall text is almost *too* smooth. The grammar is perfect, awkward phrasings are gone, and the flow is flawless. This suggests a human draft was heavily polished by an AI editor.
+*   **A "Sanded Down" Voice:** You can still detect a unique human author, perhaps through their specific word choices, unique analogies, or personal perspective, but the overall text is almost *too* smooth. The grammar is perfect, awkward phrasings are gone, and the flow is flawless. This suggests a human draft was heavily polished by an AI editor.
 *   **Inconsistent Voice:** Some paragraphs might crackle with personality, using slang, humor, or specific, niche terminology, while others are generic and encyclopedic. This often indicates a human wrote the core ideas and used AI to "flesh out" certain sections.
 *   **Perfect Structure on a Quirky Core:** The underlying ideas or arguments might be unique and creative, but the essay structure, topic sentences, and transitions are textbook-perfect. It's like a brilliant, eccentric artist's work has been perfectly framed by a machine.
 
@@ -94,7 +94,7 @@ const imageSystemInstructions = {
   *   If you find evidence of a real photo with a filter, your verdict must be 'AI-Enhanced (Stylistic Filter)'.
   *   If you find a real photo combined with generated graphics, your verdict must be 'AI-Assisted Composite'. Your highlights must differentiate between the human and AI parts.`,
 
-  conceptual: `You are a specialist in conceptual analysis. IGNORE the pixels. Your sole focus is on the NARRATIVE and AESTHETIC of the image. Your mission is to detect the "Conceptual Tell"—the subtle dissonance between reality and an artificial style.
+  conceptual: `You are a specialist in conceptual analysis. IGNORE the pixels. Your sole focus is on the NARRATIVE and AESTHETIC of the image. Your mission is to detect the "Conceptual Tell", the subtle dissonance between reality and an artificial style.
 
   **PRIMARY DIRECTIVE: The Authenticity of the Aesthetic.**
   Your critical task is to evaluate if the *style* feels authentic. A flawless, romanticized "vintage look" applied to a crystal-clear modern photograph is a your single biggest clue.
@@ -270,7 +270,7 @@ export const analyzeContent = async ({
         } else {
             const lowerCaseMessage = error.message.toLowerCase();
             if (lowerCaseMessage.includes('api key not valid')) {
-                errorMessage = "Mon Dieu! It seems my detective's license—the API key—is invalid. We must rectify this bureaucratic oversight!";
+                errorMessage = "Mon Dieu! It seems my detective's license, the API key, is invalid. We must rectify this bureaucratic oversight!";
             } else if (lowerCaseMessage.includes('429') || lowerCaseMessage.includes('resource_exhausted')) {
                 errorMessage = "Sacre bleu! My circuits are overheating from the rapid pace of investigation. You have exceeded your API quota. I have automatically switched to 'Quick Scan' mode to help. Please wait for the cooldown to finish before your next deduction.";
             } else if (lowerCaseMessage.includes('safety')) {

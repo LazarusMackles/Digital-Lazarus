@@ -1,9 +1,10 @@
 import React from 'react';
 import { SunIcon, MoonIcon } from './icons';
+import type { Theme } from '../types';
 
 interface ThemeToggleProps {
-  theme: 'light' | 'dark';
-  setTheme: (theme: 'light' | 'dark') => void;
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
 }
 
 export const ThemeToggle: React.FC<ThemeToggleProps> = React.memo(({ theme, setTheme }) => {

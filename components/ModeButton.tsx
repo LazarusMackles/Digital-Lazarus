@@ -27,7 +27,7 @@ export const ModeButton: React.FC<ModeButtonProps> = React.memo(({ active, onCli
             }`}
         >
             <p className={`${titleSize} ${titleClasses}`}>{title}</p>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{description}</p>
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">{description}</p>
         </button>
     );
 });

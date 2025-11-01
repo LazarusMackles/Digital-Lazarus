@@ -17,7 +17,7 @@ export const HighlightsDisplay: React.FC<HighlightsDisplayProps> = React.memo(({
             <blockquote className="border-l-4 border-cyan-500 pl-4">
               <p className="font-mono text-sm text-slate-800 dark:text-white italic">"{highlight.text}"</p>
             </blockquote>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{highlight.reason}</p>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{highlight.reason}</p>
           </div>
         ))}
       </div>

@@ -27,7 +27,7 @@ const TabButton: React.FC<{
       className={`flex-1 px-4 py-3 text-sm sm:text-base font-semibold rounded-t-lg transition-all duration-300 flex items-center justify-center gap-2 border-b-2 ${
         active
           ? 'text-cyan-600 dark:text-cyan-400 border-cyan-600 dark:border-cyan-400'
-          : 'text-slate-500 dark:text-slate-400 border-transparent hover:text-slate-800 dark:hover:text-white'
+          : 'text-slate-500 dark:text-slate-400 border-transparent hover:text-slate-700 dark:hover:text-white'
       }`}
     >
       {children}
@@ -113,6 +113,7 @@ export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, o
         </TabButton>
         <TabButton active={activeTab === 'file'} onClick={() => selectTab('file')}>
           <UploadIcon className="w-5 h-5" />
+          {/* FIX: Corrected typo in closing tag from </Button> to </TabButton> */}
           Upload File(s)
         </TabButton>
         <TabButton active={activeTab === 'url'} onClick={() => selectTab('url')}>

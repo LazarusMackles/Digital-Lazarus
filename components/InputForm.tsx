@@ -81,7 +81,7 @@ export const InputForm: React.FC = () => {
             
             <ModeSelector selectedMode={analysisMode} onModeChange={setAnalysisMode} />
             
-            {error && <p className="my-4 text-center text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20 p-3 rounded-lg animate-fade-in">{error}</p>}
+            {error && <p aria-live="polite" className="my-4 text-center text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20 p-3 rounded-lg animate-fade-in">{error}</p>}
             
             <div className="flex justify-center">
                 <button
