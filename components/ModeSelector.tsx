@@ -10,7 +10,7 @@ interface ModeSelectorProps {
 export const ModeSelector: React.FC<ModeSelectorProps> = React.memo(({ selectedMode, onModeChange }) => {
   return (
     <div className="mt-6 mb-8">
-        <p className="text-sm font-medium text-center text-slate-800 dark:text-slate-400 mb-3">Select Deductive Method</p>
+        <p className="text-sm font-medium text-center text-cyan-600 dark:text-cyan-400 mb-3">Select Deductive Method</p>
         <div className="flex flex-col sm:flex-row gap-4">
             <ModeButton
                 active={selectedMode === 'quick'}

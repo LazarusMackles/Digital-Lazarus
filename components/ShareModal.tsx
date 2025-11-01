@@ -13,7 +13,7 @@ export const ShareModal: React.FC<ShareModalProps> = React.memo(({ result, onClo
 
   const forensicReport = useMemo(() => {
     let report = `--- FORENSIC REPORT ---\n`;
-    report += `Analysis by: Gen-AI Sleuther Vanguard\n\n`;
+    report += `Analysis by: GenAI Sleuther Vanguard\n\n`;
     report += `VERDICT: ${result.verdict}\n`;
     report += `AI PROBABILITY: ${Math.round(result.probability)}%\n\n`;
     report += `EXPLANATION:\n${result.explanation}\n\n`;
@@ -46,7 +46,7 @@ export const ShareModal: React.FC<ShareModalProps> = React.memo(({ result, onClo
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Gen-AI Sleuther Vanguard: Forensic Report',
+          title: 'GenAI Sleuther Vanguard: Forensic Report',
           text: forensicReport,
         });
         onClose(); // Close modal on successful share
