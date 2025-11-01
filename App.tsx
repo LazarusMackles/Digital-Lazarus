@@ -45,7 +45,7 @@ const AppContent: React.FC = () => {
   return (
     <>
       {showWelcome && <WelcomeModal onClose={() => setShowWelcome(false)} />}
-      <div className="min-h-screen p-4 sm:p-6 md:p-8 text-slate-800 dark:text-white transition-colors duration-300">
+      <div className="min-h-screen p-4 sm:p-6 md:p-8 dark:text-white transition-colors duration-300">
         <div className="max-w-4xl mx-auto">
           <Header theme={theme} setTheme={setTheme} />
           <main className="mt-12">

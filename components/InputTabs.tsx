@@ -27,7 +27,7 @@ const TabButton: React.FC<{
       className={`flex-1 px-4 py-3 text-sm sm:text-base font-semibold rounded-t-lg transition-all duration-300 flex items-center justify-center gap-2 ${
         active
           ? 'bg-black dark:bg-slate-700 text-white'
-          : 'border-b-2 border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+          : 'border-b-2 border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
       }`}
     >
       {children}
