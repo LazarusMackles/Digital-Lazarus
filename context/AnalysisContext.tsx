@@ -85,12 +85,8 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     useEffect(() => {
         if (theme === 'dark') {
             document.documentElement.classList.add('dark');
-            document.body.classList.add('bg-slate-900');
-            document.body.classList.remove('bg-slate-100');
         } else {
             document.documentElement.classList.remove('dark');
-            document.body.classList.add('bg-slate-100');
-            document.body.classList.remove('bg-slate-900');
         }
         localStorage.setItem('theme', theme);
     }, [theme]);
