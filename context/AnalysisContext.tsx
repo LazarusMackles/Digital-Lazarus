@@ -165,13 +165,18 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     }, [runAnalysis, textContent, imageData, url, analysisMode]);
     
     const handleNewAnalysis = useCallback(() => {
-        setAnalysisResult(null); // Return to the input screen
-        setError(null); // Clear any previous errors
-        setAnalysisMode('quick'); // Reset to default mode
-        setForensicMode('standard'); // Reset to default mode
-        localStorage.removeItem('analysisResult'); // Clear the persisted result
-        window.scrollTo({ top: 0, behavior: 'smooth' }); // Ensure user is at the top of the page
-    }, []);
+        setAnalysisResult(null);
+        setError(null);
+        setTextContent('');
+        setImageData(null);
+        setUrl('');
+        setFileNames(null);
+        setAnalysisMode('quick');
+        setForensicMode('standard');
+        clearPersistedInputs();
+        localStorage.removeItem('analysisResult');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [clearPersistedInputs]);
     
     const handleFilesChange = useCallback((files: { name: string, content?: string | null, imageBase64?: string | null }[]) => {
         setTextContent('');

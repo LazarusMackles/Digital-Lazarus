@@ -15,19 +15,19 @@ export const ModeButton: React.FC<ModeButtonProps> = React.memo(({ active, onCli
     
     const titleClasses = titleStyle === 'gradient'
         ? 'text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500'
-        : (active ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-800 dark:text-white');
+        : (active ? 'text-white' : 'text-slate-800 dark:text-white');
 
     return (
         <button
             onClick={onClick}
             className={`flex-1 text-left rounded-lg transition-all duration-300 border transform ${padding} ${
                 active
-                    ? 'bg-cyan-500/10 border-cyan-500'
-                    : 'bg-white dark:bg-slate-800/50 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:border-fuchsia-500 dark:hover:border-fuchsia-400 hover:-translate-y-0.5'
+                    ? 'bg-black dark:bg-slate-700 border-transparent shadow-lg scale-[1.02]'
+                    : 'bg-white dark:bg-slate-800/50 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:border-slate-400 dark:hover:border-slate-500 hover:-translate-y-0.5'
             }`}
         >
             <p className={`${titleSize} ${titleClasses}`}>{title}</p>
-            <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">{description}</p>
+            <p className={`mt-1 text-xs ${active ? 'text-slate-200 dark:text-slate-400' : 'text-slate-600 dark:text-slate-400'}`}>{description}</p>
         </button>
     );
 });

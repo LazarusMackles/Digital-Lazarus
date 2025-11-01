@@ -24,10 +24,10 @@ const TabButton: React.FC<{
   return (
     <button
       onClick={onClick}
-      className={`flex-1 px-4 py-3 text-sm sm:text-base font-semibold rounded-t-lg transition-all duration-300 flex items-center justify-center gap-2 border-b-2 ${
+      className={`flex-1 px-4 py-3 text-sm sm:text-base font-semibold rounded-t-lg transition-all duration-300 flex items-center justify-center gap-2 ${
         active
-          ? 'text-cyan-600 dark:text-cyan-400 border-cyan-600 dark:border-cyan-400'
-          : 'text-slate-500 dark:text-slate-400 border-transparent hover:text-slate-700 dark:hover:text-white'
+          ? 'bg-black dark:bg-slate-700 text-white'
+          : 'border-b-2 border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
       }`}
     >
       {children}
