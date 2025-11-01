@@ -1,7 +1,9 @@
+
 import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
 import { analyzeContent } from '../services/geminiService';
 import type { AnalysisResult, AnalysisMode, ForensicMode, Theme } from '../types';
 
+// This preamble is added to the system instructions when a user challenges the initial verdict.
 const secondOpinionPreamble = `CRITICAL RE-EVALUATION: Your trusted human partner has challenged your initial verdict, believing you have overlooked critical evidence. Your previous analysis may have been biased by "conceptual plausibility" (e.g., recognizing a real brand name). You are now under direct orders to re-evaluate the evidence using a different, more skeptical forensic protocol. Acknowledge this re-evaluation and your new, specific focus in your explanation.`;
 
 interface AnalysisContextState {
@@ -37,7 +39,7 @@ interface AnalysisContextState {
 const AnalysisContext = createContext<AnalysisContextState | undefined>(undefined);
 
 export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) => {
-    // Helper to safely get item from localStorage
+    // Helper to safely get item from localStorage, preventing crashes from malformed JSON.
     const getStoredItem = <T,>(key: string, defaultValue: T): T => {
         try {
             const saved = localStorage.getItem(key);
@@ -49,6 +51,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         }
     };
     
+    // --- STATE MANAGEMENT ---
     const [textContent, setTextContent] = useState<string>(() => localStorage.getItem('analysisTextContent') || '');
     const [imageData, setImageData] = useState<string[] | null>(() => getStoredItem('analysisImageData', null));
     const [url, setUrl] = useState<string>(() => localStorage.getItem('analysisUrl') || '');
@@ -64,10 +67,12 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     const [cooldown, setCooldown] = useState<number>(0);
     const [theme, setTheme] = useState<Theme>(() => {
         const savedTheme = localStorage.getItem('theme') as Theme;
-        if (savedTheme) return savedTheme;
-        return 'dark';
+        return savedTheme || 'dark'; // Default to dark mode
     });
 
+    // --- EFFECTS ---
+
+    // Show welcome modal on first visit.
     useEffect(() => {
         const hasVisited = localStorage.getItem('hasVisited');
         if (!hasVisited) {
@@ -76,6 +81,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         }
     }, []);
 
+    // Apply theme changes to the document.
     useEffect(() => {
         if (theme === 'dark') {
             document.documentElement.classList.add('dark');
@@ -89,12 +95,15 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         localStorage.setItem('theme', theme);
     }, [theme]);
     
+    // Countdown timer for API rate limit cooldown.
     useEffect(() => {
         if (cooldown > 0) {
             const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
             return () => clearTimeout(timer);
         }
     }, [cooldown]);
+
+    // --- CORE LOGIC FUNCTIONS (MEMOIZED) ---
 
     const clearPersistedInputs = useCallback(() => {
         localStorage.removeItem('analysisTextContent');
@@ -103,35 +112,36 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         localStorage.removeItem('analysisFileNames');
     }, []);
 
+    // Central function to run any analysis, handling loading, errors, and persistence.
     const runAnalysis = useCallback(async (analysisFn: () => Promise<AnalysisResult>) => {
         setIsLoading(true);
         setError(null);
         try {
             const result = await analysisFn();
             setAnalysisResult(result);
-            // Persist result and the inputs that generated it
+            // Persist successful result and the inputs that generated it.
             localStorage.setItem('analysisResult', JSON.stringify(result));
             localStorage.setItem('analysisTextContent', textContent);
             localStorage.setItem('analysisImageData', JSON.stringify(imageData));
             localStorage.setItem('analysisUrl', url);
             localStorage.setItem('analysisFileNames', JSON.stringify(fileNames));
         } catch (err) {
-            console.error(err);
-            const errorMessage = err instanceof Error ? err.message : 'Sacre bleu! An unidentifiable error has occurred in the digital ether. Most mysterious!';
+            const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
             setError(errorMessage);
             setAnalysisResult(null);
             localStorage.removeItem('analysisResult');
             clearPersistedInputs();
 
             if (errorMessage.includes('overheating') || errorMessage.includes('quota')) {
-                setCooldown(60); // Start a 60-second cooldown
-                setAnalysisMode('quick'); // Automatically switch to a less intensive mode
+                setCooldown(60); 
+                setAnalysisMode('quick');
             }
         } finally {
             setIsLoading(false);
         }
     }, [textContent, imageData, url, fileNames, clearPersistedInputs]);
 
+    // Handler for the main "Deduce" button click.
     const handleAnalyze = useCallback(async () => {
         if ((!textContent.trim() && (!imageData || imageData.length === 0) && !url.trim()) || (url.trim() && !isUrlValid)) {
             setError('Mon Dieu! You must provide some valid evidence for me to analyse!');
@@ -148,6 +158,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         });
     }, [runAnalysis, textContent, imageData, url, analysisMode, forensicMode, isUrlValid]);
 
+    // Handler for the "Challenge Verdict" buttons.
     const handleChallenge = useCallback(async (mode: ForensicMode) => {
         setIsReanalyzing(true);
         await runAnalysis(async () => {
@@ -159,11 +170,12 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
                 forensicMode: mode, 
                 systemInstructionPreamble: secondOpinionPreamble 
             });
-            result.isSecondOpinion = true; // Explicitly mark as a second opinion
+            result.isSecondOpinion = true;
             return result;
         });
     }, [runAnalysis, textContent, imageData, url, analysisMode]);
     
+    // Handler for the "New Analysis" button, performs a full reset.
     const handleNewAnalysis = useCallback(() => {
         setAnalysisResult(null);
         setError(null);
@@ -178,7 +190,9 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }, [clearPersistedInputs]);
     
+    // Handler for file uploads. Resets other input types to ensure single-mode analysis.
     const handleFilesChange = useCallback((files: { name: string, content?: string | null, imageBase64?: string | null }[]) => {
+        // Reset other inputs to focus on file-based analysis.
         setTextContent('');
         setImageData(null);
         setUrl('');

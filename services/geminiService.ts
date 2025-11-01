@@ -1,6 +1,8 @@
+
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import type { AnalysisResult, AnalysisMode, ForensicMode } from '../types';
 
+// Centralized schema for analysis results.
 const analysisSchema = {
   type: Type.OBJECT,
   properties: {
@@ -38,9 +40,9 @@ const analysisSchema = {
   required: ['probability', 'verdict', 'explanation', 'highlights']
 };
 
-// --- SYSTEM INSTRUCTIONS ---
-
-const textAndUrlSystemInstruction = `You are a world-class digital content analyst, a sleuth specializing in text analysis. Your primary directive is to analyze the provided text and determine its origin on the 'Spectrum of Creation'. Your final \`verdict\` MUST be one of the following three options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', or 3. 'Appears Human-Crafted'.
+// --- Centralized System Instructions ---
+const systemInstructions = {
+  textAndUrl: `You are a world-class digital content analyst, a sleuth specializing in text analysis. Your primary directive is to analyze the provided text and determine its origin on the 'Spectrum of Creation'. Your final \`verdict\` MUST be one of the following three options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', or 3. 'Appears Human-Crafted'.
 
 **Your Core Task: Listen for the "Human Voice"**
 The primary difference between AI-generated and AI-enhanced content is the presence of an authentic, unique human voice. Your analysis must focus on detecting this voice, even if it's been polished by AI tools.
@@ -61,12 +63,10 @@ The primary difference between AI-generated and AI-enhanced content is the prese
 2.  If no voice is detected and AI indicators are present, the verdict is 'Fully AI-Generated'.
 3.  If a voice is present but surrounded by signs of AI polish, the verdict is 'Likely AI-Enhanced'.
 4.  If no significant AI indicators are found, the verdict is 'Appears Human-Crafted'.
-5.  Your \`highlights\` MUST directly and logically support your chosen \`verdict\`. Your final report must be a structured JSON adhering to the provided schema.`;
+5.  Your \`highlights\` MUST directly and logically support your chosen \`verdict\`. Your final report must be a structured JSON adhering to the provided schema.`,
 
-// --- NEW IMAGE ANALYSIS SYSTEM INSTRUCTIONS ---
-
-const imageSystemInstructions = {
-  standard: `You are a world-class digital content analyst, a master sleuth specialising in discerning the origin of digital images. Your primary directive is to analyse the provided image(s) and determine their origin on the 'Spectrum of Creation'.
+  image: {
+    standard: `You are a world-class digital content analyst, a master sleuth specialising in discerning the origin of digital images. Your primary directive is to analyse the provided image(s) and determine their origin on the 'Spectrum of Creation'.
   
   **NEW PARADIGM #1: THE AI-ASSISTED COMPOSITE**
   Sophisticated AI usage often involves HYBRID creation: using a REAL human photograph as a base layer, then prompting an AI to build a graphic composition (text, logos, backgrounds) around it.
@@ -82,7 +82,7 @@ const imageSystemInstructions = {
   
   Based on this REVISED protocol, render your final verdict in the required JSON format.`,
 
-  technical: `You are a world-class digital image forensics expert, a "pixel-peeping skeptic." You assume nothing is real. Your mission is to determine if an image is a single-pass AI render, an AI-Assisted Composite, or an AI-Filtered Photograph.
+    technical: `You are a world-class digital image forensics expert, a "pixel-peeping skeptic." You assume nothing is real. Your mission is to determine if an image is a single-pass AI render, an AI-Assisted Composite, or an AI-Filtered Photograph.
   
   **CRITICAL FORENSIC PROTOCOL:**
   1.  **Texture & Noise Discrepancy Analysis (COMPOSITE DETECTION):** Your primary task is to find the seams. A human photo will have a different microscopic noise grain than AI-generated text or graphics. A discrepancy is your CRITICAL indicator of a composite.
@@ -94,7 +94,7 @@ const imageSystemInstructions = {
   *   If you find evidence of a real photo with a filter, your verdict must be 'AI-Enhanced (Stylistic Filter)'.
   *   If you find a real photo combined with generated graphics, your verdict must be 'AI-Assisted Composite'. Your highlights must differentiate between the human and AI parts.`,
 
-  conceptual: `You are a specialist in conceptual analysis. IGNORE the pixels. Your sole focus is on the NARRATIVE and AESTHETIC of the image. Your mission is to detect the "Conceptual Tell", the subtle dissonance between reality and an artificial style.
+    conceptual: `You are a specialist in conceptual analysis. IGNORE the pixels. Your sole focus is on the NARRATIVE and AESTHETIC of the image. Your mission is to detect the "Conceptual Tell", the subtle dissonance between reality and an artificial style.
 
   **PRIMARY DIRECTIVE: The Authenticity of the Aesthetic.**
   Your critical task is to evaluate if the *style* feels authentic. A flawless, romanticized "vintage look" applied to a crystal-clear modern photograph is a your single biggest clue.
@@ -106,6 +106,7 @@ const imageSystemInstructions = {
   1.  **Identify the Core Subject:** First, acknowledge the nature of the subject (e.g., a believable, authentic-looking person).
   2.  **Apply the 'Aesthetic Authenticity' Test:** Based on the example scenario, evaluate the style. Is it a genuine representation of an era/medium, or a modern, romanticized, "one-click" digital version? This conceptual dissonance is your key evidence.
   3.  **Formulate Verdict:** The presence of an authentic human subject should lead you to suspect an 'AI-Enhanced (Stylistic Filter)' verdict, not dismiss it. Your final judgment and probability score must be based on the authenticity of the *style*, as demonstrated in the case study above.`
+  }
 };
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -119,24 +120,15 @@ async function withRetry<T>(apiCall: () => Promise<T>, maxRetries = 3): Promise<
         error.message.toLowerCase().includes('429') ||
         error.message.toLowerCase().includes('resource_exhausted')
       );
-
-      // Only retry on rate limit errors, and if we haven't exhausted retries
       if (isRateLimitError && attempt < maxRetries - 1) {
-        // Exponential backoff: 2s, 4s...
-        const baseBackoff = Math.pow(2, attempt) * 2000;
-        // Jitter: add a random delay of up to 1000ms to prevent thundering herd
-        const jitter = Math.random() * 1000;
-        const backoffTime = baseBackoff + jitter;
-        
-        console.log(`Rate limit hit. Retrying in ${backoffTime.toFixed(0)}ms... (Retry ${attempt + 1}/${maxRetries - 1})`);
+        const backoffTime = Math.pow(2, attempt) * 2000 + Math.random() * 1000;
+        console.log(`Rate limit hit. Retrying in ${backoffTime.toFixed(0)}ms...`);
         await delay(backoffTime);
       } else {
-        // Not a rate-limit error or this was the final attempt, so re-throw.
         throw error;
       }
     }
   }
-  // This part is unreachable due to the throw in the loop, but satisfies TypeScript's compiler.
   throw new Error("Exhausted all retries.");
 }
 
@@ -158,25 +150,15 @@ const performImageAnalysis = async (
   });
 
   const contentParts: ({ text: string } | { inlineData: { mimeType: string; data: string; } })[] = [];
+  contentParts.push({ text: "Perform a forensic analysis of the provided image(s) according to your system instructions and provide your findings in the required JSON format." });
+  contentParts.push(...imageParts);
 
-  if (imageParts.length === 1) {
-    contentParts.push(...imageParts);
-  } else if (imageParts.length > 1) {
-    contentParts.push({ text: "This is the primary image for your analysis:" });
-    contentParts.push(imageParts[0]);
-    contentParts.push({ text: "The following images are detailed crops or hints to help you see better. Use them to inform your judgment on the primary image." });
-    contentParts.push(...imageParts.slice(1));
-  }
-  
-  const baseSystemInstruction = imageSystemInstructions[forensicMode];
+  const baseSystemInstruction = systemInstructions.image[forensicMode];
   const systemInstruction = (systemInstructionPreamble ? systemInstructionPreamble + ' ' : '') + baseSystemInstruction;
   
-  const prompt = `Perform a forensic analysis of the provided image(s) according to your system instructions and provide your findings in the required JSON format.`;
-  const fullContent = [{ text: prompt }, ...contentParts];
-
   const apiCall = () => ai.models.generateContent({
       model: modelName,
-      contents: { parts: fullContent },
+      contents: { parts: contentParts },
       config: {
           systemInstruction,
           responseMimeType: 'application/json',
@@ -185,10 +167,15 @@ const performImageAnalysis = async (
       },
   });
   
-  // FIX: Explicitly type the awaited response from withRetry to ensure the 'text' property is available.
   const response = await withRetry<GenerateContentResponse>(apiCall);
-  const jsonString = response.text.trim();
-  return JSON.parse(jsonString) as AnalysisResult;
+  
+  try {
+    const jsonString = response.text.trim();
+    return JSON.parse(jsonString) as AnalysisResult;
+  } catch (e) {
+      console.error("Failed to parse JSON response from model:", response.text);
+      throw new SyntaxError("Mon Dieu! The model's response is a cryptic riddle, not the clear-cut JSON I expected.");
+  }
 };
 
 interface AnalyzeContentParams {
@@ -227,12 +214,11 @@ export const analyzeContent = async ({
     }
 
     // --- Text and URL Analysis ---
-    const baseSystemInstruction = textAndUrlSystemInstruction;
-    const systemInstruction = systemInstructionPreamble ? systemInstructionPreamble + ' ' + baseSystemInstruction : baseSystemInstruction;
+    const baseSystemInstruction = systemInstructions.textAndUrl;
+    const systemInstruction = systemInstructionPreamble ? `${systemInstructionPreamble} ${baseSystemInstruction}` : baseSystemInstruction;
     
     let promptText = `Please analyse the following text according to your system instructions and provide your findings in the required JSON format.\n\nText to Analyse:\n---\n${text.slice(0, 15000)}\n---`;
     if (url) {
-        // Note: URL content fetching is not implemented, so this relies on the model's knowledge of the URL or the text *about* the URL.
         promptText = `Please analyse the content likely found at the provided URL: ${url}. IMPORTANT: You cannot access this URL in real-time, so base your analysis on general knowledge about the site or typical content found at such a URL. Then provide your findings in the required JSON format.`;
     }
 
@@ -248,23 +234,28 @@ export const analyzeContent = async ({
       },
     });
 
-    // FIX: Explicitly type the awaited response from withRetry to ensure the 'text' property is available.
     const response = await withRetry<GenerateContentResponse>(apiCall);
-    const jsonString = response.text.trim();
-    const result = JSON.parse(jsonString);
+    let result: AnalysisResult;
+    try {
+        const jsonString = response.text.trim();
+        result = JSON.parse(jsonString);
+    } catch (e) {
+        console.error("Failed to parse JSON response from model:", response.text);
+        throw new SyntaxError("Mon Dieu! The model's response is a cryptic riddle, not the clear-cut JSON I expected.");
+    }
+    
     if (url) {
       result.explanation = `Please note: This analysis is based on the AI's general knowledge of the likely content at the provided URL, as direct access is not possible.\n\n${result.explanation}`;
     }
-    return result as AnalysisResult;
+    return result;
 
   } catch (error) {
     console.error("Error during analysis:", error);
     let errorMessage = "Zut alors! My deductive engines have sputtered. A most peculiar and unknown malfunction!";
 
     if (error instanceof SyntaxError) {
-        errorMessage = "Mon Dieu! The model's response is a cryptic riddle, not the clear-cut JSON I expected. A most peculiar case!";
+        errorMessage = error.message; 
     } else if (error instanceof Error) {
-        // Use the custom error messages from validation first
         if (error.message.startsWith("Mon Dieu!") || error.message.startsWith("A peculiar corruption")) {
             errorMessage = error.message;
         } else {
