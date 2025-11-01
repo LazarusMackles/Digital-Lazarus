@@ -5,16 +5,16 @@ export const HowItWorks: React.FC = React.memo(() => {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className="my-6 bg-white dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700 rounded-lg transition-all duration-300">
+        <div className="my-6 bg-slate-100 dark:bg-slate-900/50 rounded-lg border border-slate-300 dark:border-slate-700/50 transition-all duration-300">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex justify-between items-center p-3 text-left hover:bg-slate-100/50 dark:hover:bg-slate-800/50 rounded-t-lg"
+                className="w-full flex justify-between items-center p-3 text-left"
                 aria-expanded={isOpen}
                 aria-controls="how-it-works-content"
             >
                 <div className="flex items-center gap-2">
-                    <InformationCircleIcon className="w-5 h-5 text-slate-600 dark:text-cyan-400" />
-                    <span className="text-lg font-semibold text-slate-800 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-cyan-400 dark:to-fuchsia-500">How it Works: A Quick Briefing</span>
+                    <InformationCircleIcon className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+                    <span className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-400 dark:to-fuchsia-500">How it Works: A Quick Briefing</span>
                 </div>
                 <ChevronDownIcon className={`w-5 h-5 text-slate-500 dark:text-slate-400 transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
             </button>

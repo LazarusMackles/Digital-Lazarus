@@ -19,21 +19,34 @@ type InputType = 'text' | 'file' | 'url';
 const TabButton: React.FC<{
   active: boolean;
   onClick: () => void;
-  children: React.ReactNode;
-}> = ({ active, onClick, children }) => {
+  icon: React.ReactNode;
+  label: string;
+}> = ({ active, onClick, icon, label }) => {
+  const commonClasses = 'flex-1 px-4 py-3 text-lg rounded-t-lg transition-all duration-300 flex items-center justify-center gap-2';
+
+  if (active) {
+    return (
+      <button onClick={onClick} className={`${commonClasses} bg-black dark:bg-slate-700 text-white font-semibold`}>
+        {icon}
+        <span>{label}</span>
+      </button>
+    );
+  }
+
+  // Inactive state emulating the 'How It Works' style
   return (
     <button
       onClick={onClick}
-      className={`flex-1 px-4 py-3 text-sm sm:text-base font-semibold rounded-t-lg transition-all duration-300 flex items-center justify-center gap-2 ${
-        active
-          ? 'bg-black dark:bg-slate-700 text-white'
-          : 'border-b-2 border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
-      }`}
+      className={`${commonClasses} bg-slate-100 dark:bg-slate-900/50 hover:bg-slate-200 dark:hover:bg-slate-800`}
     >
-      {children}
+      <span className="text-cyan-600 dark:text-cyan-400">{icon}</span>
+      <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-400 dark:to-fuchsia-500">
+        {label}
+      </span>
     </button>
   );
 };
+
 
 export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, onFilesChange, onClearFiles, onUrlChange, textContent, fileNames, imageData, url, isUrlValid = true }) => {
   const [activeTab, setActiveTab] = useState<InputType>('text');
@@ -107,19 +120,24 @@ export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, o
   return (
     <div onDrop={handleDrop} onDragOver={handleDragOver}>
       <div className="flex border-b border-slate-300 dark:border-slate-700">
-        <TabButton active={activeTab === 'text'} onClick={() => selectTab('text')}>
-          <TextIcon className="w-5 h-5" />
-          Paste Text
-        </TabButton>
-        <TabButton active={activeTab === 'file'} onClick={() => selectTab('file')}>
-          <UploadIcon className="w-5 h-5" />
-          {/* FIX: Corrected typo in closing tag from </Button> to </TabButton> */}
-          Upload File(s)
-        </TabButton>
-        <TabButton active={activeTab === 'url'} onClick={() => selectTab('url')}>
-          <LinkIcon className="w-5 h-5" />
-          Analyse URL
-        </TabButton>
+        <TabButton 
+            active={activeTab === 'text'} 
+            onClick={() => selectTab('text')}
+            icon={<TextIcon className="w-5 h-5" />}
+            label="Paste Text"
+        />
+        <TabButton 
+            active={activeTab === 'file'} 
+            onClick={() => selectTab('file')}
+            icon={<UploadIcon className="w-5 h-5" />}
+            label="Upload File(s)"
+        />
+        <TabButton 
+            active={activeTab === 'url'} 
+            onClick={() => selectTab('url')}
+            icon={<LinkIcon className="w-5 h-5" />}
+            label="Analyse URL"
+        />
       </div>
 
       <div className="mt-6 min-h-[12rem] flex flex-col justify-center">

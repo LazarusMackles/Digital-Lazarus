@@ -87,7 +87,7 @@ export const ResultDisplay: React.FC = () => {
                     <ModeButton
                         active={false}
                         onClick={() => handleChallenge('technical')}
-                        title="Focus on Technical Clues"
+                        title="Focus on Technical"
                         description="Analyse pixels, lighting, and textures."
                         size="sm"
                         titleStyle="gradient"
@@ -95,7 +95,7 @@ export const ResultDisplay: React.FC = () => {
                     <ModeButton
                         active={false}
                         onClick={() => handleChallenge('conceptual')}
-                        title="Focus on Conceptual Clues"
+                        title="Focus on Conceptual"
                         description="Analyse context, subject, and overall 'feel'."
                         size="sm"
                         titleStyle="gradient"
