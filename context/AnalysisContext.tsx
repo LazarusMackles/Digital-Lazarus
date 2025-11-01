@@ -1,4 +1,5 @@
 
+
 import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
 import { analyzeContent } from '../services/geminiService';
 import type { AnalysisResult, AnalysisMode, ForensicMode, Theme } from '../types';
@@ -126,7 +127,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
             setError(errorMessage);
             setAnalysisResult(null);
             localStorage.removeItem('analysisResult');
-            clearPersistedInputs();
+            // Do not clear inputs on error, so user can retry.
 
             if (errorMessage.includes('overheating') || errorMessage.includes('quota')) {
                 setCooldown(60); 
@@ -135,7 +136,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         } finally {
             setIsLoading(false);
         }
-    }, [textContent, imageData, url, fileNames, clearPersistedInputs]);
+    }, [textContent, imageData, url, fileNames]);
 
     // Handler for the main "Deduce" button click.
     const handleAnalyze = useCallback(async () => {
@@ -171,20 +172,15 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         });
     }, [runAnalysis, textContent, imageData, url, analysisMode]);
     
-    // Handler for the "New Analysis" button, performs a full reset.
+    // Handler for "New Analysis". Resets analysis state but keeps input evidence.
     const handleNewAnalysis = useCallback(() => {
         setAnalysisResult(null);
         setError(null);
-        setTextContent('');
-        setImageData(null);
-        setUrl('');
-        setFileNames(null);
         setAnalysisMode('quick');
         setForensicMode('standard');
-        clearPersistedInputs();
         localStorage.removeItem('analysisResult');
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [clearPersistedInputs]);
+    }, []);
     
     // Handler for file uploads. Resets other input types to ensure single-mode analysis.
     const handleFilesChange = useCallback((files: { name: string, content?: string | null, imageBase64?: string | null }[]) => {
