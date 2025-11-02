@@ -1,139 +1,89 @@
-
-import React, { useState, useEffect } from 'react';
-import { ShareIcon, ArrowPathIcon } from './icons';
-import { ShareModal } from './ShareModal';
+import React, { useState } from 'react';
+import { useAnalysis } from '../context/AnalysisContext';
 import { RadialProgress } from './RadialProgress';
-import { Feedback } from './Feedback';
-import { SleuthNote } from './SleuthNote';
 import { HighlightsDisplay } from './HighlightsDisplay';
 import { ChallengeVerdict } from './ChallengeVerdict';
-import { useAnalysis } from '../context/AnalysisContext';
-
-// Custom hook to get the previous value of a prop or state
-function usePrevious<T>(value: T): T | undefined {
-  const ref = React.useRef<T>();
-  useEffect(() => {
-    ref.current = value;
-  });
-  return ref.current;
-}
-
-
-const ActionButtons: React.FC<{ onShare: () => void; onNewAnalysis: () => void; isMobile: boolean }> = ({ onShare, onNewAnalysis, isMobile }) => (
-    <>
-      <button
-        onClick={onShare}
-        className={`flex items-center justify-center gap-2 px-6 py-3 font-semibold text-white bg-cyan-600 rounded-full shadow-lg shadow-cyan-500/30 hover:bg-cyan-500 transform hover:-translate-y-0.5 transition-all duration-200 text-sm ${isMobile ? 'flex-1' : ''}`}
-      >
-        <ShareIcon className="w-4 h-4" />
-        <span>Share Report</span>
-      </button>
-      <button 
-        onClick={onNewAnalysis} 
-        className={`flex items-center justify-center gap-2 px-6 py-3 font-semibold text-white bg-fuchsia-600 rounded-full shadow-lg shadow-fuchsia-500/30 hover:bg-fuchsia-500 transform hover:-translate-y-0.5 transition-all duration-200 text-sm ${isMobile ? 'flex-1' : ''}`}
-        aria-label="Begin New Analysis"
-      >
-        <ArrowPathIcon className="w-5 h-5" />
-        <span>New Analysis</span>
-      </button>
-    </>
-);
-
+import { Feedback } from './Feedback';
+import { SleuthNote } from './SleuthNote';
+import { ShareModal } from './ShareModal';
+import { ArrowPathIcon, ShareIcon } from './icons';
 
 export const ResultDisplay: React.FC = () => {
   const { 
-    analysisResult: result, 
+    analysisResult, 
     handleChallenge, 
     handleNewAnalysis, 
-    isLoading,
-    imageData
+    imageData,
+    isReanalyzing,
   } = useAnalysis();
-    
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const prevIsLoading = usePrevious(isLoading);
-
-  useEffect(() => {
-    if (prevIsLoading && !isLoading && result) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [isLoading, prevIsLoading, result]);
   
-  if (!result) return null;
+  const [showShareModal, setShowShareModal] = useState(false);
 
-  const hasHighlights = result.highlights && result.highlights.length > 0;
-  const showChallengeSection = !result.isSecondOpinion;
-  const hasImages = imageData && imageData.length > 0;
+  if (!analysisResult) {
+    return null;
+  }
 
-  const AnalysisContent = () => (
-     <div className="flex flex-col items-center text-center animate-fade-in bg-white dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700/50">
-        <RadialProgress progress={result.probability} />
-        
-        {result.isSecondOpinion && (
-            <p className="mt-6 font-semibold text-cyan-600 dark:text-cyan-400">Second Opinion</p>
-        )}
-        <h2 className={`text-3xl font-bold ${result.isSecondOpinion ? 'mt-1' : 'mt-6'}`}>{result.verdict}</h2>
+  const { probability, verdict, explanation, highlights, isSecondOpinion } = analysisResult;
+  const isImageAnalysis = !!imageData && imageData.length > 0;
 
-        <p className="mt-2 text-slate-700 dark:text-slate-300 max-w-xl">{result.explanation}</p>
-        
-        {hasHighlights && <HighlightsDisplay highlights={result.highlights!} />}
-        
-        {showChallengeSection && <ChallengeVerdict onChallenge={handleChallenge} />}
-        
-        {/* --- DESKTOP ACTION BAR --- */}
-        <div className="hidden lg:flex flex-col items-center mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 w-full max-w-xl">
-          <div className="flex items-center gap-4">
-              <ActionButtons onShare={() => setIsShareModalOpen(true)} onNewAnalysis={handleNewAnalysis} isMobile={false} />
-          </div>
-          <Feedback />
-        </div>
-
-        <SleuthNote />
-    </div>
-  );
-
-  const ImageEvidence = () => (
-    <div className="lg:sticky lg:top-8 bg-white dark:bg-slate-800/50 p-4 sm:p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700/50">
-        <h3 className="text-lg font-semibold text-cyan-600 dark:text-cyan-400 mb-4 text-center">
-            Submitted Evidence
-        </h3>
-        <div className="grid grid-cols-2 gap-4">
-            {imageData!.map((src, index) => (
-                <div key={index} className="relative aspect-square bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700">
-                    <img src={src} alt={`Uploaded preview ${index + 1}`} className="w-full h-full object-contain" />
-                    {index === 0 && (
-                        <div className="absolute top-1 left-1 bg-cyan-600 text-white text-xs font-bold px-2 py-0.5 rounded">PRIMARY</div>
-                    )}
-                </div>
-            ))}
-        </div>
-    </div>
-  );
+  const verdictColorClass = () => {
+    if (probability < 40) return 'text-teal-500 dark:text-teal-400';
+    if (probability < 75) return 'text-yellow-500 dark:text-yellow-400';
+    return 'text-rose-500 dark:text-rose-400';
+  };
 
   return (
     <>
-      {isShareModalOpen && <ShareModal result={result} onClose={() => setIsShareModalOpen(false)} />}
-      
-      <div className={`relative ${hasImages ? 'lg:grid lg:grid-cols-5 lg:gap-8' : ''}`}>
-        
-        {hasImages && (
-            <div className="lg:col-span-2 mb-8 lg:mb-0">
-                <ImageEvidence />
+      {showShareModal && <ShareModal result={analysisResult} onClose={() => setShowShareModal(false)} />}
+      <div className="bg-white dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700/50">
+        <div className="flex flex-col items-center">
+          
+          {isSecondOpinion && !isReanalyzing && (
+            <div className="mb-4 bg-fuchsia-100 dark:bg-fuchsia-900/30 text-fuchsia-700 dark:text-fuchsia-300 text-sm font-semibold px-4 py-2 rounded-full animate-fade-in">
+              RE-EVALUATION COMPLETE
             </div>
-        )}
-        
-        <div className={hasImages ? 'lg:col-span-3' : 'w-full'}>
-            <AnalysisContent />
+          )}
+
+          <RadialProgress progress={probability} />
+
+          <h2 className={`mt-6 text-3xl font-extrabold text-center ${verdictColorClass()}`}>
+            {verdict}
+          </h2>
+          
+          <p className="mt-4 text-center max-w-xl text-slate-600 dark:text-slate-300 whitespace-pre-wrap">
+            {explanation}
+          </p>
+
+          {highlights && highlights.length > 0 && (
+            <HighlightsDisplay highlights={highlights} />
+          )}
+
+          {isImageAnalysis && !isSecondOpinion && !isReanalyzing && (
+            <ChallengeVerdict onChallenge={handleChallenge} />
+          )}
+          
+          <div className="mt-8 flex flex-col sm:flex-row items-center gap-4">
+            <button
+              onClick={handleNewAnalysis}
+              className="flex items-center justify-center gap-2 px-6 py-3 font-bold text-white bg-cyan-600 rounded-full shadow-lg shadow-cyan-500/30 hover:bg-cyan-500 transform hover:-translate-y-0.5 transition-all duration-200"
+            >
+              <ArrowPathIcon className="w-5 h-5" />
+              <span>Start New Analysis</span>
+            </button>
+             <button
+              onClick={() => setShowShareModal(true)}
+              className="flex items-center justify-center gap-2 px-6 py-3 font-bold text-white bg-fuchsia-600 rounded-full shadow-lg shadow-fuchsia-500/30 hover:bg-fuchsia-500 transform hover:-translate-y-0.5 transition-all duration-200"
+            >
+              <ShareIcon className="w-5 h-5" />
+              <span>Share Report</span>
+            </button>
+          </div>
+          
+          <Feedback />
+
+          <SleuthNote />
         </div>
       </div>
-      
-      {/* --- MOBILE STICKY ACTION BAR --- */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm p-3 border-t border-slate-200 dark:border-slate-700 z-30">
-          <div className="flex justify-center items-center gap-3 max-w-lg mx-auto">
-             <ActionButtons onShare={() => setIsShareModalOpen(true)} onNewAnalysis={handleNewAnalysis} isMobile={true} />
-          </div>
-      </div>
-      {/* Spacer to prevent content from being hidden behind the mobile bar */}
-      <div className="h-24 lg:hidden"></div>
     </>
   );
 };
