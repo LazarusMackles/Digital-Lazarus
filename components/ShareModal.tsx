@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import type { AnalysisResult } from '../types';
 import { XMarkIcon, ShareIcon } from './icons';
 
@@ -9,6 +10,20 @@ interface ShareModalProps {
 
 export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose }) => {
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
+  const [modalRoot, setModalRoot] = useState<HTMLElement | null>(null);
+
+  // On the client, find the portal root to render into.
+  useEffect(() => {
+    setModalRoot(document.getElementById('modal-root'));
+  }, []);
+
+  // Effect to lock body scroll when modal is open for better UX on long pages.
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []); // Empty dependency array ensures this effect runs only once on mount and cleanup on unmount.
 
   const generateShareText = useCallback(() => {
     let text = `--- FORENSIC REPORT ---\n`;
@@ -54,28 +69,16 @@ export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose }) => {
     }
   }, [shareText, handleCopy]);
 
-  // Effect to lock body scroll when modal is open for better UX on long pages.
-  useEffect(() => {
-    // When the modal is mounted, we want to prevent the background from scrolling.
-    document.body.style.overflow = 'hidden';
-    
-    // When the modal is unmounted, we revert the style.
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, []); // Empty dependency array ensures this effect runs only once on mount and cleanup on unmount.
-
-
-  return (
+  const modalContent = (
     <div 
-      className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 p-4 overflow-y-auto modal-overlay-fade-in" 
+      className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex justify-center items-start p-4 overflow-y-auto modal-overlay-fade-in" 
       aria-modal="true" 
       role="dialog"
       onClick={onClose}
     >
       <div 
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 animate-fade-in-up my-8 mx-auto"
+        className="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 animate-fade-in-up mt-8"
       >
         <div className="p-6 sm:p-8">
             <button 
@@ -117,4 +120,11 @@ export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose }) => {
       </div>
     </div>
   );
+
+  // Only render the portal if the modalRoot element is available on the client.
+  if (!modalRoot) {
+    return null;
+  }
+
+  return createPortal(modalContent, modalRoot);
 };

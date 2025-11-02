@@ -25,8 +25,8 @@ export const FileUploadDisplay: React.FC<FileUploadDisplayProps> = React.memo(({
                     {imageData.map((src, index) => (
                         <div key={index} className="relative aspect-square bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700">
                             <img src={src} alt={`Uploaded preview ${index + 1}`} className="w-full h-full object-contain" />
-                            {index === 0 && (
-                                <div className="absolute top-1 left-1 bg-cyan-600 text-white text-xs font-bold px-2 py-0.5 rounded">PRIMARY</div>
+                            {index === 0 && imageData.length > 1 && (
+                                <div className="absolute top-1 left-1 z-10 bg-cyan-600 text-white text-xs font-bold px-2 py-0.5 rounded">PRIMARY</div>
                             )}
                         </div>
                     ))}
