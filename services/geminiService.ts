@@ -131,6 +131,16 @@ async function withRetry<T>(apiCall: () => Promise<T>, maxRetries = 3): Promise<
   throw new Error("Exhausted all retries.");
 }
 
+// Helper function to centralize JSON parsing and error handling from the Gemini API response.
+const parseGeminiResponse = (response: GenerateContentResponse): AnalysisResult => {
+    try {
+        const jsonString = response.text.trim();
+        return JSON.parse(jsonString) as AnalysisResult;
+    } catch (e) {
+        console.error("Failed to parse JSON response from model:", response.text);
+        throw new SyntaxError("Mon Dieu! The model's response is a cryptic riddle, not the clear-cut JSON I expected.");
+    }
+};
 
 const performImageAnalysis = async (
   images: string[],
@@ -169,14 +179,7 @@ const performImageAnalysis = async (
   });
   
   const response = await withRetry<GenerateContentResponse>(apiCall);
-  
-  try {
-    const jsonString = response.text.trim();
-    return JSON.parse(jsonString) as AnalysisResult;
-  } catch (e) {
-      console.error("Failed to parse JSON response from model:", response.text);
-      throw new SyntaxError("Mon Dieu! The model's response is a cryptic riddle, not the clear-cut JSON I expected.");
-  }
+  return parseGeminiResponse(response);
 };
 
 interface AnalyzeContentParams {
@@ -236,14 +239,7 @@ export const analyzeContent = async ({
     });
 
     const response = await withRetry<GenerateContentResponse>(apiCall);
-    let result: AnalysisResult;
-    try {
-        const jsonString = response.text.trim();
-        result = JSON.parse(jsonString);
-    } catch (e) {
-        console.error("Failed to parse JSON response from model:", response.text);
-        throw new SyntaxError("Mon Dieu! The model's response is a cryptic riddle, not the clear-cut JSON I expected.");
-    }
+    const result = parseGeminiResponse(response);
     
     if (url) {
       result.explanation = `Please note: This analysis is based on the AI's general knowledge of the likely content at the provided URL, as direct access is not possible.\n\n${result.explanation}`;
