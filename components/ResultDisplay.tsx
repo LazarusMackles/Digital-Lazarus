@@ -23,6 +23,12 @@ export const ResultDisplay: React.FC = () => {
     return null;
   }
 
+  const handleCloseShareModal = () => {
+    setShowShareModal(false);
+    // Per user feedback, return to the top of the page after closing the modal.
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const { probability, verdict, explanation, highlights, isSecondOpinion } = analysisResult;
   const isImageAnalysis = !!imageData && imageData.length > 0;
 
@@ -34,7 +40,7 @@ export const ResultDisplay: React.FC = () => {
 
   return (
     <>
-      {showShareModal && <ShareModal result={analysisResult} onClose={() => setShowShareModal(false)} />}
+      {showShareModal && <ShareModal result={analysisResult} onClose={handleCloseShareModal} />}
       <div className="bg-white dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700/50">
         <div className="flex flex-col items-center">
           

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import type { AnalysisResult } from '../types';
 import { XMarkIcon, ShareIcon } from './icons';
 
@@ -54,10 +54,29 @@ export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose }) => {
     }
   }, [shareText, handleCopy]);
 
+  // Effect to lock body scroll when modal is open for better UX on long pages.
+  useEffect(() => {
+    // When the modal is mounted, we want to prevent the background from scrolling.
+    document.body.style.overflow = 'hidden';
+    
+    // When the modal is unmounted, we revert the style.
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []); // Empty dependency array ensures this effect runs only once on mount and cleanup on unmount.
+
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 modal-overlay-fade-in" aria-modal="true" role="dialog">
-      <div className="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 animate-fade-in-up">
+    <div 
+      className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 p-4 overflow-y-auto modal-overlay-fade-in" 
+      aria-modal="true" 
+      role="dialog"
+      onClick={onClose}
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 animate-fade-in-up my-8 mx-auto"
+      >
         <div className="p-6 sm:p-8">
             <button 
                 onClick={onClose} 
