@@ -1,14 +1,16 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import type { AnalysisResult } from '../types';
+import type { AnalysisResult, AnalysisEvidence } from '../types';
 import { XMarkIcon, EnvelopeIcon } from './icons';
 
 interface ShareModalProps {
   result: AnalysisResult;
   onClose: () => void;
+  evidence: AnalysisEvidence | null;
+  timestamp: string | null;
 }
 
-export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose }) => {
+export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose, evidence, timestamp }) => {
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
   const [modalRoot, setModalRoot] = useState<HTMLElement | null>(null);
 
@@ -26,8 +28,34 @@ export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose }) => {
   }, []); // Empty dependency array ensures this effect runs only once on mount and cleanup on unmount.
 
   const generateShareText = useCallback(() => {
+    let evidenceText = '';
+    if (evidence) {
+        switch (evidence.type) {
+            case 'file':
+                evidenceText = `EVIDENCE ANALYZED (FILES): ${evidence.content}\n`;
+                break;
+            case 'text':
+                // Truncate long text for email body clarity
+                const truncatedText = evidence.content.length > 500 ? evidence.content.substring(0, 500) + '...' : evidence.content;
+                evidenceText = `EVIDENCE ANALYZED (TEXT):\n---\n${truncatedText}\n---\n\n`;
+                break;
+            case 'url':
+                evidenceText = `EVIDENCE ANALYZED (URL): ${evidence.content}\n`;
+                break;
+        }
+    }
+
     let text = `--- FORENSIC REPORT ---\n`;
-    text += `Analysis by: GenAI Sleuther Vanguard\n\n`;
+    text += `Analysis by: GenAI Sleuther Vanguard\n`;
+    if (timestamp) {
+        text += `Date of Analysis: ${timestamp}\n`;
+    }
+    text += `\n`;
+    
+    if (evidenceText) {
+        text += evidenceText + '\n';
+    }
+
     text += `VERDICT: ${result.verdict}\n`;
     text += `AI PROBABILITY: ${Math.round(result.probability)}%\n\n`;
     text += `EXPLANATION:\n${result.explanation}\n\n`;
@@ -42,7 +70,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose }) => {
 
     text += 'Analysis performed by GenAI Sleuther Vanguard, powered by Google Gemini.';
     return text;
-  }, [result]);
+  }, [result, evidence, timestamp]);
 
 
   const shareText = generateShareText();

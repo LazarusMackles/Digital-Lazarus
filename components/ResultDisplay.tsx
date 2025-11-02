@@ -16,6 +16,8 @@ export const ResultDisplay: React.FC = () => {
     handleNewAnalysis, 
     imageData,
     isReanalyzing,
+    analysisTimestamp,
+    analysisEvidence,
   } = useAnalysis();
   
   const [showShareModal, setShowShareModal] = useState(false);
@@ -42,7 +44,14 @@ export const ResultDisplay: React.FC = () => {
 
   return (
     <>
-      {showShareModal && <ShareModal result={analysisResult} onClose={handleCloseShareModal} />}
+      {showShareModal && (
+        <ShareModal 
+          result={analysisResult} 
+          onClose={handleCloseShareModal}
+          evidence={analysisEvidence}
+          timestamp={analysisTimestamp}
+        />
+      )}
       {selectedImage && <ImageLightbox imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />}
 
       <div className="bg-white dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700/50">

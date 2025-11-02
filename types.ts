@@ -13,3 +13,8 @@ export interface AnalysisResult {
   }[];
   isSecondOpinion?: boolean;
 }
+
+export interface AnalysisEvidence {
+  type: InputType;
+  content: string;
+}

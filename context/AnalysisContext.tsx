@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
 import { analyzeContent } from '../services/geminiService';
-import type { AnalysisResult, AnalysisMode, ForensicMode, Theme, InputType } from '../types';
+import type { AnalysisResult, AnalysisMode, ForensicMode, Theme, InputType, AnalysisEvidence } from '../types';
 
 // This preamble is added to the system instructions when a user challenges the initial verdict.
 const secondOpinionPreamble = `CRITICAL RE-EVALUATION: Your trusted human partner has challenged your initial verdict, believing you have overlooked critical evidence. Your previous analysis may have been biased by "conceptual plausibility" (e.g., recognizing a real brand name). You are now under direct orders to re-evaluate the evidence using a different, more skeptical forensic protocol. Acknowledge this re-evaluation and your new, specific focus in your explanation.`;
@@ -18,6 +18,8 @@ interface AnalysisContextState {
     isLoading: boolean;
     isReanalyzing: boolean;
     analysisResult: AnalysisResult | null;
+    analysisTimestamp: string | null;
+    analysisEvidence: AnalysisEvidence | null;
     error: string | null;
     analysisMode: AnalysisMode;
     setAnalysisMode: (mode: AnalysisMode) => void;
@@ -61,6 +63,8 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isReanalyzing, setIsReanalyzing] = useState<boolean>(false);
     const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(() => getStoredItem('analysisResult', null));
+    const [analysisTimestamp, setAnalysisTimestamp] = useState<string | null>(() => localStorage.getItem('analysisTimestamp'));
+    const [analysisEvidence, setAnalysisEvidence] = useState<AnalysisEvidence | null>(() => getStoredItem('analysisEvidence', null));
     const [error, setError] = useState<string | null>(null);
     const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('quick');
     const [forensicMode, setForensicMode] = useState<ForensicMode>('standard');
@@ -110,17 +114,40 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         try {
             const result = await analysisFn();
             setAnalysisResult(result);
+            
+            // Capture and persist timestamp and evidence context on success.
+            const timestamp = new Date().toLocaleString();
+            setAnalysisTimestamp(timestamp);
+            localStorage.setItem('analysisTimestamp', timestamp);
+
+            let evidence: AnalysisEvidence | null = null;
+            if (activeInput === 'text' && textContent.trim()) {
+                evidence = { type: 'text', content: textContent };
+            } else if (activeInput === 'file' && fileNames && fileNames.length > 0) {
+                evidence = { type: 'file', content: fileNames.join(', ') };
+            } else if (activeInput === 'url' && url.trim()) {
+                evidence = { type: 'url', content: url };
+            }
+
+            if (evidence) {
+                setAnalysisEvidence(evidence);
+                localStorage.setItem('analysisEvidence', JSON.stringify(evidence));
+            }
+
             // Persist successful result and the inputs that generated it.
             localStorage.setItem('analysisResult', JSON.stringify(result));
             localStorage.setItem('analysisTextContent', textContent);
             localStorage.setItem('analysisImageData', JSON.stringify(imageData));
             localStorage.setItem('analysisUrl', url);
             localStorage.setItem('analysisFileNames', JSON.stringify(fileNames));
+
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
             setError(errorMessage);
             setAnalysisResult(null);
             localStorage.removeItem('analysisResult');
+            localStorage.removeItem('analysisTimestamp');
+            localStorage.removeItem('analysisEvidence');
             // Do not clear inputs on error, so user can retry.
 
             if (errorMessage.includes('overheating') || errorMessage.includes('quota')) {
@@ -130,7 +157,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         } finally {
             setIsLoading(false);
         }
-    }, [textContent, imageData, url, fileNames]);
+    }, [textContent, imageData, url, fileNames, activeInput]);
     
     const handleClearFiles = useCallback(() => {
         setImageData(null);
@@ -163,7 +190,11 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         }
         setIsReanalyzing(false);
         setAnalysisResult(null);
+        setAnalysisTimestamp(null);
+        setAnalysisEvidence(null);
         localStorage.removeItem('analysisResult');
+        localStorage.removeItem('analysisTimestamp');
+        localStorage.removeItem('analysisEvidence');
         
         await runAnalysis(async () => {
             const result = await analyzeContent({ text: textContent, images: imageData, url, analysisMode, forensicMode });
@@ -195,7 +226,11 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         setError(null);
         setAnalysisMode('quick');
         setForensicMode('standard');
+        setAnalysisTimestamp(null);
+        setAnalysisEvidence(null);
         localStorage.removeItem('analysisResult');
+        localStorage.removeItem('analysisTimestamp');
+        localStorage.removeItem('analysisEvidence');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }, []);
     
@@ -232,6 +267,8 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         isLoading,
         isReanalyzing,
         analysisResult,
+        analysisTimestamp,
+        analysisEvidence,
         error,
         analysisMode,
         setAnalysisMode,
