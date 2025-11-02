@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import type { AnalysisResult } from '../types';
-import { XMarkIcon, ShareIcon } from './icons';
+import { XMarkIcon, EnvelopeIcon } from './icons';
 
 interface ShareModalProps {
   result: AnalysisResult;
@@ -44,7 +44,10 @@ export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose }) => {
     return text;
   }, [result]);
 
+
   const shareText = generateShareText();
+  const encodedShareText = encodeURIComponent(shareText);
+  const reportTitle = encodeURIComponent('GenAI Sleuther Vanguard Forensic Report');
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(shareText).then(() => {
@@ -52,22 +55,6 @@ export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose }) => {
       setTimeout(() => setCopyStatus('idle'), 2000);
     });
   }, [shareText]);
-
-  const handleShare = useCallback(async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'GenAI Sleuther Vanguard Forensic Report',
-          text: shareText,
-        });
-      } catch (error) {
-        console.error('Error sharing analysis:', error);
-      }
-    } else {
-      // Fallback for browsers that do not support the Web Share API.
-      handleCopy();
-    }
-  }, [shareText, handleCopy]);
 
   const modalContent = (
     <div 
@@ -91,24 +78,21 @@ export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose }) => {
             <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500">
                 Share Forensic Report
             </h2>
-            <p className="mt-2 text-slate-600 dark:text-slate-300">
-                Your detailed analysis is ready to be shared. Copy the report for pasting into documents, or use your device's native sharing options.
-            </p>
             
             <textarea
               readOnly
               value={shareText}
-              className="mt-4 w-full h-48 p-3 font-mono bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm resize-none focus:ring-2 focus:ring-cyan-500 focus:outline-none text-slate-800 dark:text-slate-200"
+              className="mt-4 w-full h-40 p-3 font-mono bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm resize-none focus:ring-2 focus:ring-cyan-500 focus:outline-none text-slate-800 dark:text-slate-200"
             />
 
             <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-end">
-                <button
-                    onClick={handleShare}
+                <a
+                    href={`mailto:?subject=${reportTitle}&body=${encodedShareText}`}
                     className="flex-1 sm:flex-none px-6 py-3 font-bold text-white bg-fuchsia-600 rounded-full shadow-lg shadow-fuchsia-500/30 hover:bg-fuchsia-500 transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
                 >
-                    <ShareIcon className="w-5 h-5" />
-                    <span>Share via ...</span>
-                </button>
+                    <EnvelopeIcon className="w-5 h-5" />
+                    <span>Send via Email</span>
+                </a>
                 <button
                     onClick={handleCopy}
                     className="flex-1 sm:flex-none px-6 py-3 font-bold text-white bg-cyan-600 rounded-full shadow-lg shadow-cyan-500/30 hover:bg-cyan-500 transform hover:-translate-y-0.5 transition-all duration-200"
