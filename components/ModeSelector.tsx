@@ -9,8 +9,8 @@ interface ModeSelectorProps {
 
 export const ModeSelector: React.FC<ModeSelectorProps> = React.memo(({ selectedMode, onModeChange }) => {
   return (
-    <div className="mt-6 mb-8 flex flex-col items-center">
-        <p className="text-sm font-medium text-cyan-600 dark:text-cyan-400 mb-3">Select Deductive Method</p>
+    <fieldset className="mt-6 mb-8 w-full border-none p-0">
+        <legend className="text-sm font-medium text-cyan-600 dark:text-cyan-400 mb-3 text-center w-full">Select Deductive Method</legend>
         <div className="w-full flex flex-col sm:flex-row gap-4">
             <ModeButton
                 active={selectedMode === 'quick'}
@@ -27,6 +27,6 @@ export const ModeSelector: React.FC<ModeSelectorProps> = React.memo(({ selectedM
                 size="md"
             />
         </div>
-    </div>
+    </fieldset>
   );
 });

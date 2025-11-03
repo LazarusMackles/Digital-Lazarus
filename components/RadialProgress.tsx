@@ -18,13 +18,19 @@ export const RadialProgress: React.FC<RadialProgressProps> = React.memo(({ progr
     };
     
     const color = getColor(progress);
+    const roundedProgress = Math.round(progress);
 
     return (
-        <div className="relative w-48 h-48">
+        <div 
+            className="relative w-48 h-48"
+            role="img"
+            aria-label={`AI Probability score: ${roundedProgress} percent.`}
+        >
             <svg
                 height={radius * 2}
                 width={radius * 2}
                 className="transform -rotate-90"
+                aria-hidden="true"
             >
                 <circle
                     className="stroke-slate-200 dark:stroke-slate-700"
@@ -46,8 +52,11 @@ export const RadialProgress: React.FC<RadialProgressProps> = React.memo(({ progr
                     className="transition-all duration-1000 ease-out"
                 />
             </svg>
-            <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center">
-                <span className="text-4xl font-bold" style={{ color }}>{Math.round(progress)}%</span>
+            <div 
+                className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center"
+                aria-hidden="true"
+            >
+                <span className="text-4xl font-bold" style={{ color }}>{roundedProgress}%</span>
                 <span className="text-sm text-slate-500 dark:text-slate-400">AI Probability</span>
             </div>
         </div>
