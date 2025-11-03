@@ -19,30 +19,30 @@ const validateUrl = (value: string): boolean => {
 export const InputForm: React.FC = () => {
     const {
         textContent,
-        setTextContent,
         imageData,
         url,
-        setUrl,
         isUrlValid,
-        setIsUrlValid,
         fileNames,
-        handleFilesChange,
-        handleClearFiles,
         forensicMode,
-        setForensicMode,
         analysisMode,
-        setAnalysisMode,
         error,
         isLoading,
         cooldown,
         handleAnalyze,
         activeInput,
-        setActiveInput
+        dispatch
     } = useAnalysis();
 
+    const handleTextChange = (text: string) => dispatch({ type: 'SET_TEXT_CONTENT', payload: text });
+    const handleFilesChange = (files: { name: string, content?: string | null, imageBase64?: string | null }[]) => dispatch({ type: 'HANDLE_FILES_CHANGE', payload: files });
+    const handleClearFiles = () => dispatch({ type: 'CLEAR_FILES' });
+    const setAnalysisMode = (mode: 'quick' | 'deep') => dispatch({ type: 'SET_ANALYSIS_MODE', payload: mode });
+    const setForensicMode = (mode: 'standard' | 'technical' | 'conceptual') => dispatch({ type: 'SET_FORENSIC_MODE', payload: mode });
+    const setActiveInput = (type: 'text' | 'file' | 'url') => dispatch({ type: 'SET_ACTIVE_INPUT', payload: type });
+
     const handleUrlChange = (value: string) => {
-        setUrl(value);
-        setIsUrlValid(validateUrl(value));
+        dispatch({ type: 'SET_URL', payload: value });
+        dispatch({ type: 'SET_IS_URL_VALID', payload: validateUrl(value) });
     };
 
     const isInputEmpty = !textContent.trim() && (!imageData || imageData.length === 0) && !url.trim();
@@ -68,7 +68,7 @@ export const InputForm: React.FC = () => {
             <HowItWorks />
 
             <InputTabs
-                onTextChange={setTextContent}
+                onTextChange={handleTextChange}
                 onFilesChange={handleFilesChange}
                 onClearFiles={handleClearFiles}
                 onUrlChange={handleUrlChange}

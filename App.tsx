@@ -13,10 +13,12 @@ const AppContent: React.FC = () => {
     analysisResult,
     isReanalyzing,
     showWelcome, 
-    setShowWelcome,
     theme,
-    setTheme
+    dispatch
   } = useAnalysis();
+
+  const handleCloseWelcome = () => dispatch({ type: 'SET_SHOW_WELCOME', payload: false });
+  const handleSetTheme = (theme: 'light' | 'dark') => dispatch({ type: 'SET_THEME', payload: theme });
 
   const renderContent = () => {
     if (isLoading) {
@@ -45,10 +47,10 @@ const AppContent: React.FC = () => {
 
   return (
     <>
-      {showWelcome && <WelcomeModal onClose={() => setShowWelcome(false)} />}
+      {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
       <div className="min-h-screen p-4 sm:p-6 md:p-8 dark:text-white transition-colors duration-300">
         <div className="max-w-4xl mx-auto">
-          <Header theme={theme} setTheme={setTheme} />
+          <Header theme={theme} setTheme={handleSetTheme} />
           <main className="mt-12">
             {renderContent()}
           </main>

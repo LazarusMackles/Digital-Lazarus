@@ -1,19 +1,14 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
+import React, { createContext, useReducer, useEffect, useContext, ReactNode, useCallback } from 'react';
 import { analyzeContent } from '../services/geminiService';
 import type { AnalysisResult, AnalysisMode, ForensicMode, Theme, InputType, AnalysisEvidence } from '../types';
 
-// This preamble is added to the system instructions when a user challenges the initial verdict.
-const secondOpinionPreamble = `CRITICAL RE-EVALUATION: Your trusted human partner has challenged your initial verdict, believing you have overlooked critical evidence. Your previous analysis may have been biased by "conceptual plausibility" (e.g., recognizing a real brand name). You are now under direct orders to re-evaluate the evidence using a different, more skeptical forensic protocol. Acknowledge this re-evaluation and your new, specific focus in your explanation.`;
+// --- STATE AND ACTION TYPES FOR REDUCER ---
 
-interface AnalysisContextState {
+type State = {
     textContent: string;
-    setTextContent: (text: string) => void;
     imageData: string[] | null;
-    setImageData: (data: string[] | null) => void;
     url: string;
-    setUrl: (url: string) => void;
     isUrlValid: boolean;
-    setIsUrlValid: (isValid: boolean) => void;
     fileNames: string[] | null;
     isLoading: boolean;
     isReanalyzing: boolean;
@@ -22,104 +17,210 @@ interface AnalysisContextState {
     analysisEvidence: AnalysisEvidence | null;
     error: string | null;
     analysisMode: AnalysisMode;
-    setAnalysisMode: (mode: AnalysisMode) => void;
     forensicMode: ForensicMode;
-    setForensicMode: (mode: ForensicMode) => void;
     showWelcome: boolean;
-    setShowWelcome: (show: boolean) => void;
     theme: Theme;
-    setTheme: (theme: Theme) => void;
     cooldown: number;
     activeInput: InputType;
-    setActiveInput: (type: InputType) => void;
+};
+
+type Action =
+    | { type: 'SET_TEXT_CONTENT'; payload: string }
+    | { type: 'SET_IMAGE_DATA'; payload: string[] | null }
+    | { type: 'SET_URL'; payload: string }
+    | { type: 'SET_IS_URL_VALID'; payload: boolean }
+    | { type: 'SET_FILE_NAMES'; payload: string[] | null }
+    | { type: 'SET_ANALYSIS_MODE'; payload: AnalysisMode }
+    | { type: 'SET_FORENSIC_MODE'; payload: ForensicMode }
+    | { type: 'SET_THEME'; payload: Theme }
+    | { type: 'SET_SHOW_WELCOME'; payload: boolean }
+    | { type: 'SET_ACTIVE_INPUT'; payload: InputType }
+    | { type: 'HANDLE_FILES_CHANGE'; payload: { name: string, content?: string | null, imageBase64?: string | null }[] }
+    | { type: 'CLEAR_FILES' }
+    | { type: 'START_ANALYSIS'; payload: { isReanalyzing: boolean } }
+    | { type: 'ANALYSIS_SUCCESS'; payload: { result: AnalysisResult; evidence: AnalysisEvidence | null; timestamp: string } }
+    | { type: 'ANALYSIS_ERROR'; payload: string }
+    | { type: 'NEW_ANALYSIS' }
+    | { type: 'TICK_COOLDOWN' };
+
+
+// --- LOCALSTORAGE HELPERS ---
+
+const getStoredItem = <T,>(key: string, defaultValue: T): T => {
+    try {
+        const saved = localStorage.getItem(key);
+        return saved ? JSON.parse(saved) : defaultValue;
+    } catch (e) {
+        console.error(`Could not parse stored item '${key}':`, e);
+        localStorage.removeItem(key);
+        return defaultValue;
+    }
+};
+
+// This preamble is added to the system instructions when a user challenges the initial verdict.
+const secondOpinionPreamble = `CRITICAL RE-EVALUATION: Your trusted human partner has challenged your initial verdict, believing you have overlooked critical evidence. Your previous analysis may have been biased by "conceptual plausibility" (e.g., recognizing a real brand name). You are now under direct orders to re-evaluate the evidence using a different, more skeptical forensic protocol. Acknowledge this re-evaluation and your new, specific focus in your explanation.`;
+
+interface AnalysisContextState extends State {
+    dispatch: React.Dispatch<Action>;
     handleAnalyze: () => void;
     handleChallenge: (mode: ForensicMode) => void;
     handleNewAnalysis: () => void;
-    handleFilesChange: (files: { name: string, content?: string | null, imageBase64?: string | null }[]) => void;
-    handleClearFiles: () => void;
 }
 
 const AnalysisContext = createContext<AnalysisContextState | undefined>(undefined);
 
-export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) => {
-    // Helper to safely get item from localStorage, preventing crashes from malformed JSON.
-    const getStoredItem = <T,>(key: string, defaultValue: T): T => {
-        try {
-            const saved = localStorage.getItem(key);
-            return saved ? JSON.parse(saved) : defaultValue;
-        } catch (e) {
-            console.error(`Could not parse stored item '${key}':`, e);
-            localStorage.removeItem(key);
-            return defaultValue;
-        }
-    };
-    
-    // --- STATE MANAGEMENT ---
-    const [textContent, setTextContent] = useState<string>(() => localStorage.getItem('analysisTextContent') || '');
-    const [imageData, setImageData] = useState<string[] | null>(() => getStoredItem('analysisImageData', null));
-    const [url, setUrl] = useState<string>(() => localStorage.getItem('analysisUrl') || '');
-    const [fileNames, setFileNames] = useState<string[] | null>(() => getStoredItem('analysisFileNames', null));
-    const [isUrlValid, setIsUrlValid] = useState<boolean>(true);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [isReanalyzing, setIsReanalyzing] = useState<boolean>(false);
-    const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(() => getStoredItem('analysisResult', null));
-    const [analysisTimestamp, setAnalysisTimestamp] = useState<string | null>(() => localStorage.getItem('analysisTimestamp'));
-    const [analysisEvidence, setAnalysisEvidence] = useState<AnalysisEvidence | null>(() => getStoredItem('analysisEvidence', null));
-    const [error, setError] = useState<string | null>(null);
-    const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('quick');
-    const [forensicMode, setForensicMode] = useState<ForensicMode>('standard');
-    const [showWelcome, setShowWelcome] = useState<boolean>(false);
-    const [cooldown, setCooldown] = useState<number>(0);
-    const [activeInput, _setActiveInput] = useState<InputType>('file');
-    const [theme, setTheme] = useState<Theme>(() => {
-        const savedTheme = localStorage.getItem('theme') as Theme;
-        return savedTheme || 'dark'; // Default to dark mode
-    });
+// --- REDUCER FUNCTION ---
 
-    // --- EFFECTS ---
+const initialState: State = {
+    textContent: getStoredItem('analysisTextContent', ''),
+    imageData: getStoredItem('analysisImageData', null),
+    url: getStoredItem('analysisUrl', ''),
+    isUrlValid: true,
+    fileNames: getStoredItem('analysisFileNames', null),
+    isLoading: false,
+    isReanalyzing: false,
+    analysisResult: getStoredItem('analysisResult', null),
+    analysisTimestamp: localStorage.getItem('analysisTimestamp'),
+    analysisEvidence: getStoredItem('analysisEvidence', null),
+    error: null,
+    analysisMode: 'quick',
+    forensicMode: 'standard',
+    showWelcome: false,
+    theme: getStoredItem('theme', 'dark'),
+    cooldown: 0,
+    activeInput: 'file',
+};
+
+const reducer = (state: State, action: Action): State => {
+    switch (action.type) {
+        case 'SET_TEXT_CONTENT':
+            return { ...state, textContent: action.payload };
+        case 'SET_IMAGE_DATA':
+            return { ...state, imageData: action.payload };
+        case 'SET_URL':
+            return { ...state, url: action.payload };
+        case 'SET_IS_URL_VALID':
+            return { ...state, isUrlValid: action.payload };
+        case 'SET_FILE_NAMES':
+            return { ...state, fileNames: action.payload };
+        case 'SET_ANALYSIS_MODE':
+            return { ...state, analysisMode: action.payload };
+        case 'SET_FORENSIC_MODE':
+            return { ...state, forensicMode: action.payload };
+        case 'SET_THEME':
+            localStorage.setItem('theme', action.payload);
+            return { ...state, theme: action.payload };
+        case 'SET_SHOW_WELCOME':
+            return { ...state, showWelcome: action.payload };
+        case 'SET_ACTIVE_INPUT': {
+             // Reset other inputs when switching tabs
+            const newState = { ...state, activeInput: action.payload, error: null };
+            if (action.payload === 'text') {
+                newState.url = '';
+                newState.imageData = null;
+                newState.fileNames = null;
+            } else if (action.payload === 'url') {
+                newState.textContent = '';
+                newState.imageData = null;
+                newState.fileNames = null;
+            } else if (action.payload === 'file') {
+                newState.textContent = '';
+                newState.url = '';
+            }
+            return newState;
+        }
+        case 'HANDLE_FILES_CHANGE': {
+            let textContent = '';
+            let imageData: string[] | null = null;
+            const fileNames = action.payload.map(f => f.name);
+            const images = action.payload.map(f => f.imageBase64).filter((b64): b64 is string => !!b64);
+            if (images.length > 0) imageData = images;
+            const textFile = action.payload.find(f => f.content);
+            if (textFile?.content) textContent = textFile.content;
+            
+            return { ...state, fileNames, imageData, textContent, activeInput: 'file' };
+        }
+        case 'CLEAR_FILES':
+             return { ...state, imageData: null, fileNames: null, textContent: '' };
+        case 'START_ANALYSIS':
+            return { ...state, isLoading: true, isReanalyzing: action.payload.isReanalyzing, error: null, analysisResult: null };
+        case 'ANALYSIS_SUCCESS': {
+            const { result, evidence, timestamp } = action.payload;
+            localStorage.setItem('analysisResult', JSON.stringify(result));
+            localStorage.setItem('analysisEvidence', JSON.stringify(evidence));
+            localStorage.setItem('analysisTimestamp', timestamp);
+            localStorage.setItem('analysisTextContent', state.textContent);
+            localStorage.setItem('analysisImageData', JSON.stringify(state.imageData));
+            localStorage.setItem('analysisUrl', state.url);
+            localStorage.setItem('analysisFileNames', JSON.stringify(state.fileNames));
+            return { ...state, isLoading: false, analysisResult: result, analysisEvidence: evidence, analysisTimestamp: timestamp };
+        }
+        case 'ANALYSIS_ERROR': {
+            const errorMessage = action.payload;
+            localStorage.removeItem('analysisResult');
+            localStorage.removeItem('analysisEvidence');
+            localStorage.removeItem('analysisTimestamp');
+            const needsCooldown = errorMessage.includes('overheating') || errorMessage.includes('quota');
+            return { ...state, isLoading: false, error: errorMessage, analysisResult: null, cooldown: needsCooldown ? 60 : 0, analysisMode: needsCooldown ? 'quick' : state.analysisMode };
+        }
+        case 'NEW_ANALYSIS':
+            localStorage.removeItem('analysisResult');
+            localStorage.removeItem('analysisEvidence');
+            localStorage.removeItem('analysisTimestamp');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return { ...state, analysisResult: null, error: null, analysisMode: 'quick', forensicMode: 'standard' };
+        case 'TICK_COOLDOWN':
+            return { ...state, cooldown: Math.max(0, state.cooldown - 1) };
+        default:
+            return state;
+    }
+};
+
+export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) => {
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const { textContent, imageData, url, analysisMode, forensicMode, activeInput, fileNames } = state;
 
     // Show welcome modal on first visit.
     useEffect(() => {
         const hasVisited = localStorage.getItem('hasVisited');
         if (!hasVisited) {
-            setShowWelcome(true);
+            dispatch({ type: 'SET_SHOW_WELCOME', payload: true });
             localStorage.setItem('hasVisited', 'true');
         }
     }, []);
 
     // Apply theme changes to the document.
     useEffect(() => {
-        if (theme === 'dark') {
+        if (state.theme === 'dark') {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
-        localStorage.setItem('theme', theme);
-    }, [theme]);
+    }, [state.theme]);
     
     // Countdown timer for API rate limit cooldown.
     useEffect(() => {
-        if (cooldown > 0) {
-            const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+        if (state.cooldown > 0) {
+            const timer = setTimeout(() => dispatch({ type: 'TICK_COOLDOWN' }), 1000);
             return () => clearTimeout(timer);
         }
-    }, [cooldown]);
+    }, [state.cooldown]);
 
-    // --- CORE LOGIC FUNCTIONS (MEMOIZED) ---
-
-    // Central function to run any analysis, handling loading, errors, and persistence.
-    const runAnalysis = useCallback(async (analysisFn: () => Promise<AnalysisResult>) => {
-        setIsLoading(true);
-        setError(null);
+    const runAnalysis = useCallback(async (isReanalyzing: boolean, overrideForensicMode?: ForensicMode) => {
+        dispatch({ type: 'START_ANALYSIS', payload: { isReanalyzing } });
         try {
-            const result = await analysisFn();
-            setAnalysisResult(result);
-            
-            // Capture and persist timestamp and evidence context on success.
-            const timestamp = new Date().toLocaleString();
-            setAnalysisTimestamp(timestamp);
-            localStorage.setItem('analysisTimestamp', timestamp);
+            const currentForensicMode = overrideForensicMode || forensicMode;
+            const result = await analyzeContent({
+                text: textContent,
+                images: imageData,
+                url,
+                analysisMode,
+                forensicMode: currentForensicMode,
+                systemInstructionPreamble: isReanalyzing ? secondOpinionPreamble : undefined,
+            });
+            result.isSecondOpinion = isReanalyzing;
 
+            const timestamp = new Date().toLocaleString();
             let evidence: AnalysisEvidence | null = null;
             if (activeInput === 'text' && textContent.trim()) {
                 evidence = { type: 'text', content: textContent };
@@ -128,165 +229,21 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
             } else if (activeInput === 'url' && url.trim()) {
                 evidence = { type: 'url', content: url };
             }
-
-            if (evidence) {
-                setAnalysisEvidence(evidence);
-                localStorage.setItem('analysisEvidence', JSON.stringify(evidence));
-            }
-
-            // Persist successful result and the inputs that generated it.
-            localStorage.setItem('analysisResult', JSON.stringify(result));
-            localStorage.setItem('analysisTextContent', textContent);
-            localStorage.setItem('analysisImageData', JSON.stringify(imageData));
-            localStorage.setItem('analysisUrl', url);
-            localStorage.setItem('analysisFileNames', JSON.stringify(fileNames));
-
+            
+            dispatch({ type: 'ANALYSIS_SUCCESS', payload: { result, evidence, timestamp } });
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-            setError(errorMessage);
-            setAnalysisResult(null);
-            localStorage.removeItem('analysisResult');
-            localStorage.removeItem('analysisTimestamp');
-            localStorage.removeItem('analysisEvidence');
-            // Do not clear inputs on error, so user can retry.
-
-            if (errorMessage.includes('overheating') || errorMessage.includes('quota')) {
-                setCooldown(60); 
-                setAnalysisMode('quick');
-            }
-        } finally {
-            setIsLoading(false);
+            dispatch({ type: 'ANALYSIS_ERROR', payload: errorMessage });
         }
-    }, [textContent, imageData, url, fileNames, activeInput]);
+    }, [textContent, imageData, url, analysisMode, forensicMode, activeInput, fileNames]);
     
-    const handleClearFiles = useCallback(() => {
-        setImageData(null);
-        setFileNames(null);
-        setTextContent('');
-    }, []);
-
-    const setActiveInput = useCallback((tab: InputType) => {
-        _setActiveInput(tab);
-        setError(null);
-        if (tab === 'text') {
-            setUrl('');
-            setImageData(null);
-            setFileNames(null);
-        } else if (tab === 'url') {
-            setTextContent('');
-            setImageData(null);
-            setFileNames(null);
-        } else if (tab === 'file') {
-            setTextContent('');
-            setUrl('');
-        }
-    }, []);
-
-    // Handler for the main "Deduce" button click.
-    const handleAnalyze = useCallback(async () => {
-        if ((!textContent.trim() && (!imageData || imageData.length === 0) && !url.trim()) || (url.trim() && !isUrlValid)) {
-            setError('Mon Dieu! You must provide some valid evidence for me to analyse!');
-            return;
-        }
-        setIsReanalyzing(false);
-        setAnalysisResult(null);
-        setAnalysisTimestamp(null);
-        setAnalysisEvidence(null);
-        localStorage.removeItem('analysisResult');
-        localStorage.removeItem('analysisTimestamp');
-        localStorage.removeItem('analysisEvidence');
-        
-        await runAnalysis(async () => {
-            const result = await analyzeContent({ text: textContent, images: imageData, url, analysisMode, forensicMode });
-            result.isSecondOpinion = false;
-            return result;
-        });
-    }, [runAnalysis, textContent, imageData, url, analysisMode, forensicMode, isUrlValid]);
-
-    // Handler for the "Challenge Verdict" buttons.
-    const handleChallenge = useCallback(async (mode: ForensicMode) => {
-        setIsReanalyzing(true);
-        await runAnalysis(async () => {
-            const result = await analyzeContent({ 
-                text: textContent, 
-                images: imageData, 
-                url, 
-                analysisMode, 
-                forensicMode: mode, 
-                systemInstructionPreamble: secondOpinionPreamble 
-            });
-            result.isSecondOpinion = true;
-            return result;
-        });
-    }, [runAnalysis, textContent, imageData, url, analysisMode]);
+    const handleAnalyze = useCallback(() => runAnalysis(false), [runAnalysis]);
     
-    // Handler for "New Analysis". Resets analysis state but keeps input evidence.
-    const handleNewAnalysis = useCallback(() => {
-        setAnalysisResult(null);
-        setError(null);
-        setAnalysisMode('quick');
-        setForensicMode('standard');
-        setAnalysisTimestamp(null);
-        setAnalysisEvidence(null);
-        localStorage.removeItem('analysisResult');
-        localStorage.removeItem('analysisTimestamp');
-        localStorage.removeItem('analysisEvidence');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, []);
+    const handleChallenge = useCallback((mode: ForensicMode) => runAnalysis(true, mode), [runAnalysis]);
     
-    // Handler for file uploads. Resets other input types to ensure single-mode analysis.
-    const handleFilesChange = useCallback((files: { name: string, content?: string | null, imageBase64?: string | null }[]) => {
-        setActiveInput('file');
-        
-        if (files.length > 0) {
-            const names = files.map(f => f.name);
-            setFileNames(names);
+    const handleNewAnalysis = useCallback(() => dispatch({ type: 'NEW_ANALYSIS' }), []);
 
-            const images = files.map(f => f.imageBase64).filter((b64): b64 is string => !!b64);
-            if (images.length > 0) {
-                setImageData(images);
-            }
-
-            const textFile = files.find(f => f.content);
-            if (textFile && textFile.content) {
-                setTextContent(textFile.content);
-            }
-        }
-    }, [setActiveInput]);
-    
-    const value = {
-        textContent,
-        setTextContent,
-        imageData,
-        setImageData,
-        url,
-        setUrl,
-        isUrlValid,
-        setIsUrlValid,
-        fileNames,
-        isLoading,
-        isReanalyzing,
-        analysisResult,
-        analysisTimestamp,
-        analysisEvidence,
-        error,
-        analysisMode,
-        setAnalysisMode,
-        forensicMode,
-        setForensicMode,
-        showWelcome,
-        setShowWelcome,
-        theme,
-        setTheme,
-        cooldown,
-        activeInput,
-        setActiveInput,
-        handleAnalyze,
-        handleChallenge,
-        handleNewAnalysis,
-        handleFilesChange,
-        handleClearFiles,
-    };
+    const value = { ...state, dispatch, handleAnalyze, handleChallenge, handleNewAnalysis };
 
     return <AnalysisContext.Provider value={value}>{children}</AnalysisContext.Provider>;
 };
