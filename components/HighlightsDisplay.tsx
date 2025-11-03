@@ -14,9 +14,9 @@ export const HighlightsDisplay: React.FC<HighlightsDisplayProps> = React.memo(({
       <div className="space-y-4">
         {highlights.map((highlight, index) => (
           <div key={index} className="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-            <blockquote className="border-l-4 border-cyan-500 pl-4">
-              <p className="font-mono text-sm text-slate-800 dark:text-white italic">"{highlight.text}"</p>
-            </blockquote>
+            <div className="border-l-4 border-cyan-500 pl-4">
+              <p className="text-base font-semibold text-slate-800 dark:text-white">{highlight.text}</p>
+            </div>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{highlight.reason}</p>
           </div>
         ))}

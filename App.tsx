@@ -6,6 +6,7 @@ import { Loader } from './components/Loader';
 import { WelcomeModal } from './components/WelcomeModal';
 import { InputForm } from './components/InputForm';
 import { AnalysisProvider, useAnalysis } from './context/AnalysisContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 const AppContent: React.FC = () => {
   const { 
@@ -64,7 +65,9 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <AnalysisProvider>
-      <AppContent />
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
     </AnalysisProvider>
   );
 };
