@@ -18,7 +18,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({ theme, setTheme }) =>
       </h1>
       <div className="mt-4 max-w-2xl mx-auto bg-slate-100 dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-md">
         <p className="text-lg text-slate-800 dark:text-slate-200">
-          In this new age of brilliant collaboration between humans and AI, clarity is key. Let's analyse text, images, and URLs to trace their digital origins and see if they've been enhanced by AI. Present your evidence below.
+          In this new age of brilliant collaboration between humans and AI, clarity is key. Together let's analyse text, images, and URLs to trace their digital origins and see if they've been enhanced by AI. Present your evidence below.
         </p>
       </div>
     </header>

@@ -124,7 +124,7 @@ export const ResultDisplay: React.FC = () => {
             </button>
           </div>
           
-          <Feedback />
+          <Feedback result={analysisResult} evidence={analysisEvidence} timestamp={analysisTimestamp} />
 
           <SleuthNote />
         </div>
