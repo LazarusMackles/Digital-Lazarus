@@ -5,18 +5,21 @@ export const HowItWorks: React.FC = React.memo(() => {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className="my-6 bg-slate-100 dark:bg-slate-900/50 rounded-lg border border-slate-300 dark:border-slate-700/50 transition-all duration-300">
+        <div className="mb-8 bg-slate-100 dark:bg-slate-900/50 rounded-lg border border-slate-300 dark:border-slate-700/50 transition-all duration-300">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex justify-between items-center p-3 text-left"
+                className="w-full flex justify-center items-center p-4 relative"
                 aria-expanded={isOpen}
                 aria-controls="how-it-works-content"
             >
-                <div className="flex items-center gap-2">
-                    <InformationCircleIcon className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
-                    <span className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-400 dark:to-fuchsia-500">How it Works: A Quick Briefing</span>
+                <div className="flex items-center gap-3">
+                    <InformationCircleIcon className="w-6 h-6 text-cyan-600 dark:text-cyan-400 flex-shrink-0" />
+                    <div className="text-center">
+                        <span className="text-xs font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-400">Mission Briefing</span>
+                        <span className="block text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-400 dark:to-fuchsia-500">How It Works: A Quick Guide</span>
+                    </div>
                 </div>
-                <ChevronDownIcon className={`w-5 h-5 text-slate-500 dark:text-slate-400 transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDownIcon className={`w-5 h-5 text-slate-500 dark:text-slate-400 transform transition-transform duration-300 absolute right-4 top-1/2 -translate-y-1/2 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
             <div
                 id="how-it-works-content"

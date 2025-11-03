@@ -20,7 +20,7 @@ export const ModeButton: React.FC<ModeButtonProps> = React.memo(({ active, onCli
     return (
         <button
             onClick={onClick}
-            className={`flex-1 text-left rounded-lg transition-all duration-300 border transform ${padding} ${
+            className={`flex-1 flex flex-col justify-center text-center rounded-lg transition-all duration-300 border transform ${padding} ${
                 active
                     ? 'bg-black dark:bg-slate-700 border-transparent shadow-lg scale-[1.02]'
                     : 'bg-white dark:bg-slate-800/50 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:border-slate-400 dark:hover:border-slate-500 hover:-translate-y-0.5'

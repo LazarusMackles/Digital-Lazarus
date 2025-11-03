@@ -9,9 +9,9 @@ interface ForensicModeToggleProps {
 
 export const ForensicModeToggle: React.FC<ForensicModeToggleProps> = React.memo(({ selectedMode, onModeChange }) => {
   return (
-    <div className="mt-6 mb-8 animate-fade-in">
-        <p className="text-sm font-medium text-center text-cyan-600 dark:text-cyan-400 mb-3">Select Forensic Angle</p>
-        <div className="flex flex-col sm:flex-row gap-2">
+    <div className="mt-6 mb-8 animate-fade-in flex flex-col items-center">
+        <p className="text-sm font-medium text-cyan-600 dark:text-cyan-400 mb-3">Select Forensic Angle</p>
+        <div className="w-full flex flex-col sm:flex-row gap-2">
             <ModeButton
                 active={selectedMode === 'standard'}
                 onClick={() => onModeChange('standard')}

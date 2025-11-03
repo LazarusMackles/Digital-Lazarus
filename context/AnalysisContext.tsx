@@ -70,7 +70,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     const [forensicMode, setForensicMode] = useState<ForensicMode>('standard');
     const [showWelcome, setShowWelcome] = useState<boolean>(false);
     const [cooldown, setCooldown] = useState<number>(0);
-    const [activeInput, _setActiveInput] = useState<InputType>('text');
+    const [activeInput, _setActiveInput] = useState<InputType>('file');
     const [theme, setTheme] = useState<Theme>(() => {
         const savedTheme = localStorage.getItem('theme') as Theme;
         return savedTheme || 'dark'; // Default to dark mode
