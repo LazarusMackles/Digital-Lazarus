@@ -1,6 +1,3 @@
-
-
-
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { ErrorFallback } from './ErrorFallback';
 
@@ -13,12 +10,10 @@ interface State {
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  // Fix: Use a class property to initialize state. This is a more modern and
-  // concise syntax for React class components and should resolve compiler
-  // errors about state and props not being found.
-  state: State = {
-    hasError: false,
-  };
+  // Fix: Initialize state as a class property. This is a modern approach
+  // that resolves errors where TypeScript couldn't find 'state' and 'props'
+  // on the component instance under strict compiler settings.
+  public state: State = { hasError: false };
 
   public static getDerivedStateFromError(_: Error): State {
     // Update state so the next render will show the fallback UI.

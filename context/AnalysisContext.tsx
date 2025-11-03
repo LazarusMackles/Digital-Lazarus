@@ -108,7 +108,6 @@ const reducer = (state: State, action: Action): State => {
         case 'SET_FORENSIC_MODE':
             return { ...state, forensicMode: action.payload };
         case 'SET_THEME':
-            localStorage.setItem('theme', action.payload);
             return { ...state, theme: action.payload };
         case 'SET_SHOW_WELCOME':
             return { ...state, showWelcome: action.payload };
@@ -146,28 +145,14 @@ const reducer = (state: State, action: Action): State => {
             return { ...state, isLoading: true, isReanalyzing: action.payload.isReanalyzing, error: null, analysisResult: null };
         case 'ANALYSIS_SUCCESS': {
             const { result, evidence, timestamp } = action.payload;
-            localStorage.setItem('analysisResult', JSON.stringify(result));
-            localStorage.setItem('analysisEvidence', JSON.stringify(evidence));
-            localStorage.setItem('analysisTimestamp', timestamp);
-            localStorage.setItem('analysisTextContent', state.textContent);
-            localStorage.setItem('analysisImageData', JSON.stringify(state.imageData));
-            localStorage.setItem('analysisUrl', state.url);
-            localStorage.setItem('analysisFileNames', JSON.stringify(state.fileNames));
             return { ...state, isLoading: false, analysisResult: result, analysisEvidence: evidence, analysisTimestamp: timestamp };
         }
         case 'ANALYSIS_ERROR': {
             const errorMessage = action.payload;
-            localStorage.removeItem('analysisResult');
-            localStorage.removeItem('analysisEvidence');
-            localStorage.removeItem('analysisTimestamp');
             const needsCooldown = errorMessage.includes('overheating') || errorMessage.includes('quota');
             return { ...state, isLoading: false, error: errorMessage, analysisResult: null, cooldown: needsCooldown ? 60 : 0, analysisMode: needsCooldown ? 'quick' : state.analysisMode };
         }
         case 'NEW_ANALYSIS':
-            localStorage.removeItem('analysisResult');
-            localStorage.removeItem('analysisEvidence');
-            localStorage.removeItem('analysisTimestamp');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
             return { ...state, analysisResult: null, error: null, analysisMode: 'quick', forensicMode: 'standard' };
         case 'TICK_COOLDOWN':
             return { ...state, cooldown: Math.max(0, state.cooldown - 1) };
@@ -189,14 +174,42 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         }
     }, []);
 
-    // Apply theme changes to the document.
+    // Effect to centralize all localStorage synchronization as a side effect.
     useEffect(() => {
+        // Sync theme
+        localStorage.setItem('theme', state.theme);
         if (state.theme === 'dark') {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
-    }, [state.theme]);
+
+        // Sync analysis results and evidence
+        if (state.analysisResult) {
+            localStorage.setItem('analysisResult', JSON.stringify(state.analysisResult));
+            localStorage.setItem('analysisEvidence', JSON.stringify(state.analysisEvidence));
+            localStorage.setItem('analysisTimestamp', state.analysisTimestamp || '');
+            localStorage.setItem('analysisTextContent', state.textContent);
+            localStorage.setItem('analysisImageData', JSON.stringify(state.imageData));
+            localStorage.setItem('analysisUrl', state.url);
+            localStorage.setItem('analysisFileNames', JSON.stringify(state.fileNames));
+        } else {
+             // If there's no result, it means we're in a new analysis state or an error occurred, so clear storage.
+             localStorage.removeItem('analysisResult');
+             localStorage.removeItem('analysisEvidence');
+             localStorage.removeItem('analysisTimestamp');
+        }
+
+    }, [
+        state.theme, 
+        state.analysisResult, 
+        state.analysisEvidence, 
+        state.analysisTimestamp, 
+        state.textContent, 
+        state.imageData, 
+        state.url, 
+        state.fileNames
+    ]);
     
     // Countdown timer for API rate limit cooldown.
     useEffect(() => {
@@ -241,7 +254,10 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     
     const handleChallenge = useCallback((mode: ForensicMode) => runAnalysis(true, mode), [runAnalysis]);
     
-    const handleNewAnalysis = useCallback(() => dispatch({ type: 'NEW_ANALYSIS' }), []);
+    const handleNewAnalysis = useCallback(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        dispatch({ type: 'NEW_ANALYSIS' });
+    }, []);
 
     const value = { ...state, dispatch, handleAnalyze, handleChallenge, handleNewAnalysis };
 
