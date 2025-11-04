@@ -1,5 +1,6 @@
 
 
+
 import React, { useRef, useState } from 'react';
 import { UploadIcon, TextIcon, LinkIcon } from './icons';
 import { FileUploadDisplay } from './FileUploadDisplay';
@@ -17,6 +18,9 @@ interface InputTabsProps {
   isUrlValid?: boolean;
   activeInput: InputType;
   setActiveInput: (type: InputType) => void;
+  onUseExampleText: () => void;
+  onUseExampleImage: () => void;
+  onUseExampleUrl: () => void;
 }
 
 const TabButton: React.FC<{
@@ -51,7 +55,7 @@ const TabButton: React.FC<{
 };
 
 
-export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, onFilesChange, onClearFiles, onUrlChange, textContent, fileNames, imageData, url, isUrlValid = true, activeInput, setActiveInput }) => {
+export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, onFilesChange, onClearFiles, onUrlChange, textContent, fileNames, imageData, url, isUrlValid = true, activeInput, setActiveInput, onUseExampleText, onUseExampleImage, onUseExampleUrl }) => {
   const [unsupportedFile, setUnsupportedFile] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -143,13 +147,22 @@ export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, o
 
       <div className="mt-6 min-h-[12rem] flex flex-col justify-center">
         {activeInput === 'text' && (
-          <textarea
-            value={textContent}
-            onChange={(e) => onTextChange(e.target.value)}
-            placeholder="Present the textual evidence here ... I am examining every character."
-            className="w-full h-48 p-4 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-colors duration-300 resize-none"
-            maxLength={15000}
-          />
+          <div className="relative">
+            <textarea
+              value={textContent}
+              onChange={(e) => onTextChange(e.target.value)}
+              placeholder="Present the textual evidence here ... I am examining every character."
+              className="w-full h-48 p-4 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-colors duration-300 resize-none"
+              maxLength={15000}
+            />
+            {textContent.trim() === '' && (
+              <button 
+                  onClick={onUseExampleText}
+                  className="absolute top-2 right-2 text-xs text-cyan-600 dark:text-cyan-400 hover:underline bg-slate-200/50 dark:bg-slate-900/80 px-2 py-1 rounded">
+                  Use Example
+              </button>
+            )}
+          </div>
         )}
         {activeInput === 'file' && (
            <FileUploadDisplay 
@@ -159,6 +172,7 @@ export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, o
              onClearFiles={onClearFiles}
              onFileChange={handleFileChange}
              fileInputRef={fileInputRef}
+             onUseExample={onUseExampleImage}
            />
         )}
         {activeInput === 'url' && (
@@ -172,6 +186,15 @@ export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, o
                     isUrlValid ? 'border-slate-300 dark:border-slate-700 focus:ring-cyan-500' : 'border-red-500 dark:border-red-500/80 ring-1 ring-red-500 focus:ring-red-500'
                   }`}
               />
+              {url.trim() === '' && (
+                <div className="text-center mt-3">
+                  <button 
+                    onClick={onUseExampleUrl}
+                    className="text-sm text-cyan-600 dark:text-cyan-400 hover:underline">
+                      Use an Example URL
+                  </button>
+                </div>
+              )}
               {!isUrlValid && url.trim() !== '' && (
                 <p className="mt-2 text-xs text-red-600 dark:text-red-400">Mon Dieu! That does not appear to be a valid web address.</p>
               )}

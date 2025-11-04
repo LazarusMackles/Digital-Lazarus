@@ -1,0 +1,66 @@
+import type { AnalysisResult, AnalysisEvidence } from '../types';
+
+/**
+ * Generates a formatted plain text report from the analysis results.
+ * This is the single source of truth for report formatting.
+ * @param result The analysis result object.
+ * @param evidence The evidence object.
+ * @param timestamp The timestamp of the analysis.
+ * @param forEmailBody If true, prepends a placeholder for user feedback.
+ * @returns A formatted string representing the forensic report.
+ */
+export const generateShareText = (
+    result: AnalysisResult, 
+    evidence: AnalysisEvidence | null, 
+    timestamp: string | null,
+    forEmailBody: boolean = false
+): string => {
+    let evidenceText = '';
+    if (evidence) {
+        switch (evidence.type) {
+            case 'file':
+                evidenceText = `EVIDENCE ANALYZED (FILES): ${evidence.content}\n`;
+                break;
+            case 'text':
+                // Truncate long text for email body clarity
+                const truncatedText = evidence.content.length > 500 ? evidence.content.substring(0, 500) + '...' : evidence.content;
+                evidenceText = `EVIDENCE ANALYZED (TEXT):\n---\n${truncatedText}\n---\n\n`;
+                break;
+            case 'url':
+                evidenceText = `EVIDENCE ANALYZED (URL): ${evidence.content}\n`;
+                break;
+        }
+    }
+
+    let text = '';
+    if (forEmailBody) {
+        text += `[--- PLEASE PROVIDE YOUR FEEDBACK OR SUGGESTION HERE ---]\n\n\n--- AUTOMATED CASE FILE ---\n`;
+    } else {
+        text += `--- FORENSIC REPORT ---\n`;
+    }
+    
+    text += `Analysis by: GenAI Sleuther Vanguard\n`;
+    if (timestamp) {
+        text += `Date of Analysis: ${timestamp}\n`;
+    }
+    text += `\n`;
+    
+    if (evidenceText) {
+        text += evidenceText + '\n';
+    }
+
+    text += `VERDICT: ${result.verdict}\n`;
+    text += `AI PROBABILITY: ${Math.round(result.probability)}%\n\n`;
+    text += `EXPLANATION:\n${result.explanation}\n\n`;
+    
+    if (result.highlights && result.highlights.length > 0) {
+      text += 'KEY INDICATORS:\n';
+      result.highlights.forEach(h => {
+        text += `- "${h.text}": ${h.reason}\n`;
+      });
+      text += '\n';
+    }
+
+    text += 'Analysis performed by GenAI Sleuther Vanguard, powered by Google Gemini.';
+    return text;
+};

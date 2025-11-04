@@ -8,6 +8,7 @@ interface FileUploadDisplayProps {
     onClearFiles: () => void;
     onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     fileInputRef: React.RefObject<HTMLInputElement>;
+    onUseExample?: () => void;
 }
 
 export const FileUploadDisplay: React.FC<FileUploadDisplayProps> = React.memo(({
@@ -16,7 +17,8 @@ export const FileUploadDisplay: React.FC<FileUploadDisplayProps> = React.memo(({
     fileNames,
     onClearFiles,
     onFileChange,
-    fileInputRef
+    fileInputRef,
+    onUseExample
 }) => {
     if (imageData && imageData.length > 0) {
         return (
@@ -67,6 +69,13 @@ export const FileUploadDisplay: React.FC<FileUploadDisplayProps> = React.memo(({
                 <>
                     <p className="font-semibold text-slate-800 dark:text-white">Submit digital artifacts for inspection</p>
                     <p className="text-sm text-slate-500 dark:text-slate-400">Upload multiple images for detailed analysis.</p>
+                    {onUseExample && (
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); onUseExample(); }}
+                            className="mt-3 text-sm text-cyan-600 dark:text-cyan-400 hover:underline">
+                            Or try an example image
+                        </button>
+                    )}
                 </>
             )}
         </div>

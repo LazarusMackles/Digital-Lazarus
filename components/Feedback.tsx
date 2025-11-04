@@ -1,67 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { ThumbsUpIcon, ChatBubbleOvalLeftEllipsisIcon } from './icons';
 import type { AnalysisResult, AnalysisEvidence } from '../types';
+import { generateShareText } from '../utils/reportUtils';
 
 interface FeedbackProps {
   result: AnalysisResult;
   evidence: AnalysisEvidence | null;
   timestamp: string | null;
 }
-
-const generateShareText = (
-    result: AnalysisResult, 
-    evidence: AnalysisEvidence | null, 
-    timestamp: string | null,
-    forEmailBody: boolean = false
-): string => {
-    let evidenceText = '';
-    if (evidence) {
-        switch (evidence.type) {
-            case 'file':
-                evidenceText = `EVIDENCE ANALYZED (FILES): ${evidence.content}\n`;
-                break;
-            case 'text':
-                const truncatedText = evidence.content.length > 500 ? evidence.content.substring(0, 500) + '...' : evidence.content;
-                evidenceText = `EVIDENCE ANALYZED (TEXT):\n---\n${truncatedText}\n---\n\n`;
-                break;
-            case 'url':
-                evidenceText = `EVIDENCE ANALYZED (URL): ${evidence.content}\n`;
-                break;
-        }
-    }
-
-    let text = '';
-    if (forEmailBody) {
-        text += `[--- PLEASE PROVIDE YOUR FEEDBACK OR SUGGESTION HERE ---]\n\n\n`;
-    }
-
-    text += `--- AUTOMATED CASE FILE ---\n`;
-    text += `Analysis by: GenAI Sleuther Vanguard\n`;
-    if (timestamp) {
-        text += `Date of Analysis: ${timestamp}\n`;
-    }
-    text += `\n`;
-    
-    if (evidenceText) {
-        text += evidenceText + '\n';
-    }
-
-    text += `VERDICT: ${result.verdict}\n`;
-    text += `AI PROBABILITY: ${Math.round(result.probability)}%\n\n`;
-    text += `EXPLANATION:\n${result.explanation}\n\n`;
-    
-    if (result.highlights && result.highlights.length > 0) {
-      text += 'KEY INDICATORS:\n';
-      result.highlights.forEach(h => {
-        text += `- "${h.text}": ${h.reason}\n`;
-      });
-      text += '\n';
-    }
-
-    text += 'Analysis performed by GenAI Sleuther Vanguard, powered by Google Gemini.';
-    return text;
-};
-
 
 export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence, timestamp }) => {
   const [feedbackGiven, setFeedbackGiven] = useState<'none' | 'positive' | 'report'>('none');
