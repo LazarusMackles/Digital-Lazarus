@@ -34,7 +34,8 @@ export const ResultDisplay: React.FC = () => {
   };
 
   const { probability, verdict, explanation, highlights, isSecondOpinion } = analysisResult;
-  const isImageAnalysis = !!imageData && imageData.length > 0;
+  const isImageAnalysis = analysisEvidence?.type === 'file' && !!imageData && imageData.length > 0;
+  const isTextAnalysis = analysisEvidence?.type === 'text' && !!analysisEvidence.content;
 
   const verdictColorClass = () => {
     if (probability < 40) return 'text-teal-500 dark:text-teal-400';
@@ -57,7 +58,7 @@ export const ResultDisplay: React.FC = () => {
       <div className="bg-white dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700/50">
         <div className="flex flex-col items-center">
 
-          {isImageAnalysis && (
+          {isImageAnalysis && imageData && (
             <div className="mb-8 w-full max-w-xl text-left bg-slate-100 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 animate-fade-in">
               <h3 className="text-lg font-semibold text-center text-cyan-600 dark:text-cyan-400 mb-4">
                 Evidence Presented
@@ -79,6 +80,19 @@ export const ResultDisplay: React.FC = () => {
                     )}
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {isTextAnalysis && analysisEvidence && (
+            <div className="mb-8 w-full max-w-xl text-left bg-slate-100 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 animate-fade-in">
+              <h3 className="text-lg font-semibold text-center text-cyan-600 dark:text-cyan-400 mb-4">
+                Evidence Presented (Text)
+              </h3>
+              <div className="max-h-32 overflow-y-auto p-3 bg-slate-200 dark:bg-slate-900 rounded font-mono text-sm text-slate-700 dark:text-slate-300">
+                <p className="whitespace-pre-wrap break-words">
+                  {analysisEvidence.content.length > 500 ? analysisEvidence.content.substring(0, 500) + '...' : analysisEvidence.content}
+                </p>
               </div>
             </div>
           )}

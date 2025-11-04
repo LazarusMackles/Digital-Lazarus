@@ -1,6 +1,3 @@
-
-
-
 import React, { useRef, useState } from 'react';
 import { UploadIcon, TextIcon, LinkIcon } from './icons';
 import { FileUploadDisplay } from './FileUploadDisplay';
@@ -147,7 +144,7 @@ export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, o
 
       <div className="mt-6 min-h-[12rem] flex flex-col justify-center">
         {activeInput === 'text' && (
-          <div className="relative">
+          <div>
             <textarea
               value={textContent}
               onChange={(e) => onTextChange(e.target.value)}
@@ -156,11 +153,13 @@ export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, o
               maxLength={15000}
             />
             {textContent.trim() === '' && (
-              <button 
+              <div className="text-center mt-3">
+                <button 
                   onClick={onUseExampleText}
-                  className="absolute top-2 right-2 text-xs text-cyan-600 dark:text-cyan-400 hover:underline bg-slate-200/50 dark:bg-slate-900/80 px-2 py-1 rounded">
-                  Use Example
-              </button>
+                  className="text-sm text-cyan-600 dark:text-cyan-400 hover:underline">
+                    Use an Example Text
+                </button>
+              </div>
             )}
           </div>
         )}
