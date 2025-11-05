@@ -8,6 +8,38 @@ import { SleuthNote } from './SleuthNote';
 import { ShareModal } from './ShareModal';
 import { ImageLightbox } from './ImageLightbox';
 import { ArrowPathIcon, EnvelopeIcon } from './icons';
+import type { AnalysisMode } from '../types';
+
+const CaseFileDetails: React.FC<{
+  analysisModeUsed: AnalysisMode | null,
+  timestamp: string | null
+}> = ({ analysisModeUsed, timestamp }) => {
+  if (!analysisModeUsed || !timestamp) return null;
+
+  const getModelName = (mode: AnalysisMode) => {
+    switch (mode) {
+      case 'quick': return 'gemini-2.5-flash';
+      case 'deep': return 'gemini-2.5-pro';
+      default: return 'unknown';
+    }
+  };
+  const modeText = analysisModeUsed === 'quick' ? 'Quick Scan' : 'Deep Analysis';
+
+  return (
+    <div className="mt-8 w-full max-w-xl bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-lg p-4 text-sm">
+      <h4 className="font-semibold text-center text-cyan-700 dark:text-cyan-400 mb-2">Case File Details</h4>
+      <div className="flex justify-between text-slate-600 dark:text-slate-300">
+        <span className="font-medium text-slate-700 dark:text-slate-200">Analysis Method:</span>
+        <span>{modeText} ({getModelName(analysisModeUsed)})</span>
+      </div>
+       <div className="flex justify-between text-slate-600 dark:text-slate-300 mt-1">
+        <span className="font-medium text-slate-700 dark:text-slate-200">Date of Analysis:</span>
+        <span>{timestamp}</span>
+      </div>
+    </div>
+  );
+};
+
 
 export const ResultDisplay: React.FC = () => {
   const { 
@@ -18,6 +50,7 @@ export const ResultDisplay: React.FC = () => {
     isReanalyzing,
     analysisTimestamp,
     analysisEvidence,
+    analysisModeUsed
   } = useAnalysis();
   
   const [showShareModal, setShowShareModal] = useState(false);
@@ -139,6 +172,8 @@ export const ResultDisplay: React.FC = () => {
           </div>
           
           <Feedback result={analysisResult} evidence={analysisEvidence} timestamp={analysisTimestamp} />
+
+          <CaseFileDetails analysisModeUsed={analysisModeUsed} timestamp={analysisTimestamp} />
 
           <SleuthNote />
         </div>

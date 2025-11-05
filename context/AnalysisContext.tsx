@@ -15,6 +15,7 @@ type State = {
     analysisResult: AnalysisResult | null;
     analysisTimestamp: string | null;
     analysisEvidence: AnalysisEvidence | null;
+    analysisModeUsed: AnalysisMode | null;
     error: string | null;
     analysisMode: AnalysisMode;
     forensicMode: ForensicMode;
@@ -82,6 +83,7 @@ const initialState: State = {
     analysisResult: getStoredItem('analysisResult', null),
     analysisTimestamp: localStorage.getItem('analysisTimestamp'),
     analysisEvidence: getStoredItem('analysisEvidence', null),
+    analysisModeUsed: getStoredItem('analysisModeUsed', null),
     error: null,
     analysisMode: 'quick',
     forensicMode: 'standard',
@@ -145,7 +147,7 @@ const reducer = (state: State, action: Action): State => {
             return { ...state, isLoading: true, isReanalyzing: action.payload.isReanalyzing, error: null, analysisResult: null };
         case 'ANALYSIS_SUCCESS': {
             const { result, evidence, timestamp } = action.payload;
-            return { ...state, isLoading: false, analysisResult: result, analysisEvidence: evidence, analysisTimestamp: timestamp };
+            return { ...state, isLoading: false, analysisResult: result, analysisEvidence: evidence, analysisTimestamp: timestamp, analysisModeUsed: state.analysisMode };
         }
         case 'ANALYSIS_ERROR': {
             const errorMessage = action.payload;
@@ -153,7 +155,7 @@ const reducer = (state: State, action: Action): State => {
             return { ...state, isLoading: false, error: errorMessage, analysisResult: null, cooldown: needsCooldown ? 60 : 0, analysisMode: needsCooldown ? 'quick' : state.analysisMode };
         }
         case 'NEW_ANALYSIS':
-            return { ...state, analysisResult: null, error: null, analysisMode: 'quick', forensicMode: 'standard' };
+            return { ...state, analysisResult: null, error: null, analysisMode: 'quick', forensicMode: 'standard', analysisTimestamp: null, analysisEvidence: null, analysisModeUsed: null };
         case 'TICK_COOLDOWN':
             return { ...state, cooldown: Math.max(0, state.cooldown - 1) };
         default:
@@ -193,11 +195,13 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
             localStorage.setItem('analysisImageData', JSON.stringify(state.imageData));
             localStorage.setItem('analysisUrl', state.url);
             localStorage.setItem('analysisFileNames', JSON.stringify(state.fileNames));
+            localStorage.setItem('analysisModeUsed', JSON.stringify(state.analysisModeUsed));
         } else {
              // If there's no result, it means we're in a new analysis state or an error occurred, so clear storage.
              localStorage.removeItem('analysisResult');
              localStorage.removeItem('analysisEvidence');
              localStorage.removeItem('analysisTimestamp');
+             localStorage.removeItem('analysisModeUsed');
         }
 
     }, [
@@ -208,7 +212,8 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         state.textContent, 
         state.imageData, 
         state.url, 
-        state.fileNames
+        state.fileNames,
+        state.analysisModeUsed
     ]);
     
     // Countdown timer for API rate limit cooldown.
