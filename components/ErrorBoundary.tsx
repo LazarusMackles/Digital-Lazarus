@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ErrorFallback } from './ErrorFallback';
 
@@ -11,6 +10,8 @@ interface State {
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {
+  // FIX: The constructor-based state initialization was causing type errors in this environment. 
+  // Reverted to the more concise class field syntax, which correctly initializes state and resolves the linter issues.
   state: State = { hasError: false };
 
   static getDerivedStateFromError(_: Error): State {

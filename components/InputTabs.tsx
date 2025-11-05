@@ -1,181 +1,116 @@
-import React, { useRef, useState } from 'react';
-import { UploadIcon, TextIcon, LinkIcon } from './icons/index';
-import { FileUploadDisplay } from './FileUploadDisplay';
+import React from 'react';
 import type { InputType } from '../types';
+import { TextIcon, UploadIcon, LinkIcon } from './icons/index';
+import { FileUploadDisplay } from './FileUploadDisplay';
 
 interface InputTabsProps {
   onTextChange: (text: string) => void;
-  onFilesChange: (files: { name: string, content?: string | null, imageBase64?: string | null }[]) => void;
+  onFilesChange: (files: { name: string; imageBase64?: string | null; content?: string | null }[]) => void;
   onClearFiles: () => void;
   onUrlChange: (url: string) => void;
   textContent: string;
   fileNames: string[] | null;
   imageData: string[] | null;
   url: string;
-  isUrlValid?: boolean;
+  isUrlValid: boolean;
   activeInput: InputType;
   setActiveInput: (type: InputType) => void;
 }
 
 const TabButton: React.FC<{
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
   label: string;
-}> = ({ active, onClick, icon, label }) => {
-  const commonClasses = 'flex-1 px-4 py-3 text-lg rounded-t-lg transition-all duration-300 flex items-center justify-center gap-2';
+  icon: React.ReactNode;
+  isActive: boolean;
+  onClick: () => void;
+}> = ({ label, icon, isActive, onClick }) => (
+  <button
+    onClick={onClick}
+    role="tab"
+    aria-selected={isActive}
+    className={`flex-1 flex items-center justify-center gap-2 p-3 sm:p-4 text-sm font-bold border-b-4 transition-all duration-200 ${
+      isActive
+        ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
+        : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+    }`}
+  >
+    {icon}
+    <span className="hidden sm:inline">{label}</span>
+  </button>
+);
 
-  if (active) {
-    return (
-      <button onClick={onClick} className={`${commonClasses} bg-black dark:bg-slate-700 text-white font-semibold`}>
-        {icon}
-        <span>{label}</span>
-      </button>
-    );
-  }
 
-  // Inactive state emulating the 'How It Works' style
+export const InputTabs: React.FC<InputTabsProps> = React.memo((
+    {
+        onTextChange,
+        onFilesChange,
+        onClearFiles,
+        onUrlChange,
+        textContent,
+        fileNames,
+        imageData,
+        url,
+        isUrlValid,
+        activeInput,
+        setActiveInput,
+    }
+) => {
   return (
-    <button
-      onClick={onClick}
-      className={`${commonClasses} bg-slate-100 dark:bg-slate-900/50 hover:bg-slate-200 dark:hover:bg-slate-800`}
-    >
-      <span className="text-cyan-600 dark:text-cyan-400">{icon}</span>
-      <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-400 dark:to-fuchsia-500">
-        {label}
-      </span>
-    </button>
-  );
-};
-
-
-export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, onFilesChange, onClearFiles, onUrlChange, textContent, fileNames, imageData, url, isUrlValid = true, activeInput, setActiveInput }) => {
-  const [unsupportedFile, setUnsupportedFile] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFilePromises = (files: File[]) => {
-    const supportedImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    const supportedTextExtensions = ['.txt', '.md', '.html', '.js', '.py', '.java', '.c', '.cpp', '.cs'];
-
-    if (files.length > 1 && !files.every(f => supportedImageTypes.includes(f.type))) {
-      setUnsupportedFile('For multi-file uploads, please select only images (jpg, png, webp).');
-      onFilesChange([]);
-      return;
-    }
-    
-    setUnsupportedFile(null);
-
-    const promises = files.map(file => {
-      return new Promise<{ name: string, content?: string | null, imageBase64?: string | null }>((resolve) => {
-        const reader = new FileReader();
-
-        if (supportedImageTypes.includes(file.type)) {
-          reader.onload = (e) => resolve({ name: file.name, imageBase64: e.target?.result as string });
-          reader.readAsDataURL(file);
-        } else if (file.type.startsWith('text/') || supportedTextExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
-          reader.onload = (e) => resolve({ name: file.name, content: e.target?.result as string });
-          reader.readAsText(file);
-        } else {
-          setUnsupportedFile(file.name);
-          resolve({ name: file.name }); // Resolve with just the name for unsupported type
-        }
-      });
-    });
-
-    Promise.all(promises).then(results => {
-      const allFilesSupported = results.every(r => r.imageBase64 || r.content);
-      if(allFilesSupported) {
-          onFilesChange(results);
-      } else {
-          onFilesChange(results.filter(r => r.imageBase64 || r.content));
-      }
-    });
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      handleFilePromises(Array.from(e.target.files));
-    }
-  };
-  
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFilePromises(Array.from(e.dataTransfer.files));
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-  
-  const handleTabClick = (tab: InputType) => {
-    setUnsupportedFile(null);
-    setActiveInput(tab);
-  };
-
-  return (
-    <div onDrop={handleDrop} onDragOver={handleDragOver}>
-      <div className="flex border-b border-slate-300 dark:border-slate-700">
-        <TabButton 
-            active={activeInput === 'text'} 
-            onClick={() => handleTabClick('text')}
-            icon={<TextIcon className="w-5 h-5" />}
-            label="Paste Text"
+    <div id="input-area" className="mb-6">
+      <div className="flex border-b border-slate-200 dark:border-slate-700" role="tablist">
+        <TabButton
+            label="Text"
+            icon={<TextIcon className="w-6 h-6" />}
+            isActive={activeInput === 'text'}
+            onClick={() => setActiveInput('text')}
         />
-        <TabButton 
-            active={activeInput === 'file'} 
-            onClick={() => handleTabClick('file')}
-            icon={<UploadIcon className="w-5 h-5" />}
-            label="Upload File(s)"
+        <TabButton
+            label="File(s)"
+            icon={<UploadIcon className="w-6 h-6" />}
+            isActive={activeInput === 'file'}
+            onClick={() => setActiveInput('file')}
         />
-        <TabButton 
-            active={activeInput === 'url'} 
-            onClick={() => handleTabClick('url')}
-            icon={<LinkIcon className="w-5 h-5" />}
-            label="Analyse URL"
+        <TabButton
+            label="URL"
+            icon={<LinkIcon className="w-6 h-6" />}
+            isActive={activeInput === 'url'}
+            onClick={() => setActiveInput('url')}
         />
       </div>
 
-      <div className="mt-6 min-h-[12rem] flex flex-col justify-center">
+      <div className="pt-6">
         {activeInput === 'text' && (
-          <div>
-            <textarea
-              value={textContent}
-              onChange={(e) => onTextChange(e.target.value)}
-              placeholder="Present the textual evidence here ... I am examining every character."
-              className="w-full h-48 p-4 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-colors duration-300 resize-none"
-              maxLength={15000}
-            />
-          </div>
+           <div role="tabpanel" className="animate-fade-in">
+              <textarea
+                value={textContent}
+                onChange={(e) => onTextChange(e.target.value)}
+                placeholder="Paste the text you want to analyze here. For best results, provide at least a few paragraphs..."
+                className="w-full h-48 p-4 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-base resize-y focus:ring-2 focus:ring-cyan-500 focus:outline-none text-slate-800 dark:text-slate-200"
+              />
+           </div>
         )}
         {activeInput === 'file' && (
-           <FileUploadDisplay 
-             imageData={imageData}
-             unsupportedFile={unsupportedFile}
-             fileNames={fileNames}
-             onClearFiles={onClearFiles}
-             onFileChange={handleFileChange}
-             fileInputRef={fileInputRef}
-           />
+           <div role="tabpanel" className="animate-fade-in">
+             <FileUploadDisplay
+                onFilesChange={onFilesChange}
+                onClearFiles={onClearFiles}
+                fileNames={fileNames}
+                imageData={imageData}
+             />
+           </div>
         )}
         {activeInput === 'url' && (
-            <div>
-              <input
-                  type="text"
-                  value={url}
-                  onChange={(e) => onUrlChange(e.target.value)}
-                  placeholder="Provide the web address of the scene ... I shall investigate."
-                  className={`w-full h-14 px-4 bg-slate-100 dark:bg-slate-900 border rounded-lg focus:ring-2 focus:outline-none transition-colors duration-300 ${
-                    isUrlValid ? 'border-slate-300 dark:border-slate-700 focus:ring-cyan-500' : 'border-red-500 dark:border-red-500/80 ring-1 ring-red-500 focus:ring-red-500'
-                  }`}
-              />
-              {!isUrlValid && url.trim() !== '' && (
-                <p className="mt-2 text-xs text-red-600 dark:text-red-400">Mon Dieu! That does not appear to be a valid web address.</p>
-              )}
-            </div>
+           <div role="tabpanel" className="animate-fade-in">
+             <input
+                type="url"
+                value={url}
+                onChange={(e) => onUrlChange(e.target.value)}
+                placeholder="https://example.com/article-to-analyze"
+                className={`w-full p-4 bg-slate-100 dark:bg-slate-900 border ${
+                  isUrlValid ? 'border-slate-300 dark:border-slate-700' : 'border-red-500'
+                } rounded-lg text-base focus:ring-2 focus:ring-cyan-500 focus:outline-none text-slate-800 dark:text-slate-200`}
+             />
+             {!isUrlValid && url && <p className="text-red-500 text-sm mt-2">Please enter a valid URL.</p>}
+           </div>
         )}
       </div>
     </div>

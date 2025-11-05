@@ -176,18 +176,22 @@ const reducer = (state: State, action: Action): State => {
             return { ...state, cooldown: Math.max(0, state.cooldown - 1) };
         case 'LOAD_SCENARIO': {
             const { payload } = action;
-            const newState: State = {
+            // BUG FIX: The UI wasn't switching to the correct tab when an image scenario was loaded.
+            // This logic now explicitly sets the active input type and clears other irrelevant fields
+            // to ensure a clean and correct state transition.
+            const isFileScenario = payload.inputType === 'file';
+            
+            return {
                 ...state,
                 activeInput: payload.inputType,
                 analysisMode: payload.analysisMode,
-                textContent: payload.payload.text || '',
-                imageData: payload.payload.files?.map(f => f.imageBase64) || null,
-                fileNames: payload.payload.files?.map(f => f.name) || null,
+                textContent: isFileScenario ? '' : payload.payload.text || '',
+                imageData: isFileScenario ? payload.payload.files?.map(f => f.imageBase64) || null : null,
+                fileNames: isFileScenario ? payload.payload.files?.map(f => f.name) || null : null,
                 url: '',
                 isUrlValid: true,
                 error: null,
             };
-            return newState;
         }
         default:
             return state;
