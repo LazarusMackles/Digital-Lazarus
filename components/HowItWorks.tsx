@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { InformationCircleIcon, ChevronDownIcon } from './icons';
+import { InformationCircleIcon, ChevronDownIcon } from './icons/index';
 
 export const HowItWorks: React.FC = React.memo(() => {
     const [isOpen, setIsOpen] = useState(false);

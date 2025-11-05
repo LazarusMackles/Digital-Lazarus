@@ -1,6 +1,6 @@
 import React, { createContext, useReducer, useEffect, useContext, ReactNode, useCallback } from 'react';
 import { analyzeContent } from '../services/geminiService';
-import type { AnalysisResult, AnalysisMode, ForensicMode, Theme, InputType, AnalysisEvidence } from '../types';
+import type { AnalysisResult, AnalysisMode, ForensicMode, Theme, InputType, AnalysisEvidence, Scenario } from '../types';
 
 // --- STATE AND ACTION TYPES FOR REDUCER ---
 
@@ -42,7 +42,8 @@ type Action =
     | { type: 'ANALYSIS_SUCCESS'; payload: { result: AnalysisResult; evidence: AnalysisEvidence | null; timestamp: string } }
     | { type: 'ANALYSIS_ERROR'; payload: string }
     | { type: 'NEW_ANALYSIS' }
-    | { type: 'TICK_COOLDOWN' };
+    | { type: 'TICK_COOLDOWN' }
+    | { type: 'LOAD_SCENARIO'; payload: Scenario };
 
 
 // --- LOCALSTORAGE HELPERS ---
@@ -90,7 +91,7 @@ const initialState: State = {
     showWelcome: false,
     theme: getStoredItem('theme', 'dark'),
     cooldown: 0,
-    activeInput: 'file',
+    activeInput: 'text',
 };
 
 const reducer = (state: State, action: Action): State => {
@@ -155,9 +156,39 @@ const reducer = (state: State, action: Action): State => {
             return { ...state, isLoading: false, error: errorMessage, analysisResult: null, cooldown: needsCooldown ? 60 : 0, analysisMode: needsCooldown ? 'quick' : state.analysisMode };
         }
         case 'NEW_ANALYSIS':
-            return { ...state, analysisResult: null, error: null, analysisMode: 'quick', forensicMode: 'standard', analysisTimestamp: null, analysisEvidence: null, analysisModeUsed: null };
+            // OPTIMIZATION: Clear all inputs for a true fresh start.
+            return { 
+                ...state, 
+                analysisResult: null, 
+                error: null, 
+                analysisMode: 'quick', 
+                forensicMode: 'standard', 
+                analysisTimestamp: null, 
+                analysisEvidence: null, 
+                analysisModeUsed: null,
+                textContent: '',
+                imageData: null,
+                url: '',
+                isUrlValid: true,
+                fileNames: null,
+            };
         case 'TICK_COOLDOWN':
             return { ...state, cooldown: Math.max(0, state.cooldown - 1) };
+        case 'LOAD_SCENARIO': {
+            const { payload } = action;
+            const newState: State = {
+                ...state,
+                activeInput: payload.inputType,
+                analysisMode: payload.analysisMode,
+                textContent: payload.payload.text || '',
+                imageData: payload.payload.files?.map(f => f.imageBase64) || null,
+                fileNames: payload.payload.files?.map(f => f.name) || null,
+                url: '',
+                isUrlValid: true,
+                error: null,
+            };
+            return newState;
+        }
         default:
             return state;
     }

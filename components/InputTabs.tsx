@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { UploadIcon, TextIcon, LinkIcon } from './icons';
+import { UploadIcon, TextIcon, LinkIcon } from './icons/index';
 import { FileUploadDisplay } from './FileUploadDisplay';
 import type { InputType } from '../types';
 
@@ -15,9 +15,6 @@ interface InputTabsProps {
   isUrlValid?: boolean;
   activeInput: InputType;
   setActiveInput: (type: InputType) => void;
-  onUseExampleText: () => void;
-  onUseExampleImage: () => void;
-  onUseExampleUrl: () => void;
 }
 
 const TabButton: React.FC<{
@@ -52,7 +49,7 @@ const TabButton: React.FC<{
 };
 
 
-export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, onFilesChange, onClearFiles, onUrlChange, textContent, fileNames, imageData, url, isUrlValid = true, activeInput, setActiveInput, onUseExampleText, onUseExampleImage, onUseExampleUrl }) => {
+export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, onFilesChange, onClearFiles, onUrlChange, textContent, fileNames, imageData, url, isUrlValid = true, activeInput, setActiveInput }) => {
   const [unsupportedFile, setUnsupportedFile] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -152,15 +149,6 @@ export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, o
               className="w-full h-48 p-4 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-colors duration-300 resize-none"
               maxLength={15000}
             />
-            {textContent.trim() === '' && (
-              <div className="text-center mt-3">
-                <button 
-                  onClick={onUseExampleText}
-                  className="text-sm text-cyan-600 dark:text-cyan-400 hover:underline">
-                    Use an Example Text
-                </button>
-              </div>
-            )}
           </div>
         )}
         {activeInput === 'file' && (
@@ -171,7 +159,6 @@ export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, o
              onClearFiles={onClearFiles}
              onFileChange={handleFileChange}
              fileInputRef={fileInputRef}
-             onUseExample={onUseExampleImage}
            />
         )}
         {activeInput === 'url' && (
@@ -185,15 +172,6 @@ export const InputTabs: React.FC<InputTabsProps> = React.memo(({ onTextChange, o
                     isUrlValid ? 'border-slate-300 dark:border-slate-700 focus:ring-cyan-500' : 'border-red-500 dark:border-red-500/80 ring-1 ring-red-500 focus:ring-red-500'
                   }`}
               />
-              {url.trim() === '' && (
-                <div className="text-center mt-3">
-                  <button 
-                    onClick={onUseExampleUrl}
-                    className="text-sm text-cyan-600 dark:text-cyan-400 hover:underline">
-                      Use an Example URL
-                  </button>
-                </div>
-              )}
               {!isUrlValid && url.trim() !== '' && (
                 <p className="mt-2 text-xs text-red-600 dark:text-red-400">Mon Dieu! That does not appear to be a valid web address.</p>
               )}

@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import type { AnalysisResult, AnalysisEvidence } from '../types';
-import { XMarkIcon, EnvelopeIcon } from './icons';
+import { XMarkIcon, EnvelopeIcon } from './icons/index';
 import { generateShareText } from '../utils/reportUtils';
 
 interface ShareModalProps {

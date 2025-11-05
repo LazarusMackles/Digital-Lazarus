@@ -1,5 +1,5 @@
 import React from 'react';
-import { XMarkIcon } from './icons';
+import { XMarkIcon } from './icons/index';
 
 interface WelcomeModalProps {
   onClose: () => void;

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { XMarkIcon } from './icons';
+import { XMarkIcon } from './icons/index';
 
 interface ImageLightboxProps {
   imageUrl: string;

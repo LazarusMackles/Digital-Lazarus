@@ -1,5 +1,5 @@
 import React from 'react';
-import { SunIcon, MoonIcon } from './icons';
+import { SunIcon, MoonIcon } from './icons/index';
 import type { Theme } from '../types';
 
 interface ThemeToggleProps {

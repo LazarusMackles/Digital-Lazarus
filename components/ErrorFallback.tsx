@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { ArrowPathIcon } from './icons';
+import { ArrowPathIcon } from './icons/index';
 
-export const ErrorFallback: React.FC = () => {
+const ErrorFallbackComponent: React.FC = () => {
     const handleReload = () => {
         window.location.reload();
     };
@@ -34,3 +34,5 @@ export const ErrorFallback: React.FC = () => {
         </div>
     );
 };
+
+export const ErrorFallback = React.memo(ErrorFallbackComponent);

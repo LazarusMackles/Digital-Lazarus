@@ -1,5 +1,5 @@
 import React from 'react';
-import { XMarkIcon, UploadIcon } from './icons';
+import { XMarkIcon, UploadIcon } from './icons/index';
 
 interface FileUploadDisplayProps {
     imageData: string[] | null;

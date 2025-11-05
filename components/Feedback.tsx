@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ThumbsUpIcon, ChatBubbleOvalLeftEllipsisIcon } from './icons';
+import { ThumbsUpIcon, ChatBubbleOvalLeftEllipsisIcon } from './icons/index';
 import type { AnalysisResult, AnalysisEvidence } from '../types';
 import { generateShareText } from '../utils/reportUtils';
 

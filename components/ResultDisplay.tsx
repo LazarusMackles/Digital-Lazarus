@@ -7,7 +7,7 @@ import { Feedback } from './Feedback';
 import { SleuthNote } from './SleuthNote';
 import { ShareModal } from './ShareModal';
 import { ImageLightbox } from './ImageLightbox';
-import { ArrowPathIcon, EnvelopeIcon } from './icons';
+import { ArrowPathIcon, EnvelopeIcon } from './icons/index';
 import { InteractiveTextDisplay } from './InteractiveTextDisplay';
 import type { AnalysisMode } from '../types';
 
@@ -42,7 +42,7 @@ const CaseFileDetails: React.FC<{
 };
 
 
-export const ResultDisplay: React.FC = () => {
+const ResultDisplayComponent: React.FC = () => {
   const { 
     analysisResult, 
     handleChallenge, 
@@ -180,3 +180,5 @@ export const ResultDisplay: React.FC = () => {
     </>
   );
 };
+
+export const ResultDisplay = React.memo(ResultDisplayComponent);

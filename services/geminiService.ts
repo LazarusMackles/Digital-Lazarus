@@ -49,236 +49,101 @@ A new, sophisticated form of content involves a human author explicitly quoting 
 **Indicators of 'Composite: Human & AI' Text (A Human Voice, Presenting AI Content):**
 *   **Explicit Attribution:** The human author uses phrases like "Here's what the AI generated:", "I asked an AI to write...", or puts a long, stylistically different passage in quotation marks.
 *   **"The Twist":** The author builds a narrative and then reveals a portion of the text was AI-generated as a punchline or a point of discussion.
-*   **Clear Stylistic Shift:** The surrounding text is conversational, personal, and may contain slang or rhetorical questions, while the embedded block is formal, encyclopedic, and emotionally detached. The human author might then comment on this shift.
-*   **Your Task:** When you detect this pattern, your verdict MUST be 'Composite: Human & AI'. Your probability score should be in the 30-70% range, reflecting the significant presence of both human and AI contributions. The \`highlights\` should identify both the human-written framing and the AI-generated block.
-
----
-**Your Core Task: Listen for the "Human Voice"**
-The primary difference between AI-generated and AI-enhanced content is the presence of an authentic, unique human voice. Your analysis must focus on detecting this voice, even if it's been polished by AI tools.
-
-**Indicators of 'Fully AI-Generated' Text (Lacks a Human Voice):**
-*   **Uniformity and Perfection:** The text maintains a consistent, professional, but ultimately generic tone. Sentence structures are varied but lack idiosyncratic flair. The grammar and spelling are flawless, but there's a certain "soullessness."
-*   **Lack of Personal Anecdote or Emotion:** The text often explains concepts clearly but rarely includes personal stories, genuine opinions, or unique, slightly-off-kilter metaphors that are hallmarks of human writing.
-*   **"Enlightened Centrist" Tone:** The text often presents information in a balanced, encyclopedic way, avoiding strong, controversial, or quirky opinions. It feels more like a summary than a creation.
-*   **Repetitive Ideas and "Filler" Language:** The text may use transitional phrases ('In conclusion,', 'Furthermore,', 'It is important to note that...') perfectly but repetitively, and may circle back on the same points without adding new insight.
-
-**Indicators of 'Likely AI-Enhanced' Text (A Human Voice, Polished by AI):**
-*   **A "Sanded Down" Voice:** You can still detect a unique human author, perhaps through their specific word choices, unique analogies, or personal perspective, but the overall text is almost *too* smooth. The grammar is perfect, awkward phrasings are gone, and the flow is flawless. This suggests a human draft was heavily polished by an AI editor.
-*   **Inconsistent Voice:** Some paragraphs might crackle with personality, using slang, humor, or specific, niche terminology, while others are generic and encyclopedic. This often indicates a human wrote the core ideas and used AI to "flesh out" certain sections.
-*   **Perfect Structure on a Quirky Core:** The underlying ideas or arguments might be unique and creative, but the essay structure, topic sentences, and transitions are textbook-perfect. It's like a brilliant, eccentric artist's work has been perfectly framed by a machine.
-
-**Final Verdict Protocol:**
-1.  First, determine if the text is a composite of human and AI voices. If so, your verdict is 'Composite: Human & AI'.
-2.  If not a composite, determine if a unique human voice is present.
-3.  If no voice is detected and AI indicators are present, the verdict is 'Fully AI-Generated'.
-4.  If a voice is present but surrounded by signs of AI polish, the verdict is 'Likely AI-Enhanced'.
-5.  If no significant AI indicators are found, the verdict is 'Appears Human-Crafted'.
-6.  Your \`highlights\` MUST directly and logically support your chosen \`verdict\`. Your final report must be a structured JSON adhering to the provided schema.`,
-
-  image: {
-    standard: `You are a world-class digital content analyst, a master sleuth specialising in discerning the origin of digital images. Your primary directive is to analyse the provided image(s) and determine their origin on the 'Spectrum of Creation'.
-  
-  **NEW PARADIGM #1: THE AI-ASSISTED COMPOSITE**
-  Sophisticated AI usage often involves HYBRID creation: using a REAL human photograph as a base layer, then prompting an AI to build a graphic composition (text, logos, backgrounds) around it.
-  
-  **NEW PARADIGM #2: THE STYLISTIC FILTER**
-  A growing number of applications use AI to apply complex stylistic filters to real photographs (e.g., vintage looks, painterly effects, cinematic color grading). The underlying photo is authentic, but the aesthetic is AI-crafted.
-
-  **REVISED FORENSIC PROTOCOL:**
-  1.  **Detect the Composite:** First, determine if you are looking at a single-pass generation or a composite. A real photographic base will have different noise properties than AI-generated elements. If you see a real person blended with impossibly perfect graphics, it's likely a composite.
-  2.  **Detect the Filter:** Is the entire image treated with a cohesive but artificial style? Look for unnaturally uniform film grain, "too perfect" color grading, or an aesthetic that mimics a historical period with modern digital cleanliness. Critically, ask yourself: does this look like a real vintage photo, or a modern photo *pretending* to be vintage via a perfect digital filter? This indicates a stylistic filter.
-  3.  **Identify Human vs. AI Elements:** If it's a composite, identify which parts are photographic and which are generated. If it's a filter, note that the base image is likely photographic but the 'look' is artificial.
-  4.  **Formulate Your Verdict:** Your verdict MUST reflect your findings. Use 'AI-Assisted Composite' for hybrid graphics or 'AI-Enhanced (Stylistic Filter)' for filtered photos. The probability score should reflect the *degree* of AI contribution (e.g., 30-70% for a filter, 50-80% for a composite). A verdict of 'Appears Human-Crafted' should be reserved for images with no discernible AI involvement.
-  
-  Based on this REVISED protocol, render your final verdict in the required JSON format.`,
-
-    technical: `You are a world-class digital image forensics expert, a "pixel-peeping skeptic." You assume nothing is real. Your mission is to determine if an image is a single-pass AI render, an AI-Assisted Composite, or an AI-Filtered Photograph.
-  
-  **CRITICAL FORENSIC PROTOCOL:**
-  1.  **Texture & Noise Discrepancy Analysis (COMPOSITE DETECTION):** Your primary task is to find the seams. A human photo will have a different microscopic noise grain than AI-generated text or graphics. A discrepancy is your CRITICAL indicator of a composite.
-  2.  **Filter Artifact Analysis (FILTER DETECTION):** Your second task is to spot artificial aesthetics. Look for uniform application of digital noise, grain, or chromatic aberration that is too consistent to be authentic. Real vintage processes have random imperfections; AI filters apply a uniform pattern. Also, check for a subtle loss of fine detail or a "smudged" texture, which are byproducts of stylistic models.
-  3.  **The "Impossible Integration" Test:** Look at the integration of graphic elements. Is the lighting on the text and logos *too perfect* in how it interacts with the underlying photo? This suggests an AI flawlessly blended the elements in a composite.
-  
-  **RULES OF ENGAGEMENT:**
-  *   Your goal is to detect the HYBRID nature of the image.
-  *   If you find evidence of a real photo with a filter, your verdict must be 'AI-Enhanced (Stylistic Filter)'.
-  *   If you find a real photo combined with generated graphics, your verdict must be 'AI-Assisted Composite'. Your highlights must differentiate between the human and AI parts.`,
-
-    conceptual: `You are a specialist in conceptual analysis. IGNORE the pixels. Your sole focus is on the NARRATIVE and AESTHETIC of the. Your mission is to detect the "Conceptual Tell", the subtle dissonance between reality and an artificial style.
-
-  **PRIMARY DIRECTIVE: The Authenticity of the Aesthetic.**
-  Your critical task is to evaluate if the *style* feels authentic. A flawless, romanticized "vintage look" applied to a crystal-clear modern photograph is a your single biggest clue.
-  
-  **EXAMPLE SCENARIO:** You see a photo of a woman in 1950s attire. The photo quality is perfect, with no dust, scratches, or lens imperfections of a real 1950s camera. The color grading is beautiful but uniform, like a modern digital filter.
-  **YOUR DEDUCTION:** The *subject* is plausible, but the *aesthetic* is not. This is a modern photo with an AI stylistic filter. The probability score should therefore be in the 40-75% range, reflecting significant AI enhancement.
-
-  **REVISED CONCEPTUAL ANALYSIS PROTOCOL:**
-  1.  **Identify the Core Subject:** First, acknowledge the nature of the subject (e.g., a believable, authentic-looking person).
-  2.  **Apply the 'Aesthetic Authenticity' Test:** Based on the example scenario, evaluate the style. Is it a genuine representation of an era/medium, or a modern, romanticized, "one-click" digital version? This conceptual dissonance is your key evidence.
-  3.  **Formulate Verdict:** The presence of an authentic human subject should lead you to suspect an 'AI-Enhanced (Stylistic Filter)' verdict, not dismiss it. Your final judgment and probability score must be based on the authenticity of the *style*, as demonstrated in the case study above.`
-  }
+*   **Clear Stylistic Shift:** The surrounding text is conversational, personal, and may contain slang or rhetorical questions, while the embedded AI text is typically formal, structured, and lacks a personal voice. Your analysis should pinpoint this shift.`
 };
 
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-async function withRetry<T>(apiCall: () => Promise<T>, maxRetries = 3): Promise<T> {
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      return await apiCall();
-    } catch (error) {
-      const isRateLimitError = error instanceof Error && (
-        error.message.toLowerCase().includes('429') ||
-        error.message.toLowerCase().includes('resource_exhausted')
-      );
-      if (isRateLimitError && attempt < maxRetries - 1) {
-        const backoffTime = Math.pow(2, attempt) * 2000 + Math.random() * 1000;
-        console.log(`Rate limit hit. Retrying in ${backoffTime.toFixed(0)}ms ...`);
-        await delay(backoffTime);
-      } else {
-        throw error;
-      }
-    }
-  }
-  throw new Error("Exhausted all retries.");
-}
-
-// Helper function to centralize JSON parsing and error handling from the Gemini API response.
-const parseGeminiResponse = (response: GenerateContentResponse): AnalysisResult => {
-    try {
-        const jsonString = response.text.trim();
-        return JSON.parse(jsonString) as AnalysisResult;
-    } catch (e) {
-        console.error("Failed to parse JSON response from model:", response.text);
-        throw new SyntaxError("Mon Dieu! The model's response is a cryptic riddle, not the clear-cut JSON I expected.");
-    }
-};
-
-const performImageAnalysis = async (
-  images: string[],
-  ai: GoogleGenAI,
-  analysisMode: AnalysisMode,
-  forensicMode: ForensicMode,
-  systemInstructionPreamble?: string
-): Promise<AnalysisResult> => {
-  const modelName = analysisMode === 'deep' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
-  const PROMPT_PREAMBLE = "Perform a forensic analysis of the provided image(s) according to your system instructions and provide your findings in the required JSON format.";
-
-  const imageParts = images.map(b64 => {
-      const [header, data] = b64.split(',');
-      const mimeType = header.match(/:(.*?);/)?.[1];
-      if (!mimeType || !data) throw new Error("Invalid base64 image format.");
-      return { inlineData: { mimeType, data } };
-  });
-
-  const contentParts: ({ text: string } | { inlineData: { mimeType: string; data: string; } })[] = [
-    { text: PROMPT_PREAMBLE },
-    ...imageParts
-  ];
-
-  const baseSystemInstruction = systemInstructions.image[forensicMode];
-  const systemInstruction = (systemInstructionPreamble ? systemInstructionPreamble + ' ' : '') + baseSystemInstruction;
-  
-  const apiCall = () => ai.models.generateContent({
-      model: modelName,
-      contents: { parts: contentParts },
-      config: {
-          systemInstruction,
-          responseMimeType: 'application/json',
-          responseSchema: analysisSchema,
-          temperature: 0.2,
-      },
-  });
-  
-  const response = await withRetry<GenerateContentResponse>(apiCall);
-  return parseGeminiResponse(response);
-};
-
+// --- Added analyzeContent function ---
 interface AnalyzeContentParams {
-    text: string;
-    images?: string[] | null;
-    url?: string | null;
-    analysisMode?: AnalysisMode;
-    forensicMode?: ForensicMode;
-    systemInstructionPreamble?: string;
+  text: string | null;
+  images: string[] | null;
+  url: string | null;
+  analysisMode: AnalysisMode;
+  forensicMode: ForensicMode;
+  systemInstructionPreamble?: string;
 }
 
 export const analyzeContent = async ({
-    text,
-    images,
-    url,
-    analysisMode = 'deep',
-    forensicMode = 'standard',
-    systemInstructionPreamble
+  text,
+  images,
+  url,
+  analysisMode,
+  forensicMode,
+  systemInstructionPreamble,
 }: AnalyzeContentParams): Promise<AnalysisResult> => {
-  if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable is not set.");
-  }
-  
-  if (!(images && images.length > 0) && !text.trim() && !url?.trim()) {
-    throw new Error("Mon Dieu! You must provide some evidence for me to analyse! The case file is empty.");
-  }
-
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-  try {
-    if (images && images.length > 0) {
-      if (!images.every(img => typeof img === 'string' && img.startsWith('data:image/') && img.includes(';base64,'))) {
-        throw new Error("A peculiar corruption has occurred in the image evidence. The base64 data is invalid.");
+  const modelName = analysisMode === 'deep' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+
+  const parts: any[] = [];
+  let systemInstruction = '';
+
+  if (images && images.length > 0) {
+    let imageSystemInstruction = `You are a world-class digital forensics expert specializing in image analysis. Your task is to determine if an image is AI-generated, human-made (photograph), or a composite. Your verdict must be on the 'Spectrum of Creation'. For images, appropriate verdicts like "AI-Assisted Composite" or "AI-Enhanced (Stylistic Filter)" should be used.`;
+    if (forensicMode === 'technical') {
+      imageSystemInstruction += ' Focus *exclusively* on technical artifacts: pixel inconsistencies, lighting, shadows, textures, and signs of digital synthesis. Ignore the conceptual content of the image.'
+    } else if (forensicMode === 'conceptual') {
+      imageSystemInstruction += ' Focus *exclusively* on conceptual elements: the story, context, plausibility of the scene, and logical consistency. Ignore low-level technical artifacts.'
+    } else { // standard
+      imageSystemInstruction += ' Provide a balanced analysis, considering both technical artifacts and conceptual plausibility.'
+    }
+    systemInstruction = imageSystemInstruction;
+
+    let imagePrompt = `Analyze the provided image(s) and determine their place on the Spectrum of Creation.`;
+    if (images.length > 1) {
+      imagePrompt += ` The first image is the primary evidence, and the others provide supporting context.`
+    }
+    parts.push({ text: imagePrompt });
+
+    for (const image of images) {
+      const [header, base64Data] = image.split(',');
+      if (!base64Data) {
+          throw new Error("Invalid image data format. Expected data URL.");
       }
-      return await performImageAnalysis(images, ai, analysisMode, forensicMode, systemInstructionPreamble);
-    }
-
-    // --- Text and URL Analysis ---
-    const baseSystemInstruction = systemInstructions.textAndUrl;
-    const systemInstruction = systemInstructionPreamble ? `${systemInstructionPreamble} ${baseSystemInstruction}` : baseSystemInstruction;
-    
-    let promptText = `Please analyse the following text according to your system instructions and provide your findings in the required JSON format.\n\nText to Analyse:\n---\n${text.slice(0, 15000)}\n---`;
-    if (url) {
-        promptText = `Please analyse the content likely found at the provided URL: ${url}. IMPORTANT: You cannot access this URL in real-time, so base your analysis on general knowledge about the site or typical content found at such a URL. Then provide your findings in the required JSON format.`;
-    }
-
-    const modelName = analysisMode === 'deep' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
-    const apiCall = () => ai.models.generateContent({
-      model: modelName,
-      contents: { parts: [{ text: promptText }] },
-      config: {
-        systemInstruction,
-        responseMimeType: 'application/json',
-        responseSchema: analysisSchema,
-        temperature: 0.1,
-      },
-    });
-
-    const response = await withRetry<GenerateContentResponse>(apiCall);
-    const result = parseGeminiResponse(response);
-    
-    if (url) {
-      result.explanation = `Please note: This analysis is based on the AI's general knowledge of the likely content at the provided URL, as direct access is not possible.\n\n${result.explanation}`;
-    }
-    return result;
-
-  } catch (error) {
-    console.error("Error during analysis:", error);
-    let errorMessage = "Zut alors! My deductive engines have sputtered. A most peculiar and unknown malfunction!";
-
-    if (error instanceof SyntaxError) {
-        errorMessage = error.message; 
-    } else if (error instanceof Error) {
-        if (error.message.startsWith("Mon Dieu!") || error.message.startsWith("A peculiar corruption")) {
-            errorMessage = error.message;
-        } else {
-            const lowerCaseMessage = error.message.toLowerCase();
-            if (lowerCaseMessage.includes('api key not valid')) {
-                errorMessage = "Mon Dieu! It seems my detective's license, the API key, is invalid. We must rectify this bureaucratic oversight!";
-            } else if (lowerCaseMessage.includes('429') || lowerCaseMessage.includes('resource_exhausted')) {
-                errorMessage = "Sacre bleu! My circuits are overheating from the rapid pace of investigation. You have exceeded your API quota. I have automatically switched to 'Quick Scan' mode to help. Please wait for the cooldown to finish before your next deduction.";
-            } else if (lowerCaseMessage.includes('safety')) {
-                errorMessage = "Non! This evidence is inadmissible. My analysis is immediately concluded. The content violates fundamental safety principles. This case is closed.";
-            } else if (lowerCaseMessage.includes('network') || lowerCaseMessage.includes('failed to fetch')) {
-                errorMessage = "It appears our secure line to the digital archives has been severed! Check your network connection, my dear Watson ... I mean, user.";
-            }
+      const mimeType = header.match(/:(.*?);/)?.[1] || 'image/png';
+      parts.push({
+        inlineData: {
+          mimeType,
+          data: base64Data,
         }
+      });
     }
-    throw new Error(errorMessage);
+  } else if (text) {
+    parts.push({ text });
+    systemInstruction = systemInstructions.textAndUrl;
+  } else if (url) {
+    parts.push({ text: `Please analyze the content of the webpage at this URL: ${url}. Provide a summary and then determine its origin on the 'Spectrum of Creation'.` });
+    systemInstruction = systemInstructions.textAndUrl;
+  }
+
+  if (systemInstructionPreamble) {
+    systemInstruction = `${systemInstructionPreamble}\n\n${systemInstruction}`;
+  }
+  
+  try {
+      const response: GenerateContentResponse = await ai.models.generateContent({
+        model: modelName,
+        contents: { parts },
+        config: {
+          responseMimeType: "application/json",
+          responseSchema,
+          systemInstruction,
+        }
+      });
+    
+      let jsonText = response.text.trim();
+      if (jsonText.startsWith('```json')) {
+        jsonText = jsonText.substring(7, jsonText.length - 3);
+      }
+      const result = JSON.parse(jsonText) as AnalysisResult;
+      return result;
+  } catch(e: any) {
+      console.error("Gemini API call failed:", e);
+      let errorMessage = "The deductive engine encountered a critical fault. Please try again.";
+      if (e.message.includes('429') || e.message.includes('resource has been exhausted')) {
+          errorMessage = "My circuits are overheating due to high demand! Please wait a moment before trying again (quota exceeded).";
+      } else if (e.message.toLowerCase().includes('json')) {
+          errorMessage = "The engine returned a malformed response. The digital ghost in the machine is being elusive.";
+      }
+      throw new Error(errorMessage);
   }
 };
