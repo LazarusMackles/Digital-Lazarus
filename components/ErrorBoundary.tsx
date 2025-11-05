@@ -1,4 +1,5 @@
 
+
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { ErrorFallback } from './ErrorFallback';
 
@@ -11,17 +12,14 @@ interface State {
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  // FIX: Replaced class field state initialization with a constructor.
-  // In some complex TypeScript/React configurations, class fields can
-  // lead to issues with `this` context and type inference for inherited properties
-  // like `this.props`. Using a traditional constructor is a more robust pattern
-  // that avoids these potential tooling conflicts.
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      hasError: false,
-    };
-  }
+  // FIX: Reverted to class field state initialization.
+  // The constructor-based initialization was causing type inference issues where
+  // `this.state` and `this.props` were not being recognized on the class instance.
+  // Using a class field is a more direct and modern approach that often resolves
+  // such tooling conflicts.
+  state: State = {
+    hasError: false,
+  };
 
   static getDerivedStateFromError(_: Error): State {
     // Update state so the next render will show the fallback UI.
