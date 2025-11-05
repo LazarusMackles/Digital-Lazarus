@@ -1,5 +1,6 @@
 
 
+
 import React, { useCallback, useMemo } from 'react';
 import { useAnalysis } from '../context/AnalysisContext';
 import { analyzeContent } from '../services/geminiService';
@@ -10,6 +11,8 @@ import { ModeSelector } from './ModeSelector';
 import { ForensicModeToggle } from './ForensicModeToggle';
 import { HowItWorks } from './HowItWorks';
 import { TrainingScenarios } from './TrainingScenarios';
+// FIX: The import path was ambiguous and resolved to an empty file. Corrected path to point to the icon index file.
+import { XMarkIcon } from './icons/index';
 
 export const InputForm: React.FC = () => {
     const { 
@@ -54,6 +57,8 @@ export const InputForm: React.FC = () => {
             default: return true;
         }
     }, [activeInput, textContent, fileData, url]);
+
+    const handleClear = () => dispatch({ type: 'CLEAR_INPUTS' });
     
     const handleSubmit = useCallback(() => {
         if (isSubmissionDisabled) return;
@@ -135,6 +140,8 @@ export const InputForm: React.FC = () => {
                 return null;
         }
     };
+    
+    const showClearButton = textContent.length > 0 || fileData.length > 0 || url.length > 0;
 
     return (
       <div className="animate-fade-in-up" id="input-area">
@@ -154,14 +161,24 @@ export const InputForm: React.FC = () => {
                 </div>
             )}
 
-            <div className="mt-6 text-center">
+            <div className="mt-6 flex justify-center items-center gap-4">
                 <button
                     onClick={handleSubmit}
                     disabled={isSubmissionDisabled}
-                    className="flex items-center justify-center gap-2 mx-auto px-10 py-4 font-bold text-white bg-gradient-to-r from-cyan-600 to-fuchsia-600 rounded-full shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:to-fuchsia-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 transition-all duration-200 disabled:transform-none"
+                    className="flex items-center justify-center gap-2 px-10 py-4 font-bold text-white bg-gradient-to-r from-cyan-600 to-fuchsia-600 rounded-full shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:to-fuchsia-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 transition-all duration-200 disabled:transform-none"
                 >
                     <span>Begin Analysis</span>
                 </button>
+                {showClearButton && (
+                     <button
+                        onClick={handleClear}
+                        className="flex items-center justify-center gap-2 px-6 py-3 font-semibold text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-700 rounded-full hover:bg-slate-300 dark:hover:bg-slate-600 transform hover:-translate-y-0.5 transition-all duration-200"
+                        title="Clear all inputs"
+                    >
+                        <XMarkIcon className="w-5 h-5" />
+                        <span>Clear</span>
+                    </button>
+                )}
             </div>
           </div>
         </div>

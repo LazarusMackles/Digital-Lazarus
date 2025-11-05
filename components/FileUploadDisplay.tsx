@@ -1,80 +1,8 @@
-import React, { useCallback, useState, useRef, useEffect } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import { useAnalysis } from '../context/AnalysisContext';
-import { XMarkIcon, UploadIcon, SpinnerIcon } from './icons/index';
-import { fileToBase64, base64ToBlobUrl } from '../utils/fileUtils';
-
-const ImagePreview: React.FC<{ file: { name: string; imageBase64?: string | null } }> = React.memo(({ file }) => {
-    const [objectUrl, setObjectUrl] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        let isMounted = true;
-        let url: string | null = null;
-
-        const generateUrl = async () => {
-            if (!file.imageBase64) {
-                if (isMounted) {
-                    setIsLoading(false);
-                    setObjectUrl(null);
-                }
-                return;
-            }
-
-            setIsLoading(true);
-            setError(null);
-            try {
-                url = await base64ToBlobUrl(file.imageBase64);
-                if (isMounted) {
-                    setObjectUrl(url);
-                }
-            } catch (err) {
-                console.error("Failed to create object URL:", err);
-                if (isMounted) {
-                    setError("Preview failed to load.");
-                    setObjectUrl(null);
-                }
-            } finally {
-                if (isMounted) {
-                    setIsLoading(false);
-                }
-            }
-        };
-
-        generateUrl();
-
-        return () => {
-            isMounted = false;
-            if (url) {
-                URL.revokeObjectURL(url);
-            }
-        };
-    }, [file.imageBase64]);
-
-    if (isLoading) {
-        return (
-            <div className="w-full h-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-                <SpinnerIcon className="w-6 h-6 text-slate-500 animate-spin" />
-            </div>
-        );
-    }
-    
-    if (error || !objectUrl) {
-        return (
-            <div className="w-full h-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center p-2">
-                <p className="text-xs text-red-500 text-center">{error || "Preview Error"}</p>
-            </div>
-        );
-    }
-
-    return (
-        <img
-            src={objectUrl}
-            alt={`Preview of ${file.name}`}
-            className="w-full h-full object-cover"
-        />
-    );
-});
+import { XMarkIcon, UploadIcon } from './icons/index';
+import { fileToBase64 } from '../utils/fileUtils';
+import { EvidenceImage } from './EvidenceImage';
 
 export const FileUploadDisplay: React.FC = () => {
     const { fileData, dispatch } = useAnalysis();
@@ -124,7 +52,6 @@ export const FileUploadDisplay: React.FC = () => {
         }
     };
 
-    // FIX: Corrected the typo in the event type from HTMLDivellElement to HTMLDivElement.
     const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         event.stopPropagation();
@@ -182,7 +109,7 @@ export const FileUploadDisplay: React.FC = () => {
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                              {fileData.map((file, index) => (
                                 <div key={`${file.name}-${index}`} className="relative group aspect-square bg-slate-100 dark:bg-slate-900/50 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700">
-                                    <ImagePreview file={file} />
+                                    {file.imageBase64 && <EvidenceImage base64Src={file.imageBase64} alt={`Preview of ${file.name}`} className="w-full h-full object-cover" />}
                                     <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-black/60 backdrop-blur-sm text-center">
                                         <p className="text-xs text-white truncate">{file.name}</p>
 

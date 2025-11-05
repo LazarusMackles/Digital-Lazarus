@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { useAnalysis } from '../context/AnalysisContext';
 import { RadialProgress } from './RadialProgress';
@@ -11,6 +12,7 @@ import { ImageLightbox } from './ImageLightbox';
 import { ArrowPathIcon, EnvelopeIcon } from './icons/index';
 import { InteractiveTextDisplay } from './InteractiveTextDisplay';
 import type { AnalysisMode } from '../types';
+import { EvidenceImage } from './EvidenceImage';
 
 const CaseFileDetails: React.FC<{
   analysisModeUsed: AnalysisMode | null,
@@ -111,7 +113,7 @@ const ResultDisplayComponent: React.FC = () => {
                     className="relative aspect-square bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700 cursor-pointer hover:border-cyan-500 transition-colors"
                     onClick={() => setSelectedImage(src)}
                   >
-                    <img src={src} alt={`Evidence ${index + 1}`} className="w-full h-full object-contain" />
+                    <EvidenceImage base64Src={src} alt={`Evidence ${index + 1}`} className="w-full h-full object-contain" />
                     {index === 0 && imageData.length > 1 && (
                       <div className="absolute top-1 left-1 z-10 bg-cyan-600 text-white text-xs font-bold px-2 py-0.5 rounded">PRIMARY</div>
                     )}

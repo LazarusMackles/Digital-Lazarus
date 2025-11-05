@@ -57,6 +57,7 @@ type Action =
   | { type: 'ANALYSIS_SUCCESS'; payload: { result: AnalysisResult; isSecondOpinion?: boolean } }
   | { type: 'ANALYSIS_ERROR'; payload: string }
   | { type: 'NEW_ANALYSIS' }
+  | { type: 'CLEAR_INPUTS' }
   | { type: 'SET_SHOW_WELCOME'; payload: boolean }
   | { type: 'SET_THEME'; payload: Theme }
   | { type: 'SET_TEXT_CONTENT'; payload: string }
@@ -111,18 +112,27 @@ const analysisReducer = (state: AnalysisState, action: Action): AnalysisState =>
                 showWelcome: false, // Don't show welcome again
                 theme: state.theme, // Persist theme
             };
+        case 'CLEAR_INPUTS':
+            return {
+                ...state,
+                textContent: '',
+                fileData: [],
+                url: '',
+                error: null,
+                activeInput: 'text', // Reset to default tab
+            };
         case 'SET_SHOW_WELCOME':
             return { ...state, showWelcome: action.payload };
         case 'SET_THEME':
             return { ...state, theme: action.payload };
         case 'SET_TEXT_CONTENT':
-            return { ...state, textContent: action.payload, fileData: [], url: '' };
+            return { ...state, textContent: action.payload, fileData: [], url: '', error: null };
         case 'SET_FILE_DATA':
-            return { ...state, fileData: action.payload, textContent: '', url: '' };
+            return { ...state, fileData: action.payload, textContent: '', url: '', error: null };
         case 'CLEAR_FILES':
             return { ...state, fileData: [] };
         case 'SET_URL':
-            return { ...state, url: action.payload, textContent: '', fileData: [] };
+            return { ...state, url: action.payload, textContent: '', fileData: [], error: null };
         case 'SET_ACTIVE_INPUT':
             return { ...state, activeInput: action.payload };
         case 'SET_ANALYSIS_MODE':
@@ -139,6 +149,7 @@ const analysisReducer = (state: AnalysisState, action: Action): AnalysisState =>
                 analysisMode,
                 textContent: payload.text || '',
                 fileData: payload.files || [],
+                error: null,
             };
         default:
             return state;
@@ -178,7 +189,7 @@ export const AnalysisProvider: React.FC<{ children: ReactNode }> = ({ children }
             url: null,
             analysisMode: 'deep', // Re-analysis is always deep
             forensicMode: forensicMode,
-            systemInstructionPreamble: "This is a re-analysis. The user was not satisfied with the initial verdict. Adopt a more critical, skeptical perspective. Focus specifically on the requested forensic angle and provide a fresh, more detailed explanation."
+            systemInstructionPreamble: "This is a re-analysis. The user was not satisfied with the initial verdict. Adopt a more critical, skeptical perspective. Focus specifically on the requested forensic angle and provide a fresh, a more detailed explanation."
         })
         .then(result => dispatch({ type: 'ANALYSIS_SUCCESS', payload: { result, isSecondOpinion: true } }))
         .catch(error => dispatch({ type: 'ANALYSIS_ERROR', payload: error.message }));
