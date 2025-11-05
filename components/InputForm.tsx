@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useCallback, useMemo } from 'react';
 import { useAnalysis } from '../context/AnalysisContext';
 import { analyzeContent } from '../services/geminiService';
@@ -10,7 +11,6 @@ import { FileUploadDisplay } from './FileUploadDisplay';
 import { ModeSelector } from './ModeSelector';
 import { ForensicModeToggle } from './ForensicModeToggle';
 import { HowItWorks } from './HowItWorks';
-import { TrainingScenarios } from './TrainingScenarios';
 // FIX: The import path was ambiguous and resolved to an empty file. Corrected path to point to the icon index file.
 import { XMarkIcon } from './icons/index';
 
@@ -145,7 +145,6 @@ export const InputForm: React.FC = () => {
 
     return (
       <div className="animate-fade-in-up" id="input-area">
-        <TrainingScenarios />
         <HowItWorks />
         <div className="bg-white dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700/50">
           <InputTabs />

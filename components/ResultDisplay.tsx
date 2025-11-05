@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { useAnalysis } from '../context/AnalysisContext';
 import { RadialProgress } from './RadialProgress';
@@ -30,16 +29,15 @@ const CaseFileDetails: React.FC<{
   const modeText = analysisModeUsed === 'quick' ? 'Quick Scan' : 'Deep Analysis';
 
   return (
-    <div className="mt-8 w-full max-w-xl bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-lg p-4 text-sm">
-      <h4 className="font-semibold text-center text-cyan-700 dark:text-cyan-400 mb-2">Case File Details</h4>
-      <div className="flex justify-between text-slate-600 dark:text-slate-300">
-        <span className="font-medium text-slate-700 dark:text-slate-200">Analysis Method:</span>
-        <span>{modeText} ({getModelName(analysisModeUsed)})</span>
-      </div>
-       <div className="flex justify-between text-slate-600 dark:text-slate-300 mt-1">
-        <span className="font-medium text-slate-700 dark:text-slate-200">Date of Analysis:</span>
-        <span>{timestamp}</span>
-      </div>
+    <div className="mt-8 w-max max-w-full bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-lg py-4 px-6 text-sm">
+      <h4 className="font-semibold text-center text-cyan-700 dark:text-cyan-400 mb-3">Case File Details</h4>
+      <dl className="border-t border-slate-200 dark:border-slate-700 pt-3 grid grid-cols-[auto,1fr] gap-x-4 gap-y-1 text-left">
+        <dt className="font-medium text-slate-500 dark:text-slate-400">Analysis Method</dt>
+        <dd className="text-slate-800 dark:text-slate-200">{modeText} ({getModelName(analysisModeUsed)})</dd>
+        
+        <dt className="font-medium text-slate-500 dark:text-slate-400">Date of Analysis</dt>
+        <dd className="text-slate-800 dark:text-slate-200">{timestamp}</dd>
+      </dl>
     </div>
   );
 };
