@@ -1,8 +1,9 @@
-import React, { ErrorInfo, ReactNode } from 'react';
+// FIX: Corrected React import to `import * as React from 'react'` and updated type usages to resolve component property type errors. This is necessary when `esModuleInterop` is not enabled in tsconfig.
+import * as React from 'react';
 import { ErrorFallback } from './ErrorFallback';
 
 interface Props {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 interface State {
@@ -19,7 +20,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
     return { hasError: true };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // You can also log the error to an error reporting service
     console.error("Uncaught error:", error, errorInfo);
   }

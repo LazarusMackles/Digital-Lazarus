@@ -8,6 +8,7 @@ import { SleuthNote } from './SleuthNote';
 import { ShareModal } from './ShareModal';
 import { ImageLightbox } from './ImageLightbox';
 import { ArrowPathIcon, EnvelopeIcon } from './icons';
+import { InteractiveTextDisplay } from './InteractiveTextDisplay';
 import type { AnalysisMode } from '../types';
 
 const CaseFileDetails: React.FC<{
@@ -68,7 +69,7 @@ export const ResultDisplay: React.FC = () => {
 
   const { probability, verdict, explanation, highlights, isSecondOpinion } = analysisResult;
   const isImageAnalysis = analysisEvidence?.type === 'file' && !!imageData && imageData.length > 0;
-  const isTextAnalysis = analysisEvidence?.type === 'text' && !!analysisEvidence.content;
+  const isTextAnalysis = (analysisEvidence?.type === 'text' || (analysisEvidence?.type === 'file' && (!imageData || imageData.length === 0))) && !!analysisEvidence.content;
 
   const verdictColorClass = () => {
     if (probability < 40) return 'text-teal-500 dark:text-teal-400';
@@ -120,12 +121,10 @@ export const ResultDisplay: React.FC = () => {
           {isTextAnalysis && analysisEvidence && (
             <div className="mb-8 w-full max-w-xl text-left bg-slate-100 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 animate-fade-in">
               <h3 className="text-lg font-semibold text-center text-cyan-600 dark:text-cyan-400 mb-4">
-                Evidence Presented (Text)
+                Annotated Evidence (Text)
               </h3>
-              <div className="max-h-32 overflow-y-auto p-3 bg-slate-200 dark:bg-slate-900 rounded font-mono text-sm text-slate-700 dark:text-slate-300">
-                <p className="whitespace-pre-wrap break-words">
-                  {analysisEvidence.content.length > 500 ? analysisEvidence.content.substring(0, 500) + '...' : analysisEvidence.content}
-                </p>
+              <div className="max-h-64 overflow-y-auto p-3 bg-slate-200 dark:bg-slate-900 rounded font-mono text-sm text-slate-700 dark:text-slate-300">
+                <InteractiveTextDisplay text={analysisEvidence.content} highlights={highlights || []} />
               </div>
             </div>
           )}
@@ -146,7 +145,7 @@ export const ResultDisplay: React.FC = () => {
             {explanation}
           </p>
 
-          {highlights && highlights.length > 0 && (
+          {isImageAnalysis && highlights && highlights.length > 0 && (
             <HighlightsDisplay highlights={highlights} />
           )}
 
