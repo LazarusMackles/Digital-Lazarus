@@ -110,28 +110,35 @@ export const FileUploadDisplay: React.FC<FileUploadDisplayProps> = React.memo(({
       e.target.value = ''; // Reset input to allow re-uploading the same file
     };
 
-    if (fileNames && fileNames.length > 0) {
+    if ((imageData && imageData.length > 0) || (fileNames && fileNames.length > 0 && !imageData)) {
         return (
             <div className="animate-fade-in text-center">
                 <div className="p-4 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg">
                     <h4 className="font-semibold text-slate-800 dark:text-white mb-4">Evidence Submitted:</h4>
                     <div className="flex justify-center items-start gap-4 flex-wrap">
-                      {fileNames.map((name, index) => {
-                        const imageSrc = imageData?.[index];
-                        const isImage = !!imageSrc;
-                        return (
-                          <div key={name + index} className="flex flex-col items-center gap-2">
+                      {/* THE FIX: Iterate over imageData if it exists, ensuring the image is always rendered. Fallback to fileNames for text files. */}
+                      {imageData ? (
+                        imageData.map((imageSrc, index) => {
+                          const name = fileNames?.[index] || 'image.png';
+                          return (
+                            <div key={name + index} className="flex flex-col items-center gap-2">
+                              <div className="w-24 h-24 p-1 bg-slate-200 dark:bg-slate-800 rounded-lg flex items-center justify-center border border-slate-300 dark:border-slate-600">
+                                  <img src={imageSrc} alt={`Preview of ${name}`} className="w-full h-full object-contain rounded-md" />
+                              </div>
+                              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-[100px] truncate" title={name}>{name}</p>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        fileNames?.map((name, index) => (
+                           <div key={name + index} className="flex flex-col items-center gap-2">
                             <div className="w-24 h-24 p-1 bg-slate-200 dark:bg-slate-800 rounded-lg flex items-center justify-center border border-slate-300 dark:border-slate-600">
-                                {isImage ? (
-                                    <img src={imageSrc} alt={`Preview of ${name}`} className="w-full h-full object-contain rounded-md" />
-                                ) : (
-                                    <TextIcon className="w-10 h-10 text-slate-400" />
-                                )}
+                                <TextIcon className="w-10 h-10 text-slate-400" />
                             </div>
                             <p className="text-xs text-slate-600 dark:text-slate-400 max-w-[100px] truncate" title={name}>{name}</p>
                           </div>
-                        );
-                      })}
+                        ))
+                      )}
                     </div>
                 </div>
                 <button onClick={onClearFiles} className="mt-4 text-sm text-cyan-600 dark:text-cyan-400 hover:underline">
@@ -165,7 +172,7 @@ export const FileUploadDisplay: React.FC<FileUploadDisplayProps> = React.memo(({
                     Drag & drop files or <span className="text-cyan-600 dark:text-cyan-400">click to browse</span>
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Images (JPG, PNG) or text files. Up to {MAX_FILES} files, {MAX_SIZE_MB}MB each.
+                    Images (JPG, PNG) or text files. Up to {MAX_FILES} files, {MAX_SIZE_MB} each.
                 </p>
             </label>
             {error && <p aria-live="polite" className="mt-2 text-center text-red-500 text-sm">{error}</p>}

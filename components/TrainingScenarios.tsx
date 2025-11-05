@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAnalysis } from '../context/AnalysisContext';
 import type { Scenario } from '../types';

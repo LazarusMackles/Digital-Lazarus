@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type, GenerateContentResponse, Part, Content } from "@google/genai";
 import type { AnalysisResult, AnalysisMode, ForensicMode } from '../types';
 
@@ -134,10 +135,10 @@ export const analyzeContent = async ({
         }
       });
     
-      let jsonText = response.text.trim();
-      if (jsonText.startsWith('```json')) {
-        jsonText = jsonText.substring(7, jsonText.length - 3);
-      }
+      // FIX: The .text property on GenerateContentResponse provides the direct string output.
+      // When responseSchema is used, the model is instructed to return clean JSON,
+      // so handling markdown code fences is unnecessary.
+      const jsonText = response.text;
       const result = JSON.parse(jsonText) as AnalysisResult;
       return result;
   } catch(e: any) {

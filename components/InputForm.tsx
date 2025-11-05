@@ -1,107 +1,144 @@
-import React from 'react';
+
+import React, { useState, useCallback, useMemo } from 'react';
+import { useAnalysis } from '../context/AnalysisContext';
+import { analyzeContent } from '../services/geminiService';
 import { InputTabs } from './InputTabs';
 import { ModeSelector } from './ModeSelector';
 import { ForensicModeToggle } from './ForensicModeToggle';
-import { SpinnerIcon } from './icons/index';
-import { useAnalysis } from '../context/AnalysisContext';
 import { HowItWorks } from './HowItWorks';
 import { TrainingScenarios } from './TrainingScenarios';
+import { SpinnerIcon } from './icons';
+import type { InputType, AnalysisEvidence } from '../types';
 
-const validateUrl = (value: string): boolean => {
-    if (!value) return true;
-    try {
-        new URL(value);
-        return value.includes('.') && !value.startsWith('http://.') && !value.startsWith('https://.');
-    } catch (_) {
-        return value.includes('.') && !value.startsWith('.') && !value.endsWith('.') && !value.includes(' ');
-    }
-};
-
-const InputFormComponent: React.FC = () => {
-    const {
+export const InputForm: React.FC = () => {
+    const { 
+        dispatch,
         textContent,
-        imageData,
+        fileData,
         url,
-        isUrlValid,
-        fileNames,
-        forensicMode,
-        analysisMode,
-        error,
-        isLoading,
-        cooldown,
-        handleAnalyze,
         activeInput,
-        dispatch
+        analysisMode,
+        forensicMode,
+        error,
     } = useAnalysis();
 
-    const handleTextChange = (text: string) => dispatch({ type: 'SET_TEXT_CONTENT', payload: text });
-    const handleFilesChange = (files: { name: string, content?: string | null, imageBase64?: string | null }[]) => dispatch({ type: 'HANDLE_FILES_CHANGE', payload: files });
-    const handleClearFiles = () => dispatch({ type: 'CLEAR_FILES' });
-    const setAnalysisMode = (mode: 'quick' | 'deep') => dispatch({ type: 'SET_ANALYSIS_MODE', payload: mode });
-    const setForensicMode = (mode: 'standard' | 'technical' | 'conceptual') => dispatch({ type: 'SET_FORENSIC_MODE', payload: mode });
-    const setActiveInput = (type: 'text' | 'file' | 'url') => dispatch({ type: 'SET_ACTIVE_INPUT', payload: type });
+    const [isUrlValid, setIsUrlValid] = useState(true);
 
-    const handleUrlChange = (value: string) => {
-        dispatch({ type: 'SET_URL', payload: value });
-        dispatch({ type: 'SET_IS_URL_VALID', payload: validateUrl(value) });
+    const onTextChange = (text: string) => dispatch({ type: 'SET_TEXT_CONTENT', payload: text });
+    const onFilesChange = (files: { name: string; imageBase64?: string | null; content?: string | null }[]) => dispatch({ type: 'SET_FILE_DATA', payload: files });
+    const onClearFiles = () => dispatch({ type: 'CLEAR_FILES' });
+    const onUrlChange = (newUrl: string) => {
+        dispatch({ type: 'SET_URL', payload: newUrl });
+        try {
+            new URL(newUrl);
+            setIsUrlValid(true);
+        } catch (_) {
+            if (newUrl) setIsUrlValid(false);
+            else setIsUrlValid(true); // Empty is not invalid
+        }
     };
+    const setActiveInput = (type: InputType) => dispatch({ type: 'SET_ACTIVE_INPUT', payload: type });
 
-    const isInputEmpty = !textContent.trim() && (!imageData || imageData.length === 0) && !url.trim();
-    const isButtonDisabled = isInputEmpty || !isUrlValid || isLoading || cooldown > 0;
+    const isImageAnalysis = useMemo(() => 
+        activeInput === 'file' && fileData.length > 0 && !!fileData[0].imageBase64, 
+        [activeInput, fileData]
+    );
 
-    const getButtonText = () => {
-        if (isLoading) {
-            return (
-                <>
-                    <SpinnerIcon className="animate-spin w-6 h-6 mr-3" />
-                    <span>Deducing ...</span>
-                </>
-            );
+    const isSubmitDisabled = useMemo(() => {
+        switch (activeInput) {
+            case 'text': return textContent.trim().length < 20;
+            case 'file': return fileData.length === 0;
+            case 'url': return !url || !isUrlValid;
+            default: return true;
         }
-        if (cooldown > 0) {
-            return `On Cooldown (${cooldown}s)`;
+    }, [activeInput, textContent, fileData, url, isUrlValid]);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (isSubmitDisabled) return;
+
+        let evidence: AnalysisEvidence | null = null;
+        let images: string[] | null = null;
+        let text: string | null = null;
+        let analysisUrl: string | null = null;
+
+        switch (activeInput) {
+            case 'text':
+                evidence = { type: 'text', content: textContent };
+                text = textContent;
+                break;
+            case 'file':
+                if (isImageAnalysis) {
+                    evidence = { type: 'file', content: fileData.map(f => f.name).join(', ') };
+                    images = fileData.map(f => f.imageBase64!).filter(Boolean);
+                } else {
+                    evidence = { type: 'text', content: fileData[0].content || '' };
+                    text = fileData[0].content || '';
+                }
+                break;
+            case 'url':
+                evidence = { type: 'url', content: url };
+                analysisUrl = url;
+                break;
         }
-        return 'Deduce the Digital DNA';
+
+        if (evidence) {
+            dispatch({ type: 'START_ANALYSIS', payload: { evidence, mode: analysisMode, forensicMode } });
+            analyzeContent({ text, images, url: analysisUrl, analysisMode, forensicMode })
+                .then(result => dispatch({ type: 'ANALYSIS_SUCCESS', payload: { result } }))
+                .catch(err => dispatch({ type: 'ANALYSIS_ERROR', payload: err.message }));
+        }
     };
 
     return (
-        <div className="bg-white dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700/50">
-            <TrainingScenarios />
+        <div className="bg-white dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700/50 animate-fade-in-up">
             <HowItWorks />
+            <TrainingScenarios />
             
-            <InputTabs
-                onTextChange={handleTextChange}
-                onFilesChange={handleFilesChange}
-                onClearFiles={handleClearFiles}
-                onUrlChange={handleUrlChange}
-                textContent={textContent}
-                fileNames={fileNames}
-                imageData={imageData}
-                url={url}
-                isUrlValid={isUrlValid}
-                activeInput={activeInput}
-                setActiveInput={setActiveInput}
-            />
-            
-            {imageData && imageData.length > 0 && <ForensicModeToggle selectedMode={forensicMode} onModeChange={setForensicMode} />}
-            
-            <ModeSelector selectedMode={analysisMode} onModeChange={setAnalysisMode} />
-            
-            {error && <p aria-live="polite" className="my-4 text-center text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20 p-3 rounded-lg animate-fade-in">{error}</p>}
-            
-            <div className="flex justify-center">
-                <button
-                    onClick={handleAnalyze}
-                    disabled={isButtonDisabled}
-                    className={`w-full sm:w-auto px-10 py-4 text-lg font-bold text-white bg-fuchsia-600 rounded-full shadow-lg shadow-fuchsia-500/30 hover:bg-fuchsia-500 disabled:opacity-60 disabled:shadow-none transform hover:-translate-y-0.5 transition-all duration-200 disabled:cursor-wait flex items-center justify-center ${
-                        isLoading ? 'animate-pulse-deduce' : ''
-                    }`}
-                >
-                    {getButtonText()}
-                </button>
-            </div>
+            <form onSubmit={handleSubmit}>
+                <InputTabs
+                    activeInput={activeInput}
+                    setActiveInput={setActiveInput}
+                    onTextChange={onTextChange}
+                    onFilesChange={onFilesChange}
+                    onClearFiles={onClearFiles}
+                    onUrlChange={onUrlChange}
+                    textContent={textContent}
+                    fileNames={fileData.map(f => f.name)}
+                    imageData={fileData.map(f => f.imageBase64).filter(Boolean) as string[] | null}
+                    url={url}
+                    isUrlValid={isUrlValid}
+                />
+                
+                {isImageAnalysis && (
+                    <ForensicModeToggle
+                        selectedMode={forensicMode}
+                        onModeChange={(mode) => dispatch({ type: 'SET_FORENSIC_MODE', payload: mode })}
+                    />
+                )}
+
+                <ModeSelector
+                    selectedMode={analysisMode}
+                    onModeChange={(mode) => dispatch({ type: 'SET_ANALYSIS_MODE', payload: mode })}
+                />
+                
+                {error && (
+                    <div className="my-4 p-4 bg-red-100 dark:bg-red-900/30 border border-red-500/50 rounded-lg text-center text-red-700 dark:text-red-300">
+                        <p className="font-bold">An Error Occurred</p>
+                        <p className="text-sm">{error}</p>
+                    </div>
+                )}
+
+                <div className="mt-8 text-center">
+                    <button
+                        type="submit"
+                        disabled={isSubmitDisabled}
+                        className="w-full sm:w-auto px-10 py-4 font-bold text-white bg-gradient-to-r from-cyan-600 to-fuchsia-600 rounded-full shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-fuchsia-500/30 transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+                    >
+                        Initiate Deduction
+                    </button>
+                </div>
+            </form>
         </div>
     );
 };
-
-export const InputForm = React.memo(InputFormComponent);
