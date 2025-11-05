@@ -1,3 +1,5 @@
+
+
 import React, { ReactNode, ErrorInfo } from 'react';
 import { ErrorFallback } from './ErrorFallback';
 
@@ -10,17 +12,15 @@ interface State {
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Replaced constructor with modern class property syntax for state initialization.
-  // This is a more concise and standard way to define state in React class components
-  // and resolves the type errors related to `this.state` and `this.props`.
-  state: State = { hasError: false };
+  // FIX: Initialize state using class property syntax.
+  // This is a modern and concise approach that resolves typing errors for `this.state` and `this.props`.
+  public state: State = { hasError: false };
 
   static getDerivedStateFromError(_: Error): State {
     // Update state so the next render will show the fallback UI.
     return { hasError: true };
   }
 
-  // The type for errorInfo is `ErrorInfo`, which must be imported from 'react'.
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // You can also log the error to an error reporting service
     console.error("Uncaught error:", error, errorInfo);

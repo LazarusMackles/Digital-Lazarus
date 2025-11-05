@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { InputType } from '../types';
 import { TextIcon, UploadIcon, LinkIcon } from './icons/index';
@@ -11,6 +10,17 @@ const TabButton: React.FC<{
   isActive: boolean;
   onClick: () => void;
 }> = ({ label, icon, isActive, onClick }) => {
+  // By cloning the icon, we can dynamically add color classes
+  // that are theme-aware and state-aware (active/inactive), fixing the light mode visibility issue.
+  const iconWithClass = React.cloneElement(icon as React.ReactElement, {
+    className: `${(icon as React.ReactElement).props.className} transition-colors duration-200 ${
+        isActive 
+          ? 'text-cyan-600 dark:text-cyan-400' 
+          // A neutral, visible color for inactive icons in both light and dark mode.
+          : 'text-slate-500 dark:text-slate-400'
+    }`
+  });
+
   return (
     <button
       onClick={onClick}
@@ -22,8 +32,12 @@ const TabButton: React.FC<{
       aria-selected={isActive}
       role="tab"
     >
-      {icon}
-      <span className={`mt-2 text-sm font-semibold ${isActive ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-600 dark:text-slate-400'}`}>
+      {iconWithClass}
+      <span className={`mt-2 text-base font-semibold ${
+        isActive 
+          ? 'text-cyan-600 dark:text-cyan-400' 
+          : 'text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-400 dark:to-fuchsia-500'
+      }`}>
         {label}
       </span>
     </button>
