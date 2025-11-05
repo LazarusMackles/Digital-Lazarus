@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { useAnalysis } from '../context/AnalysisContext';
 import { RadialProgress } from './RadialProgress';
 import { HighlightsDisplay } from './HighlightsDisplay';
 import { ChallengeVerdict } from './ChallengeVerdict';
@@ -12,6 +11,9 @@ import { ArrowPathIcon, EnvelopeIcon } from './icons/index';
 import { InteractiveTextDisplay } from './InteractiveTextDisplay';
 import type { AnalysisMode } from '../types';
 import { EvidenceImage } from './EvidenceImage';
+import { useResultState } from '../context/ResultStateContext';
+import { useInputState } from '../context/InputStateContext';
+import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
 
 const CaseFileDetails: React.FC<{
   analysisModeUsed: AnalysisMode | null,
@@ -44,16 +46,18 @@ const CaseFileDetails: React.FC<{
 
 
 const ResultDisplayComponent: React.FC = () => {
+  const { state: resultState } = useResultState();
+  const { state: inputState } = useInputState();
+  const { handleChallenge, handleNewAnalysis } = useAnalysisWorkflow();
+  
   const { 
     analysisResult, 
-    handleChallenge, 
-    handleNewAnalysis, 
-    fileData,
     isReanalyzing,
     analysisTimestamp,
     analysisEvidence,
     analysisModeUsed
-  } = useAnalysis();
+  } = resultState;
+  const { fileData } = inputState;
   
   const [showShareModal, setShowShareModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);

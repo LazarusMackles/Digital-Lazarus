@@ -1,45 +1,45 @@
-
-
-
-
 import React, { useCallback, useMemo } from 'react';
-import { useAnalysis } from '../context/AnalysisContext';
-import { analyzeContent } from '../services/geminiService';
 import type { AnalysisMode, ForensicMode } from '../types';
 import { InputTabs } from './InputTabs';
 import { FileUploadDisplay } from './FileUploadDisplay';
 import { ModeSelector } from './ModeSelector';
 import { ForensicModeToggle } from './ForensicModeToggle';
 import { HowItWorks } from './HowItWorks';
-// FIX: The import path was ambiguous and resolved to an empty file. Corrected path to point to the icon index file.
 import { XMarkIcon } from './icons/index';
+import { useInputState } from '../context/InputStateContext';
+import { useResultState } from '../context/ResultStateContext';
+import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
+import * as actions from '../context/actions';
 
 export const InputForm: React.FC = () => {
+    const { state: inputState, dispatch: inputDispatch } = useInputState();
+    const { state: resultState } = useResultState();
+    const { performAnalysis, handleClearInputs } = useAnalysisWorkflow();
+
     const { 
-        dispatch, 
         activeInput, 
         textContent, 
         url, 
         fileData, 
         analysisMode,
         forensicMode,
-        error
-    } = useAnalysis();
+    } = inputState;
+    const { error } = resultState;
 
     const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        dispatch({ type: 'SET_TEXT_CONTENT', payload: e.target.value });
+        inputDispatch({ type: actions.SET_TEXT_CONTENT, payload: e.target.value });
     };
 
     const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        dispatch({ type: 'SET_URL', payload: e.target.value });
+        inputDispatch({ type: actions.SET_URL, payload: e.target.value });
     };
 
     const handleModeChange = (mode: AnalysisMode) => {
-        dispatch({ type: 'SET_ANALYSIS_MODE', payload: mode });
+        inputDispatch({ type: actions.SET_ANALYSIS_MODE, payload: mode });
     };
     
     const handleForensicModeChange = (mode: ForensicMode) => {
-        dispatch({ type: 'SET_FORENSIC_MODE', payload: mode });
+        inputDispatch({ type: actions.SET_FORENSIC_MODE, payload: mode });
     };
 
     const isSubmissionDisabled = useMemo(() => {
@@ -57,48 +57,11 @@ export const InputForm: React.FC = () => {
             default: return true;
         }
     }, [activeInput, textContent, fileData, url]);
-
-    const handleClear = () => dispatch({ type: 'CLEAR_INPUTS' });
     
     const handleSubmit = useCallback(() => {
         if (isSubmissionDisabled) return;
-
-        let evidence;
-        const images = fileData.map(f => f.imageBase64).filter(Boolean) as string[];
-
-        switch(activeInput) {
-            case 'text':
-                evidence = { type: 'text', content: textContent };
-                break;
-            case 'file':
-                evidence = { type: 'file', content: fileData.map(f => f.name).join(', ') };
-                break;
-            case 'url':
-                evidence = { type: 'url', content: url };
-                break;
-            default:
-                return;
-        }
-        
-        dispatch({ 
-            type: 'START_ANALYSIS', 
-            payload: { 
-                evidence,
-                forensicMode: activeInput === 'file' ? forensicMode : 'standard',
-            } 
-        });
-
-        analyzeContent({
-            text: activeInput === 'text' ? textContent : null,
-            images: activeInput === 'file' ? images : null,
-            url: activeInput === 'url' ? url : null,
-            analysisMode,
-            forensicMode: activeInput === 'file' ? forensicMode : 'standard',
-        })
-        .then(result => dispatch({ type: 'ANALYSIS_SUCCESS', payload: { result } }))
-        .catch(err => dispatch({ type: 'ANALYSIS_ERROR', payload: err.message }));
-    
-    }, [activeInput, textContent, fileData, url, analysisMode, forensicMode, dispatch, isSubmissionDisabled]);
+        performAnalysis();
+    }, [isSubmissionDisabled, performAnalysis]);
     
     const renderInput = () => {
         switch (activeInput) {
@@ -170,7 +133,7 @@ export const InputForm: React.FC = () => {
                 </button>
                 {showClearButton && (
                      <button
-                        onClick={handleClear}
+                        onClick={handleClearInputs}
                         className="flex items-center justify-center gap-2 px-6 py-3 font-semibold text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-700 rounded-full hover:bg-slate-300 dark:hover:bg-slate-600 transform hover:-translate-y-0.5 transition-all duration-200"
                         title="Clear all inputs"
                     >

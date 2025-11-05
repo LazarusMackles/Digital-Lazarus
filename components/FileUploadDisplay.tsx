@@ -1,11 +1,16 @@
 import React, { useCallback, useState, useRef } from 'react';
-import { useAnalysis } from '../context/AnalysisContext';
 import { XMarkIcon, UploadIcon } from './icons/index';
 import { fileToBase64 } from '../utils/fileUtils';
 import { EvidenceImage } from './EvidenceImage';
+import { useInputState } from '../context/InputStateContext';
+import { useResultState } from '../context/ResultStateContext';
+import * as actions from '../context/actions';
 
 export const FileUploadDisplay: React.FC = () => {
-    const { fileData, dispatch } = useAnalysis();
+    const { state: inputState, dispatch: inputDispatch } = useInputState();
+    const { dispatch: resultDispatch } = useResultState();
+    const { fileData } = inputState;
+
     const [isDragActive, setIsDragActive] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -14,7 +19,7 @@ export const FileUploadDisplay: React.FC = () => {
 
         const currentFileCount = fileData.length;
         if (currentFileCount + files.length > 4) {
-            dispatch({ type: 'ANALYSIS_ERROR', payload: 'You can upload a maximum of 4 images.' });
+            resultDispatch({ type: actions.ANALYSIS_ERROR, payload: 'You can upload a maximum of 4 images.' });
             return;
         }
 
@@ -24,7 +29,7 @@ export const FileUploadDisplay: React.FC = () => {
             );
             
             if (acceptedFiles.length !== files.length) {
-                 dispatch({ type: 'ANALYSIS_ERROR', payload: 'Some files were rejected. Ensure images are PNG, JPG, WEBP, or GIF and under 10MB.' });
+                 resultDispatch({ type: actions.ANALYSIS_ERROR, payload: 'Some files were rejected. Ensure images are PNG, JPG, WEBP, or GIF and under 10MB.' });
             }
             
             if (acceptedFiles.length === 0) return;
@@ -37,13 +42,13 @@ export const FileUploadDisplay: React.FC = () => {
             );
             
             const combinedFiles = [...fileData, ...newFilesData].slice(0, 4);
-            dispatch({ type: 'SET_FILE_DATA', payload: combinedFiles });
+            inputDispatch({ type: actions.SET_FILE_DATA, payload: combinedFiles });
 
         } catch (error) {
             console.error("Error processing files:", error);
-            dispatch({ type: 'ANALYSIS_ERROR', payload: 'Failed to process one or more images.' });
+            resultDispatch({ type: actions.ANALYSIS_ERROR, payload: 'Failed to process one or more images.' });
         }
-    }, [dispatch, fileData]);
+    }, [inputDispatch, resultDispatch, fileData]);
     
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         processFiles(event.target.files);
@@ -67,7 +72,7 @@ export const FileUploadDisplay: React.FC = () => {
 
     const handleRemoveFile = (fileName: string) => {
         const newFileData = fileData.filter(file => file.name !== fileName);
-        dispatch({ type: 'SET_FILE_DATA', payload: newFileData });
+        inputDispatch({ type: actions.SET_FILE_DATA, payload: newFileData });
     };
 
     const triggerFileSelect = () => fileInputRef.current?.click();

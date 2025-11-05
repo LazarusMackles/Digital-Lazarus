@@ -1,8 +1,10 @@
 
 import React from 'react';
-import { useAnalysis } from '../context/AnalysisContext';
 import type { Scenario } from '../types';
 import { CompositeIcon, ImageIcon } from './icons/index';
+import { useInputState } from '../context/InputStateContext';
+import * as actions from '../context/actions';
+
 
 // A small, public-domain AI-generated image of an astronaut cat.
 // FIX: The previous base64 string was causing issues. Replaced with a new, smaller, and validated image.
@@ -39,10 +41,10 @@ Pretty impressive, right? It's a bit dry, like a textbook, but it got all the ke
 ];
 
 const ScenarioCard: React.FC<{ scenario: Scenario }> = ({ scenario }) => {
-    const { dispatch } = useAnalysis();
+    const { dispatch } = useInputState();
 
     const handleClick = () => {
-        dispatch({ type: 'LOAD_SCENARIO', payload: scenario });
+        dispatch({ type: actions.LOAD_SCENARIO, payload: scenario });
         // Optional: Scroll to the input area after loading.
         const inputArea = document.getElementById('input-area');
         if(inputArea) {

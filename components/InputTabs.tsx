@@ -1,8 +1,9 @@
 
 import React from 'react';
-import { useAnalysis } from '../context/AnalysisContext';
 import type { InputType } from '../types';
 import { TextIcon, UploadIcon, LinkIcon } from './icons/index';
+import { useInputState } from '../context/InputStateContext';
+import * as actions from '../context/actions';
 
 const TabButton: React.FC<{
   label: string;
@@ -30,10 +31,11 @@ const TabButton: React.FC<{
 };
 
 export const InputTabs: React.FC = React.memo(() => {
-  const { activeInput, dispatch } = useAnalysis();
+  const { state, dispatch } = useInputState();
+  const { activeInput } = state;
 
   const handleTabChange = (inputType: InputType) => {
-    dispatch({ type: 'SET_ACTIVE_INPUT', payload: inputType });
+    dispatch({ type: actions.SET_ACTIVE_INPUT, payload: inputType });
   };
 
   return (

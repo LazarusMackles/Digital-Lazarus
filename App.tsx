@@ -6,21 +6,23 @@ import { Loader } from './components/Loader';
 import { WelcomeModal } from './components/WelcomeModal';
 // FIX: The file 'components/InputForm.tsx' will be created and exported, making it a valid module.
 import { InputForm } from './components/InputForm';
-import { AnalysisProvider, useAnalysis } from './context/AnalysisContext';
+import { InputStateProvider } from './context/InputStateContext';
+import { ResultStateProvider, useResultState } from './context/ResultStateContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import * as actions from './context/actions';
 
 const AppContent: React.FC = () => {
+  const { state, dispatch } = useResultState();
   const { 
     isLoading, 
     analysisResult,
     isReanalyzing,
     showWelcome, 
     theme,
-    dispatch
-  } = useAnalysis();
+  } = state;
 
-  const handleCloseWelcome = () => dispatch({ type: 'SET_SHOW_WELCOME', payload: false });
-  const handleSetTheme = (theme: 'light' | 'dark') => dispatch({ type: 'SET_THEME', payload: theme });
+  const handleCloseWelcome = () => dispatch({ type: actions.SET_SHOW_WELCOME, payload: false });
+  const handleSetTheme = (newTheme: 'light' | 'dark') => dispatch({ type: actions.SET_THEME, payload: newTheme });
 
   const renderContent = () => {
     if (isLoading) {
@@ -65,11 +67,13 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <AnalysisProvider>
-      <ErrorBoundary>
-        <AppContent />
-      </ErrorBoundary>
-    </AnalysisProvider>
+    <InputStateProvider>
+      <ResultStateProvider>
+        <ErrorBoundary>
+          <AppContent />
+        </ErrorBoundary>
+      </ResultStateProvider>
+    </InputStateProvider>
   );
 };
 
