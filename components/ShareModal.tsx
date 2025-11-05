@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import type { AnalysisResult, AnalysisEvidence } from '../types';
 import { XMarkIcon, EnvelopeIcon } from './icons/index';
 import { generateShareText } from '../utils/reportUtils';
+import { Button } from './ui';
 
 interface ShareModalProps {
   result: AnalysisResult;
@@ -69,19 +70,20 @@ export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose, evidenc
             />
 
             <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-end">
-                <a
-                    href={`mailto:?subject=${reportTitle}&body=${encodedShareText}`}
-                    className="flex-1 sm:flex-none px-6 py-3 font-bold text-white bg-fuchsia-600 rounded-full shadow-lg shadow-fuchsia-500/30 hover:bg-fuchsia-500 transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
+                <Button
+                    variant="secondary"
+                    className="flex-1 sm:flex-none"
+                    onClick={() => window.location.href = `mailto:?subject=${reportTitle}&body=${encodedShareText}`}
                 >
                     <EnvelopeIcon className="w-5 h-5" />
                     <span>Send via Email</span>
-                </a>
-                <button
+                </Button>
+                <Button
                     onClick={handleCopy}
-                    className="flex-1 sm:flex-none px-6 py-3 font-bold text-white bg-cyan-600 rounded-full shadow-lg shadow-cyan-500/30 hover:bg-cyan-500 transform hover:-translate-y-0.5 transition-all duration-200"
+                    className="flex-1 sm:flex-none"
                 >
                     {copyStatus === 'idle' ? 'Copy Report' : 'Copied!'}
-                </button>
+                </Button>
             </div>
         </div>
       </div>

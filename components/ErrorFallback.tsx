@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { ArrowPathIcon } from './icons/index';
-import { Card } from './ui';
+import { Card, Button } from './ui';
 
 const ErrorFallbackComponent: React.FC = () => {
     const handleReload = () => {
@@ -24,13 +24,13 @@ const ErrorFallbackComponent: React.FC = () => {
             </p>
 
             <div className="mt-6">
-                <button
+                <Button
                     onClick={handleReload}
-                    className="flex items-center justify-center gap-2 mx-auto px-6 py-3 font-bold text-white bg-cyan-600 rounded-full shadow-lg shadow-cyan-500/30 hover:bg-cyan-500 transform hover:-translate-y-0.5 transition-all duration-200"
+                    className="flex items-center justify-center gap-2 mx-auto"
                 >
                     <ArrowPathIcon className="w-5 h-5" />
                     <span>Reload the System</span>
-                </button>
+                </Button>
             </div>
         </Card>
     );

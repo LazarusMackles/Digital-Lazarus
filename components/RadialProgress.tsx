@@ -1,4 +1,5 @@
 import React from 'react';
+import { VERDICT_COLORS } from '../utils/constants';
 
 interface RadialProgressProps {
     progress: number;
@@ -12,9 +13,9 @@ export const RadialProgress: React.FC<RadialProgressProps> = React.memo(({ progr
     const strokeDashoffset = circumference - (progress / 100) * circumference;
 
     const getColor = (p: number) => {
-        if (p < 40) return '#2dd4bf'; // teal-400
-        if (p < 75) return '#facc15'; // yellow-400
-        return '#f43f5e'; // rose-500
+        if (p < 40) return VERDICT_COLORS.HUMAN;
+        if (p < 75) return VERDICT_COLORS.MIXED;
+        return VERDICT_COLORS.AI;
     };
     
     const color = getColor(progress);

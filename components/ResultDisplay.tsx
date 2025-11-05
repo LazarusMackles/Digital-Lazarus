@@ -15,7 +15,8 @@ import { EvidenceImage } from './EvidenceImage';
 import { useResultState } from '../context/ResultStateContext';
 import { useInputState } from '../context/InputStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
-import { Card } from './ui';
+import { Card, Button } from './ui';
+import { MODELS } from '../utils/constants';
 
 const CaseFileDetails: React.FC<{
   analysisModeUsed: AnalysisMode | null,
@@ -25,8 +26,8 @@ const CaseFileDetails: React.FC<{
 
   const getModelName = (mode: AnalysisMode) => {
     switch (mode) {
-      case 'quick': return 'gemini-2.5-flash';
-      case 'deep': return 'gemini-2.5-pro';
+      case 'quick': return MODELS.QUICK;
+      case 'deep': return MODELS.DEEP;
       default: return 'unknown';
     }
   };
@@ -163,20 +164,20 @@ const ResultDisplayComponent: React.FC = () => {
           )}
           
           <div className="mt-8 flex flex-col sm:flex-row items-center gap-4">
-            <button
+            <Button
               onClick={handleNewAnalysis}
-              className="flex items-center justify-center gap-2 px-6 py-3 font-bold text-white bg-cyan-600 rounded-full shadow-lg shadow-cyan-500/30 hover:bg-cyan-500 transform hover:-translate-y-0.5 transition-all duration-200"
+              className="flex items-center justify-center gap-2"
             >
               <ArrowPathIcon className="w-5 h-5" />
               <span>Start New Analysis</span>
-            </button>
-             <button
+            </Button>
+             <Button
               onClick={() => setShowShareModal(true)}
-              className="flex items-center justify-center gap-2 px-6 py-3 font-bold text-white bg-fuchsia-600 rounded-full shadow-lg shadow-fuchsia-500/30 hover:bg-fuchsia-500 transform hover:-translate-y-0.5 transition-all duration-200"
+              variant="secondary"
             >
               <EnvelopeIcon className="w-5 h-5" />
               <span>Email Report</span>
-            </button>
+            </Button>
           </div>
           
           <Feedback result={analysisResult} evidence={analysisEvidence} timestamp={analysisTimestamp} />

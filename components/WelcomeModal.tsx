@@ -1,5 +1,6 @@
 import React from 'react';
 import { XMarkIcon } from './icons/index';
+import { Button } from './ui';
 
 interface WelcomeModalProps {
   onClose: () => void;
@@ -50,12 +51,12 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = React.memo(({ onClose }
                 </li>
             </ul>
             <div className="mt-6 flex justify-end">
-                <button
+                <Button
                     onClick={onClose}
-                    className="px-6 py-2 font-bold text-white bg-cyan-600 rounded-full shadow-lg shadow-cyan-500/30 hover:bg-cyan-500 transform hover:-translate-y-0.5 transition-all duration-200"
+                    className="px-6 py-2"
                 >
                     The Game is Afoot!
-                </button>
+                </Button>
             </div>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { useInputState } from '../context/InputStateContext';
 import { useResultState } from '../context/ResultStateContext';
 import * as actions from '../context/actions';
 import { MAX_FILES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, ACCEPTED_IMAGE_TYPES, ACCEPTED_IMAGE_TYPES_STRING } from '../utils/constants';
+import { Button } from './ui';
 
 export const FileUploadDisplay: React.FC = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
@@ -126,10 +127,10 @@ export const FileUploadDisplay: React.FC = () => {
                                 </div>
                             ))}
                             {fileData.length < MAX_FILES && (
-                                <button type="button" onClick={triggerFileSelect} className="flex flex-col items-center justify-center aspect-square bg-slate-50 dark:bg-slate-800/50 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-cyan-500 hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors">
+                                <Button type="button" onClick={triggerFileSelect} variant="add">
                                     <UploadIcon className="w-8 h-8" />
                                     <span className="text-xs mt-2">Add more</span>
-                                </button>
+                                </Button>
                             )}
                         </div>
                     </div>

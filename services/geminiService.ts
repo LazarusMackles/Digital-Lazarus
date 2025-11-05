@@ -1,6 +1,7 @@
 
 import { GoogleGenAI, Type, GenerateContentResponse, Part, Content } from "@google/genai";
 import type { AnalysisResult, AnalysisMode, ForensicMode } from '../types';
+import { MODELS } from '../utils/constants';
 
 // Centralized schema for analysis results.
 const analysisSchema = {
@@ -73,7 +74,7 @@ export const analyzeContent = async ({
 }: AnalyzeContentParams): Promise<AnalysisResult> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-  const modelName = analysisMode === 'deep' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+  const modelName = analysisMode === 'deep' ? MODELS.DEEP : MODELS.QUICK;
 
   let requestContents: string | Content;
   let systemInstruction = '';

@@ -4,6 +4,7 @@ import { useResultState } from '../context/ResultStateContext';
 import * as actions from '../context/actions';
 import { analyzeContent } from '../services/geminiService';
 import type { ForensicMode } from '../types';
+import { MODELS } from '../utils/constants';
 
 export const useAnalysisWorkflow = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
