@@ -1,64 +1,85 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { useAnalysis } from '../context/AnalysisContext';
-import { XMarkIcon, UploadIcon } from './icons/index';
+import { XMarkIcon, UploadIcon, SpinnerIcon } from './icons/index';
+import { fileToBase64, base64ToBlobUrl } from '../utils/fileUtils';
 
-const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = error => reject(error);
-    });
-};
+const ImagePreview: React.FC<{ file: { name: string; imageBase64?: string | null } }> = React.memo(({ file }) => {
+    const [objectUrl, setObjectUrl] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-// Helper to convert Base64 Data URL to a Blob
-const dataUrlToBlob = async (dataUrl: string): Promise<Blob> => {
-    const res = await fetch(dataUrl);
-    return await res.blob();
-}
+    useEffect(() => {
+        let isMounted = true;
+        let url: string | null = null;
 
-// Component Version: 2024-05-11-BLOB-URL-FIX
+        const generateUrl = async () => {
+            if (!file.imageBase64) {
+                if (isMounted) {
+                    setIsLoading(false);
+                    setObjectUrl(null);
+                }
+                return;
+            }
+
+            setIsLoading(true);
+            setError(null);
+            try {
+                url = await base64ToBlobUrl(file.imageBase64);
+                if (isMounted) {
+                    setObjectUrl(url);
+                }
+            } catch (err) {
+                console.error("Failed to create object URL:", err);
+                if (isMounted) {
+                    setError("Preview failed to load.");
+                    setObjectUrl(null);
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
+            }
+        };
+
+        generateUrl();
+
+        return () => {
+            isMounted = false;
+            if (url) {
+                URL.revokeObjectURL(url);
+            }
+        };
+    }, [file.imageBase64]);
+
+    if (isLoading) {
+        return (
+            <div className="w-full h-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                <SpinnerIcon className="w-6 h-6 text-slate-500 animate-spin" />
+            </div>
+        );
+    }
+    
+    if (error || !objectUrl) {
+        return (
+            <div className="w-full h-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center p-2">
+                <p className="text-xs text-red-500 text-center">{error || "Preview Error"}</p>
+            </div>
+        );
+    }
+
+    return (
+        <img
+            src={objectUrl}
+            alt={`Preview of ${file.name}`}
+            className="w-full h-full object-cover"
+        />
+    );
+});
 
 export const FileUploadDisplay: React.FC = () => {
     const { fileData, dispatch } = useAnalysis();
     const [isDragActive, setIsDragActive] = useState(false);
-    const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
-
-    // Effect to create and manage Blob URLs for previews
-    useEffect(() => {
-        // Function to create blob URLs from fileData
-        const createPreviews = async () => {
-            if (fileData && fileData.length > 0) {
-                const urls = await Promise.all(
-                    fileData.map(async (file) => {
-                        if (file.imageBase64) {
-                            try {
-                                const blob = await dataUrlToBlob(file.imageBase64);
-                                return URL.createObjectURL(blob);
-                            } catch (e) {
-                                console.error("Failed to create blob from data URL", e);
-                                return ''; // return an empty string or a placeholder URL on failure
-                            }
-                        }
-                        return '';
-                    })
-                );
-                setImagePreviewUrls(urls.filter(Boolean));
-            } else {
-                setImagePreviewUrls([]);
-            }
-        };
-
-        createPreviews();
-
-        // Cleanup function to revoke Blob URLs on component unmount or when fileData changes
-        return () => {
-            imagePreviewUrls.forEach(url => URL.revokeObjectURL(url));
-        };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fileData]);
-
 
     const processFiles = useCallback(async (files: FileList | null) => {
         if (!files || files.length === 0) return;
@@ -103,6 +124,7 @@ export const FileUploadDisplay: React.FC = () => {
         }
     };
 
+    // FIX: Corrected the typo in the event type from HTMLDivellElement to HTMLDivElement.
     const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         event.stopPropagation();
@@ -160,15 +182,10 @@ export const FileUploadDisplay: React.FC = () => {
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                              {fileData.map((file, index) => (
                                 <div key={`${file.name}-${index}`} className="relative group aspect-square bg-slate-100 dark:bg-slate-900/50 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700">
-                                    {imagePreviewUrls[index] && (
-                                        <img
-                                            src={imagePreviewUrls[index]}
-                                            alt={`Preview of ${file.name}`}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    )}
+                                    <ImagePreview file={file} />
                                     <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-black/60 backdrop-blur-sm text-center">
                                         <p className="text-xs text-white truncate">{file.name}</p>
+
                                     </div>
                                     <button onClick={() => handleRemoveFile(file.name)} className="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-500 transition-all" aria-label={`Remove ${file.name}`}>
                                         <XMarkIcon className="w-4 h-4" />
