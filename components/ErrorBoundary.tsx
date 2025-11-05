@@ -1,4 +1,6 @@
-import React, { ReactNode, ErrorInfo } from 'react';
+
+
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { ErrorFallback } from './ErrorFallback';
 
 interface Props {
@@ -9,25 +11,23 @@ interface State {
   hasError: boolean;
 }
 
-export class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Initialize state in the constructor. While class property initializers are a modern feature,
-  // an explicit constructor with `super(props)` provides the most reliable way to ensure
-  // `this.props` is correctly initialized, resolving the compilation error.
-  constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false };
-  }
+export class ErrorBoundary extends Component<Props, State> {
+  public state: State = {
+    hasError: false,
+  };
 
-  static getDerivedStateFromError(_: Error): State {
+  public static getDerivedStateFromError(_: Error): State {
     // Update state so the next render will show the fallback UI.
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // You can also log the error to an error reporting service
     console.error("Uncaught error:", error, errorInfo);
   }
 
+  // FIX: In some TypeScript configurations, explicit 'public' on lifecycle methods can cause issues with 'this' context typing.
+  // Removing it allows TypeScript to correctly infer the type from the base React.Component class, resolving the error where `this.props` was not found.
   render() {
     if (this.state.hasError) {
       // You can render any custom fallback UI

@@ -4,7 +4,6 @@ import { Header } from './components/Header';
 import { ResultDisplay } from './components/ResultDisplay';
 import { Loader } from './components/Loader';
 import { WelcomeModal } from './components/WelcomeModal';
-// FIX: The file 'components/InputForm.tsx' will be created and exported, making it a valid module.
 import { InputForm } from './components/InputForm';
 import { InputStateProvider } from './context/InputStateContext';
 import { ResultStateProvider, useResultState } from './context/ResultStateContext';
