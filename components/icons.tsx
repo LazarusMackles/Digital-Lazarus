@@ -1,2 +1,2 @@
-// This file has been neutralized to prevent module resolution errors.
+// This file is obsolete and can be safely deleted.
 export {};

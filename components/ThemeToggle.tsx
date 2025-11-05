@@ -1,15 +1,15 @@
 import React from 'react';
 import { SunIcon, MoonIcon } from './icons/index';
-import type { Theme } from '../types';
+import { useResultState } from '../context/ResultStateContext';
+import * as actions from '../context/actions';
 
-interface ThemeToggleProps {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
-}
+export const ThemeToggle: React.FC = React.memo(() => {
+  const { state, dispatch } = useResultState();
+  const { theme } = state;
 
-export const ThemeToggle: React.FC<ThemeToggleProps> = React.memo(({ theme, setTheme }) => {
   const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    dispatch({ type: actions.SET_THEME, payload: newTheme });
   };
 
   return (

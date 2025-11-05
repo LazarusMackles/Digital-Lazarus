@@ -12,17 +12,16 @@ import * as actions from './context/actions';
 import { Card } from './components/ui';
 
 const AppContent: React.FC = () => {
+  // FIX: Corrected a corrupted hook call which was causing compilation errors.
   const { state, dispatch } = useResultState();
   const { 
     isLoading, 
     analysisResult,
     isReanalyzing,
     showWelcome, 
-    theme,
   } = state;
 
   const handleCloseWelcome = () => dispatch({ type: actions.SET_SHOW_WELCOME, payload: false });
-  const handleSetTheme = (newTheme: 'light' | 'dark') => dispatch({ type: actions.SET_THEME, payload: newTheme });
 
   const renderContent = () => {
     if (isLoading) {
@@ -54,7 +53,7 @@ const AppContent: React.FC = () => {
       {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
       <div className="min-h-screen p-4 sm:p-6 md:p-8 dark:text-white transition-colors duration-300">
         <div className="max-w-4xl mx-auto">
-          <Header theme={theme} setTheme={handleSetTheme} />
+          <Header />
           <main className="mt-12">
             {renderContent()}
           </main>

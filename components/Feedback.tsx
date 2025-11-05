@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { ThumbsUpIcon, ChatBubbleOvalLeftEllipsisIcon } from './icons/index';
 import type { AnalysisResult, AnalysisEvidence } from '../types';
 import { generateShareText } from '../utils/reportUtils';
+import { FEEDBACK_EMAIL } from '../utils/constants';
 
 interface FeedbackProps {
   result: AnalysisResult;
@@ -19,7 +20,7 @@ export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence,
   const mailtoLink = useMemo(() => {
     const reportTitle = encodeURIComponent('Sleuther Vanguard - Feedback');
     const emailBody = encodeURIComponent(generateShareText(result, evidence, timestamp, true));
-    return `mailto:churlish.grrly@gmail.com?subject=${reportTitle}&body=${emailBody}`;
+    return `mailto:${FEEDBACK_EMAIL}?subject=${reportTitle}&body=${emailBody}`;
   }, [result, evidence, timestamp]);
 
 

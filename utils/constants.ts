@@ -17,3 +17,6 @@ export const VERDICT_COLORS = {
   MIXED: '#facc15',    // yellow-400
   AI: '#f43f5e',       // rose-500
 };
+
+// Application Configuration
+export const FEEDBACK_EMAIL = 'churlish.grrly@gmail.com';

@@ -1,5 +1,3 @@
-
-
 import React, { useCallback, useMemo } from 'react';
 import { InputTabs } from './InputTabs';
 import { FileUploadDisplay } from './FileUploadDisplay';
