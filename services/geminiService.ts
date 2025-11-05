@@ -1,4 +1,5 @@
-import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
+
+import { GoogleGenAI, Type, GenerateContentResponse, Part, Content } from "@google/genai";
 import type { AnalysisResult, AnalysisMode, ForensicMode } from '../types';
 
 // Centralized schema for analysis results.
@@ -74,7 +75,7 @@ export const analyzeContent = async ({
 
   const modelName = analysisMode === 'deep' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
 
-  const parts: any[] = [];
+  let requestContents: string | (string | Part)[] | Content;
   let systemInstruction = '';
 
   if (images && images.length > 0) {
@@ -88,6 +89,7 @@ export const analyzeContent = async ({
     }
     systemInstruction = imageSystemInstruction;
 
+    const parts: Part[] = [];
     let imagePrompt = `Analyze the provided image(s) and determine their place on the Spectrum of Creation.`;
     if (images.length > 1) {
       imagePrompt += ` The first image is the primary evidence, and the others provide supporting context.`
@@ -107,12 +109,15 @@ export const analyzeContent = async ({
         }
       });
     }
+    requestContents = { parts };
   } else if (text) {
-    parts.push({ text });
+    requestContents = text;
     systemInstruction = systemInstructions.textAndUrl;
   } else if (url) {
-    parts.push({ text: `Please analyze the content of the webpage at this URL: ${url}. Provide a summary and then determine its origin on the 'Spectrum of Creation'.` });
+    requestContents = `Please analyze the content of the webpage at this URL: ${url}. Provide a summary and then determine its origin on the 'Spectrum of Creation'.`;
     systemInstruction = systemInstructions.textAndUrl;
+  } else {
+    throw new Error("No content provided for analysis.");
   }
 
   if (systemInstructionPreamble) {
@@ -122,10 +127,11 @@ export const analyzeContent = async ({
   try {
       const response: GenerateContentResponse = await ai.models.generateContent({
         model: modelName,
-        contents: { parts },
+        contents: requestContents,
         config: {
           responseMimeType: "application/json",
-          responseSchema,
+          // FIX: The shorthand property 'responseSchema' was used, but the variable is named 'analysisSchema'.
+          responseSchema: analysisSchema,
           systemInstruction,
         }
       });
