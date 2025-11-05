@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type, GenerateContentResponse, Part, Content } from "@google/genai";
 import type { AnalysisResult, AnalysisMode, ForensicMode } from '../types';
 
@@ -75,7 +74,7 @@ export const analyzeContent = async ({
 
   const modelName = analysisMode === 'deep' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
 
-  let requestContents: string | (string | Part)[] | Content;
+  let requestContents: string | Content;
   let systemInstruction = '';
 
   if (images && images.length > 0) {
@@ -130,7 +129,6 @@ export const analyzeContent = async ({
         contents: requestContents,
         config: {
           responseMimeType: "application/json",
-          // FIX: The shorthand property 'responseSchema' was used, but the variable is named 'analysisSchema'.
           responseSchema: analysisSchema,
           systemInstruction,
         }

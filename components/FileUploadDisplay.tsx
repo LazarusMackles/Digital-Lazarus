@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { UploadIcon } from './icons/index';
+import { UploadIcon, TextIcon } from './icons/index';
 
 interface FileUploadDisplayProps {
   onFilesChange: (files: { name: string; imageBase64?: string | null; content?: string | null }[]) => void;
@@ -47,6 +47,7 @@ export const FileUploadDisplay: React.FC<FileUploadDisplayProps> = React.memo(({
 
       const processedFiles: { name: string; imageBase64?: string | null; content?: string | null }[] = [];
       let hasTextFile = false;
+      let hasImageFile = false;
 
       for (const file of Array.from(files)) {
         if (file.size > MAX_SIZE_BYTES) {
@@ -55,11 +56,16 @@ export const FileUploadDisplay: React.FC<FileUploadDisplayProps> = React.memo(({
         }
 
         if (SUPPORTED_IMAGE_TYPES.includes(file.type)) {
+          if (hasTextFile) {
+            setError("You cannot mix text and image files in a single upload.");
+            return;
+          }
           const base64 = await fileToBase64(file);
           processedFiles.push({ name: file.name, imageBase64: base64 });
+          hasImageFile = true;
         } else if (SUPPORTED_TEXT_TYPES.includes(file.type)) {
-          if (hasTextFile) {
-            setError("You can only upload one text file at a time.");
+          if (hasImageFile || hasTextFile) {
+            setError("You can only upload one text file and cannot mix it with images.");
             return;
           }
           const textContent = await fileToText(file);
@@ -108,10 +114,25 @@ export const FileUploadDisplay: React.FC<FileUploadDisplayProps> = React.memo(({
         return (
             <div className="animate-fade-in text-center">
                 <div className="p-4 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg">
-                    <h4 className="font-semibold text-slate-800 dark:text-white">Evidence Submitted:</h4>
-                    <ul className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-                        {fileNames.map((name, index) => <li key={index}>{name}</li>)}
-                    </ul>
+                    <h4 className="font-semibold text-slate-800 dark:text-white mb-4">Evidence Submitted:</h4>
+                    <div className="flex justify-center items-start gap-4 flex-wrap">
+                      {fileNames.map((name, index) => {
+                        const imageSrc = imageData?.[index];
+                        const isImage = !!imageSrc;
+                        return (
+                          <div key={name + index} className="flex flex-col items-center gap-2">
+                            <div className="w-24 h-24 p-1 bg-slate-200 dark:bg-slate-800 rounded-lg flex items-center justify-center border border-slate-300 dark:border-slate-600">
+                                {isImage ? (
+                                    <img src={imageSrc} alt={`Preview of ${name}`} className="w-full h-full object-contain rounded-md" />
+                                ) : (
+                                    <TextIcon className="w-10 h-10 text-slate-400" />
+                                )}
+                            </div>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 max-w-[100px] truncate" title={name}>{name}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
                 </div>
                 <button onClick={onClearFiles} className="mt-4 text-sm text-cyan-600 dark:text-cyan-400 hover:underline">
                     Clear Evidence and Start Over
@@ -121,34 +142,32 @@ export const FileUploadDisplay: React.FC<FileUploadDisplayProps> = React.memo(({
     }
 
     return (
-        <div>
-            <div
-                onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-                className={`relative p-8 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors duration-200 ${
-                isDragging ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20' : 'border-slate-300 dark:border-slate-600 hover:border-cyan-500 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-            >
-                <input
-                    type="file"
-                    multiple
-                    accept={[...SUPPORTED_IMAGE_TYPES, ...SUPPORTED_TEXT_TYPES].join(',')}
-                    onChange={handleFileChange}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    id="file-upload"
-                />
-                <label htmlFor="file-upload" className="flex flex-col items-center justify-center cursor-pointer">
-                    <UploadIcon className="w-10 h-10 text-slate-400 dark:text-slate-500" />
-                    <p className="mt-2 font-semibold text-slate-700 dark:text-slate-200">
-                        Drag & drop files or <span className="text-cyan-600 dark:text-cyan-400">click to browse</span>
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Images (JPG, PNG) or text files. Up to {MAX_FILES} files, {MAX_SIZE_MB}MB each.
-                    </p>
-                </label>
-            </div>
+        <div
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            className={`relative p-8 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors duration-200 ${
+            isDragging ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20' : 'border-slate-300 dark:border-slate-600 hover:border-cyan-500 hover:bg-slate-50 dark:hover:bg-slate-800'
+            }`}
+        >
+            <input
+                type="file"
+                multiple
+                accept={[...SUPPORTED_IMAGE_TYPES, ...SUPPORTED_TEXT_TYPES].join(',')}
+                onChange={handleFileChange}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                id="file-upload"
+            />
+            <label htmlFor="file-upload" className="flex flex-col items-center justify-center cursor-pointer">
+                <UploadIcon className="w-10 h-10 text-slate-400 dark:text-slate-500" />
+                <p className="mt-2 font-semibold text-slate-700 dark:text-slate-200">
+                    Drag & drop files or <span className="text-cyan-600 dark:text-cyan-400">click to browse</span>
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Images (JPG, PNG) or text files. Up to {MAX_FILES} files, {MAX_SIZE_MB}MB each.
+                </p>
+            </label>
             {error && <p aria-live="polite" className="mt-2 text-center text-red-500 text-sm">{error}</p>}
         </div>
     );
