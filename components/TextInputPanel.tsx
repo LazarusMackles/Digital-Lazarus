@@ -14,13 +14,19 @@ export const TextInputPanel: React.FC = () => {
 
     const hasUrl = useMemo(() => URL_REGEX.test(textContent), [textContent]);
 
+    const placeholderText = `Awaiting your text evidence...
+
+⚠️ A quick heads-up: Please remove any URLs (http://...) from your text. 
+My circuits can get tangled on web links in this prototype, and removing them ensures a speedy, accurate analysis.`;
+
+
     return (
         <div>
             <textarea
                 value={textContent}
                 onChange={handleTextChange}
-                placeholder="Paste your text here... Please note: URLs can be tricky for my circuits in this version. For a speedy analysis, it's best to remove them."
-                className="w-full h-48 p-4 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg resize-none focus:ring-2 focus:ring-cyan-500 focus:outline-none text-slate-800 dark:text-slate-200"
+                placeholder={placeholderText}
+                className="w-full h-48 p-4 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg resize-none focus:ring-2 focus:ring-cyan-500 focus:outline-none text-slate-800 dark:text-slate-200 placeholder-slate-500 dark:placeholder-slate-400"
                 aria-label="Text input for analysis"
             />
             {hasUrl && (

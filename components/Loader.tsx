@@ -23,7 +23,7 @@ export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Deducing t
       <p className="text-slate-500 dark:text-slate-400">The clues are revealing themselves. One moment while I consult my circuits.</p>
       {analysisMode === 'deep' && (
         <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 animate-fade-in">
-            *Deep Dives into complex cases can take up to 30 seconds.*
+            *Deep Dives are powerful, but may time out due to platform limits. If this occurs, a 'Quick Scan' is recommended.*
         </p>
       )}
     </div>

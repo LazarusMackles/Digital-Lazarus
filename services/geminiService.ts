@@ -86,10 +86,6 @@ export const analyzeContent = async ({
   }
   
   try {
-      const controller = new AbortController();
-      // Set a 28-second timeout, which is slightly less than typical serverless function limits.
-      const timeoutId = setTimeout(() => controller.abort(), 28000);
-
       const payload = {
         model: modelName,
         contents: requestContents,
@@ -100,17 +96,25 @@ export const analyzeContent = async ({
         }
       };
 
-      const response = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-        signal: controller.signal, // Connect the abort controller to the fetch request
+      // Create a timeout promise. It will reject after 9 seconds.
+      const timeoutPromise = new Promise<Response>((_, reject) => {
+        setTimeout(() => {
+          // Create a custom error to easily identify it in the catch block.
+          const timeoutError = new Error("Client-side request timeout.");
+          timeoutError.name = 'TimeoutError';
+          reject(timeoutError);
+        }, 9000); // 9 seconds
       });
-      
-      // If the fetch completes successfully, clear the timeout.
-      clearTimeout(timeoutId);
+
+      // Race the fetch request against the timeout.
+      const response = await Promise.race([
+        fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }),
+        timeoutPromise
+      ]);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -124,8 +128,12 @@ export const analyzeContent = async ({
       console.error("API proxy call failed:", e);
       let errorMessage = "The deductive engine encountered a critical fault. Please try again.";
       
-      if (e.name === 'AbortError') {
-        errorMessage = "The analysis timed out. This can happen with complex requests on the 'Deep Dive' setting. Please try a 'Quick Scan' or simplify your input.";
+      if (e.name === 'TimeoutError') {
+        if (analysisMode === 'deep') {
+          errorMessage = "The analysis timed out. This can happen with complex requests on the 'Deep Dive' setting. Please try a 'Quick Scan' or simplify your input.";
+        } else {
+          errorMessage = "The analysis timed out, which is unusual for a 'Quick Scan'. The deductive engine may be busy. Please try your request again in a moment.";
+        }
       } else if (e.message.toLowerCase().includes('quota')) {
           errorMessage = "My circuits are overheating due to high demand! Please wait a moment before trying again (quota exceeded).";
       }
