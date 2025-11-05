@@ -24,6 +24,7 @@ export const ModeButton: React.FC<ModeButtonProps> = React.memo(({ active, onCli
 
     return (
         <button
+            type="button"
             onClick={onClick}
             className={`flex-1 flex flex-col justify-center text-center rounded-lg transition-all duration-300 border transform ${padding} ${
                 active

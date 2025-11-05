@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { InputType } from '../types';
 import { TextIcon, UploadIcon, LinkIcon } from './icons/index';
@@ -23,6 +24,7 @@ const TabButton: React.FC<{
 
   return (
     <button
+      type="button"
       onClick={onClick}
       className={`flex-1 flex flex-col items-center justify-center p-4 rounded-t-lg transition-colors duration-200 border-b-4 ${
         isActive
