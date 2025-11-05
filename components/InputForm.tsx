@@ -10,6 +10,7 @@ import { useInputState } from '../context/InputStateContext';
 import { useResultState } from '../context/ResultStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
 import * as actions from '../context/actions';
+import { Card } from './ui';
 
 export const InputForm: React.FC = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
@@ -109,7 +110,7 @@ export const InputForm: React.FC = () => {
     return (
       <div className="animate-fade-in-up" id="input-area">
         <HowItWorks />
-        <div className="bg-white dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700/50">
+        <Card>
           <InputTabs />
           <div className="p-6 bg-slate-50 dark:bg-slate-900/30 rounded-b-lg">
             {renderInput()}
@@ -143,7 +144,7 @@ export const InputForm: React.FC = () => {
                 )}
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     );
 };

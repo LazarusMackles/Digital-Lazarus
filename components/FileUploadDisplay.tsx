@@ -5,6 +5,7 @@ import { EvidenceImage } from './EvidenceImage';
 import { useInputState } from '../context/InputStateContext';
 import { useResultState } from '../context/ResultStateContext';
 import * as actions from '../context/actions';
+import { MAX_FILES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, ACCEPTED_IMAGE_TYPES, ACCEPTED_IMAGE_TYPES_STRING } from '../utils/constants';
 
 export const FileUploadDisplay: React.FC = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
@@ -18,18 +19,18 @@ export const FileUploadDisplay: React.FC = () => {
         if (!files || files.length === 0) return;
 
         const currentFileCount = fileData.length;
-        if (currentFileCount + files.length > 4) {
-            resultDispatch({ type: actions.ANALYSIS_ERROR, payload: 'You can upload a maximum of 4 images.' });
+        if (currentFileCount + files.length > MAX_FILES) {
+            resultDispatch({ type: actions.ANALYSIS_ERROR, payload: `You can upload a maximum of ${MAX_FILES} images.` });
             return;
         }
 
         try {
             const acceptedFiles = Array.from(files).filter(file => 
-                ['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type) && file.size <= 10 * 1024 * 1024
+                ACCEPTED_IMAGE_TYPES.includes(file.type) && file.size <= MAX_FILE_SIZE_BYTES
             );
             
             if (acceptedFiles.length !== files.length) {
-                 resultDispatch({ type: actions.ANALYSIS_ERROR, payload: 'Some files were rejected. Ensure images are PNG, JPG, WEBP, or GIF and under 10MB.' });
+                 resultDispatch({ type: actions.ANALYSIS_ERROR, payload: `Some files were rejected. Ensure images are PNG, JPG, WEBP, or GIF and under ${MAX_FILE_SIZE_MB}MB.` });
             }
             
             if (acceptedFiles.length === 0) return;
@@ -41,7 +42,7 @@ export const FileUploadDisplay: React.FC = () => {
                 })
             );
             
-            const combinedFiles = [...fileData, ...newFilesData].slice(0, 4);
+            const combinedFiles = [...fileData, ...newFilesData].slice(0, MAX_FILES);
             inputDispatch({ type: actions.SET_FILE_DATA, payload: combinedFiles });
 
         } catch (error) {
@@ -83,7 +84,7 @@ export const FileUploadDisplay: React.FC = () => {
                 type="file" 
                 ref={fileInputRef} 
                 onChange={handleFileChange} 
-                accept="image/png,image/jpeg,image/webp,image/gif"
+                accept={ACCEPTED_IMAGE_TYPES_STRING}
                 multiple
                 className="hidden"
             />
@@ -102,14 +103,14 @@ export const FileUploadDisplay: React.FC = () => {
                         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
                            <span className="font-semibold text-cyan-600 dark:text-cyan-400">Drag & drop images here,</span> or click to select files
                         </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">(Up to 4 images: PNG, JPG, WEBP, GIF)</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">(Up to {MAX_FILES} images: PNG, JPG, WEBP, GIF)</p>
                     </div>
                 )}
                 
                 {fileData.length > 0 && (
                     <div>
                         <h4 className="font-semibold text-sm text-slate-700 dark:text-slate-300 mb-3">
-                            Evidence Queue ({fileData.length}/4):
+                            Evidence Queue ({fileData.length}/{MAX_FILES}):
                         </h4>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                              {fileData.map((file, index) => (
@@ -124,7 +125,7 @@ export const FileUploadDisplay: React.FC = () => {
                                     </button>
                                 </div>
                             ))}
-                            {fileData.length < 4 && (
+                            {fileData.length < MAX_FILES && (
                                 <button onClick={triggerFileSelect} className="flex flex-col items-center justify-center aspect-square bg-slate-50 dark:bg-slate-800/50 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-cyan-500 hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors">
                                     <UploadIcon className="w-8 h-8" />
                                     <span className="text-xs mt-2">Add more</span>

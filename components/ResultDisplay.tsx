@@ -15,6 +15,7 @@ import { EvidenceImage } from './EvidenceImage';
 import { useResultState } from '../context/ResultStateContext';
 import { useInputState } from '../context/InputStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
+import { Card } from './ui';
 
 const CaseFileDetails: React.FC<{
   analysisModeUsed: AnalysisMode | null,
@@ -97,7 +98,7 @@ const ResultDisplayComponent: React.FC = () => {
       )}
       {selectedImage && <ImageLightbox imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />}
 
-      <div className="bg-white dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700/50">
+      <Card>
         <div className="flex flex-col items-center">
 
           {isImageAnalysis && imageData && (
@@ -184,7 +185,7 @@ const ResultDisplayComponent: React.FC = () => {
 
           <SleuthNote />
         </div>
-      </div>
+      </Card>
     </>
   );
 };

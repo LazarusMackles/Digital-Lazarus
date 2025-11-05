@@ -10,8 +10,9 @@ interface State {
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Using a constructor to initialize state ensures `this.props` is also correctly typed,
-  // resolving the "Property 'props' does not exist" error.
+  // FIX: Initialize state in the constructor. While class property initializers are a modern feature,
+  // an explicit constructor with `super(props)` provides the most reliable way to ensure
+  // `this.props` is correctly initialized, resolving the compilation error.
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false };
