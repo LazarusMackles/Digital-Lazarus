@@ -1,5 +1,3 @@
-
-
 import React, { ReactNode, ErrorInfo } from 'react';
 import { ErrorFallback } from './ErrorFallback';
 
@@ -12,9 +10,12 @@ interface State {
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Initialize state using class property syntax.
-  // This is a modern and concise approach that resolves typing errors for `this.state` and `this.props`.
-  public state: State = { hasError: false };
+  // FIX: Using a constructor to initialize state ensures `this.props` is also correctly typed,
+  // resolving the "Property 'props' does not exist" error.
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
   static getDerivedStateFromError(_: Error): State {
     // Update state so the next render will show the fallback UI.

@@ -13,9 +13,14 @@ export const ModeButton: React.FC<ModeButtonProps> = React.memo(({ active, onCli
     const padding = size === 'md' ? 'p-4' : 'p-3';
     const titleSize = size === 'md' ? 'font-bold' : 'font-bold text-sm';
     
-    const titleClasses = titleStyle === 'gradient'
-        ? 'text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500'
-        : (active ? 'text-white' : 'text-slate-800 dark:text-white');
+    let titleClasses = '';
+    if (active) {
+        titleClasses = 'text-white';
+    } else if (titleStyle === 'gradient') {
+        titleClasses = 'text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500';
+    } else {
+        titleClasses = 'text-slate-800 dark:text-white';
+    }
 
     return (
         <button

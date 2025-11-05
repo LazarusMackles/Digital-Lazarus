@@ -1,3 +1,14 @@
+// ---
+//
+// This file was changed as part of a fix for the following bug:
+//
+// 1. **Default Input Focus:** The application was defaulting to the "Text" input tab upon loading.
+//
+// The fix addresses this by:
+//
+// 1. **Updating Initial State:** The `initialState` object in this context has been modified to set `activeInput` to `'file'` and `forensicMode` to `'technical'`. This ensures that the user's first view after the welcome modal is the file upload interface with the "Technical Forensics" option pre-selected, aligning with the user's request for a more visually balanced and feature-forward default screen.
+//
+// ---
 import React, { createContext, useContext, useReducer, ReactNode, Dispatch } from 'react';
 import type { InputType, AnalysisMode, ForensicMode, Scenario } from '../types';
 import * as actions from './actions';
@@ -17,9 +28,9 @@ const initialState: InputState = {
     textContent: '',
     fileData: [],
     url: '',
-    activeInput: 'text',
+    activeInput: 'file',
     analysisMode: 'quick',
-    forensicMode: 'standard',
+    forensicMode: 'technical',
 };
 
 // Action types
@@ -54,7 +65,7 @@ const inputReducer = (state: InputState, action: Action): InputState => {
                 textContent: '',
                 fileData: [],
                 url: '',
-                activeInput: 'text',
+                activeInput: 'file', // Reset to the new default
             };
         case actions.LOAD_SCENARIO:
             const { inputType, analysisMode, payload } = action.payload;

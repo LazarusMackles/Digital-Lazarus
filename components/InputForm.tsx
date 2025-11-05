@@ -129,7 +129,7 @@ export const InputForm: React.FC = () => {
                     disabled={isSubmissionDisabled}
                     className="flex items-center justify-center gap-2 px-10 py-4 font-bold text-white bg-gradient-to-r from-cyan-600 to-fuchsia-600 rounded-full shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:to-fuchsia-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 transition-all duration-200 disabled:transform-none"
                 >
-                    <span>Begin Analysis</span>
+                    <span>Begin Deduction</span>
                 </button>
                 {showClearButton && (
                      <button

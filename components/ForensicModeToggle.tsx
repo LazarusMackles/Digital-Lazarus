@@ -18,6 +18,7 @@ export const ForensicModeToggle: React.FC<ForensicModeToggleProps> = React.memo(
                 title="Standard Analysis"
                 description="A balanced look at technical and conceptual clues."
                 size="sm"
+                titleStyle="gradient"
             />
             <ModeButton
                 active={selectedMode === 'technical'}
@@ -25,6 +26,7 @@ export const ForensicModeToggle: React.FC<ForensicModeToggleProps> = React.memo(
                 title="Technical Forensics"
                 description="Focuses only on pixels, lighting, and synthesis artifacts."
                 size="sm"
+                titleStyle="gradient"
             />
             <ModeButton
                 active={selectedMode === 'conceptual'}
@@ -32,6 +34,7 @@ export const ForensicModeToggle: React.FC<ForensicModeToggleProps> = React.memo(
                 title="Conceptual Analysis"
                 description="Focuses only on the story, context, and plausibility."
                 size="sm"
+                titleStyle="gradient"
             />
         </div>
     </fieldset>

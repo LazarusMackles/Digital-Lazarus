@@ -18,13 +18,15 @@ export const ModeSelector: React.FC<ModeSelectorProps> = React.memo(({ selectedM
                 title="Quick Scan"
                 description="A fast, brilliant first-pass. Excellent for most cases."
                 size="md"
+                titleStyle="gradient"
             />
             <ModeButton
                 active={selectedMode === 'deep'}
                 onClick={() => onModeChange('deep')}
-                title="Deep Analysis"
+                title="Deep Dive"
                 description="A more profound, methodical examination. Takes longer but is more thorough."
                 size="md"
+                titleStyle="gradient"
             />
         </div>
     </fieldset>

@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { RadialProgress } from './RadialProgress';
 import { HighlightsDisplay } from './HighlightsDisplay';
@@ -28,7 +29,7 @@ const CaseFileDetails: React.FC<{
       default: return 'unknown';
     }
   };
-  const modeText = analysisModeUsed === 'quick' ? 'Quick Scan' : 'Deep Analysis';
+  const modeText = analysisModeUsed === 'quick' ? 'Quick Scan' : 'Deep Dive';
 
   return (
     <div className="mt-8 w-max max-w-full bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-lg py-4 px-6 text-sm">
