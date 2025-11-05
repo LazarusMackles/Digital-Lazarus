@@ -34,6 +34,12 @@ export async function POST(request: Request) {
             config: body.config,
         });
 
+        // Add a defensive check: Ensure the response text is a non-empty string before parsing.
+        // This handles cases where the model might be blocked for safety or returns an unexpected response.
+        if (!response.text || typeof response.text !== 'string') {
+            throw new Error("Received an empty or invalid response from the generative model.");
+        }
+
         // When using `responseSchema`, the Gemini API returns a JSON string in the `.text` property.
         // We parse it on the server so the client receives a clean JSON object.
         const jsonResult = JSON.parse(response.text);

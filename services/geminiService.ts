@@ -1,4 +1,3 @@
-
 import { type GenerateContentResponse, type Part, type Content } from "@google/genai";
 import type { AnalysisResult, AnalysisMode, ForensicMode } from '../types';
 import { MODELS } from '../utils/constants';
@@ -6,7 +5,7 @@ import { analysisSchema } from '../utils/schemas';
 
 // --- Centralized System Instructions ---
 const systemInstructions = {
-  textAndUrl: `You are a world-class digital content analyst, a sleuth specializing in text analysis. Your primary directive is to analyze the provided text and determine its origin on the 'Spectrum of Creation'. Your final \`verdict\` MUST be one of the following four options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', 3. 'Composite: Human & AI', or 4. 'Appears Human-Crafted'.
+  textAndUrl: `You are a world-class digital content analyst, a sleuth specializing in text analysis. Your primary directive is to analyze the provided text and determine its origin on the 'Spectrum of Creation'. IMPORTANT: Analyze the text *only*. Do not follow or fetch content from any URLs present in the text. Your analysis must be based solely on the provided string. Your final \`verdict\` MUST be one of the following four options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', 3. 'Composite: Human & AI', or 4. 'Appears Human-Crafted'.
 
 **NEW PARADIGM: THE "COMPOSITE" TEXT**
 A new, sophisticated form of content involves a human author explicitly quoting or embedding a block of pure AI-generated text within their own writing. This is NOT 'AI-Enhanced' (where the human's voice is polished). This is a composite piece where two distinct voices are present.
