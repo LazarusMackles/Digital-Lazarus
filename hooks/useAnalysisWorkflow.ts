@@ -18,16 +18,17 @@ export const useAnalysisWorkflow = () => {
 
         switch(activeInput) {
             case 'text':
+                // No longer sanitizing; the UI prevents submission with URLs.
                 evidence = { type: 'text', content: textContent };
                 break;
             case 'file':
                 evidence = { type: 'file', content: fileData.map(f => f.name).join(', ') };
                 break;
             case 'url':
-                evidence = { type: 'url', content: url };
-                break;
+                 // URL feature is disabled at the component level.
+                resultDispatch({ type: actions.ANALYSIS_ERROR, payload: "URL analysis is temporarily unavailable." });
+                return;
             default:
-                // This case should not be reachable with the current UI.
                 console.error("Attempted analysis with unknown input type.");
                 return;
         }

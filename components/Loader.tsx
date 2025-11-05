@@ -1,10 +1,12 @@
 import React from 'react';
+import type { AnalysisMode } from '../types';
 
 interface LoaderProps {
   message?: string;
+  analysisMode?: AnalysisMode | null;
 }
 
-export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Deducing the Digital DNA ... " }) => {
+export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Deducing the Digital DNA ... ", analysisMode }) => {
   return (
     <div className="flex flex-col items-center justify-center h-64 text-center">
       <svg className="animate-spin h-12 w-12 text-cyan-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -19,6 +21,11 @@ export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Deducing t
       </svg>
       <h2 className="mt-4 text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-400 dark:to-fuchsia-500">{message}</h2>
       <p className="text-slate-500 dark:text-slate-400">The clues are revealing themselves. One moment while I consult my circuits.</p>
+      {analysisMode === 'deep' && (
+        <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 animate-fade-in">
+            *Deep Dives into complex cases can take up to 30 seconds.*
+        </p>
+      )}
     </div>
   );
 });

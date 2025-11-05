@@ -86,6 +86,10 @@ export const analyzeContent = async ({
   }
   
   try {
+      const controller = new AbortController();
+      // Set a 28-second timeout, which is slightly less than typical serverless function limits.
+      const timeoutId = setTimeout(() => controller.abort(), 28000);
+
       const payload = {
         model: modelName,
         contents: requestContents,
@@ -101,9 +105,13 @@ export const analyzeContent = async ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: controller.signal, // Connect the abort controller to the fetch request
       });
       
+      // If the fetch completes successfully, clear the timeout.
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'An error occurred with the analysis proxy.');
@@ -115,8 +123,10 @@ export const analyzeContent = async ({
   } catch(e: any) {
       console.error("API proxy call failed:", e);
       let errorMessage = "The deductive engine encountered a critical fault. Please try again.";
-      // Simplified error handling as specific SDK errors are now caught server-side.
-      if (e.message.toLowerCase().includes('quota')) {
+      
+      if (e.name === 'AbortError') {
+        errorMessage = "The analysis timed out. This can happen with complex requests on the 'Deep Dive' setting. Please try a 'Quick Scan' or simplify your input.";
+      } else if (e.message.toLowerCase().includes('quota')) {
           errorMessage = "My circuits are overheating due to high demand! Please wait a moment before trying again (quota exceeded).";
       }
       throw new Error(errorMessage);

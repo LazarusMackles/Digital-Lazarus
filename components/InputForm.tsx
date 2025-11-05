@@ -13,6 +13,8 @@ import { XMarkIcon } from './icons/index';
 import { TextInputPanel } from './TextInputPanel';
 import { UrlInputPanel } from './UrlInputPanel';
 
+const URL_REGEX = /(https?:\/\/[^\s]+)/;
+
 export const InputForm: React.FC = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
     const { state: resultState, dispatch: resultDispatch } = useResultState();
@@ -39,21 +41,17 @@ export const InputForm: React.FC = () => {
     const isInputValid = useMemo(() => {
         switch (activeInput) {
             case 'text':
-                return textContent.trim().length > 0;
+                // The input is valid only if it has content AND it does NOT contain a URL.
+                return textContent.trim().length > 0 && !URL_REGEX.test(textContent);
             case 'file':
                 return fileData.length > 0;
             case 'url':
-                try {
-                    // Basic URL validation
-                    new URL(url);
-                    return true;
-                } catch (_) {
-                    return false;
-                }
+                // This feature is disabled, so it's never valid for submission.
+                return false;
             default:
                 return false;
         }
-    }, [activeInput, textContent, fileData, url]);
+    }, [activeInput, textContent, fileData]);
     
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

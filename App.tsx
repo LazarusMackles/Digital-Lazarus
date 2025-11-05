@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Header } from './components/Header';
 import { ResultDisplay } from './components/ResultDisplay';
@@ -12,13 +11,13 @@ import * as actions from './context/actions';
 import { Card } from './components/ui';
 
 const AppContent: React.FC = () => {
-  // FIX: Corrected a corrupted hook call which was causing compilation errors.
   const { state, dispatch } = useResultState();
   const { 
     isLoading, 
     analysisResult,
     isReanalyzing,
-    showWelcome, 
+    showWelcome,
+    analysisModeUsed,
   } = state;
 
   const handleCloseWelcome = () => dispatch({ type: actions.SET_SHOW_WELCOME, payload: false });
@@ -30,7 +29,7 @@ const AppContent: React.FC = () => {
         : "Deducing the Digital DNA ...";
       return (
         <Card>
-          <Loader message={loaderMessage} />
+          <Loader message={loaderMessage} analysisMode={analysisModeUsed} />
         </Card>
       );
     }
