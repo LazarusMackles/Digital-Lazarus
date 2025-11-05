@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, useEffect, ReactNode, Dispatch } from 'react';
 import { analyzeContent } from '../services/geminiService';
 import type { 
@@ -53,7 +52,7 @@ const initialState: AnalysisState = {
 };
 
 type Action =
-  | { type: 'START_ANALYSIS'; payload: { evidence: AnalysisEvidence; mode: AnalysisMode; forensicMode: ForensicMode } }
+  | { type: 'START_ANALYSIS'; payload: { evidence: AnalysisEvidence; forensicMode: ForensicMode } }
   | { type: 'START_REANALYSIS'; payload: { forensicMode: ForensicMode } }
   | { type: 'ANALYSIS_SUCCESS'; payload: { result: AnalysisResult; isSecondOpinion?: boolean } }
   | { type: 'ANALYSIS_ERROR'; payload: string }
@@ -80,8 +79,7 @@ const analysisReducer = (state: AnalysisState, action: Action): AnalysisState =>
                 error: null,
                 analysisResult: null,
                 analysisEvidence: action.payload.evidence,
-                analysisModeUsed: action.payload.mode,
-                analysisMode: action.payload.mode,
+                analysisModeUsed: state.analysisMode, // Use mode from state
                 forensicMode: action.payload.forensicMode,
             };
         case 'START_REANALYSIS':
@@ -151,8 +149,6 @@ interface AnalysisContextType extends AnalysisState {
     dispatch: Dispatch<Action>;
     handleNewAnalysis: () => void;
     handleChallenge: (mode: ForensicMode) => void;
-    imageData: string[] | null;
-    fileNames: string[] | null;
 }
 
 const AnalysisContext = createContext<AnalysisContextType | undefined>(undefined);
@@ -188,13 +184,8 @@ export const AnalysisProvider: React.FC<{ children: ReactNode }> = ({ children }
         .catch(error => dispatch({ type: 'ANALYSIS_ERROR', payload: error.message }));
     };
 
-    const imageData = state.fileData.length > 0 && state.fileData[0].imageBase64 
-        ? state.fileData.map(f => f.imageBase64!).filter(Boolean)
-        : null;
-    const fileNames = state.fileData.length > 0 ? state.fileData.map(f => f.name) : null;
-
     return (
-        <AnalysisContext.Provider value={{ ...state, dispatch, handleNewAnalysis, handleChallenge, imageData, fileNames }}>
+        <AnalysisContext.Provider value={{ ...state, dispatch, handleNewAnalysis, handleChallenge }}>
             {children}
         </AnalysisContext.Provider>
     );

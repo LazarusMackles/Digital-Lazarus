@@ -48,7 +48,7 @@ const ResultDisplayComponent: React.FC = () => {
     analysisResult, 
     handleChallenge, 
     handleNewAnalysis, 
-    imageData,
+    fileData,
     isReanalyzing,
     analysisTimestamp,
     analysisEvidence,
@@ -69,6 +69,8 @@ const ResultDisplayComponent: React.FC = () => {
   };
 
   const { probability, verdict, explanation, highlights, isSecondOpinion } = analysisResult;
+  
+  const imageData = fileData.length > 0 ? fileData.map(f => f.imageBase64!).filter(Boolean) : null;
   const isImageAnalysis = analysisEvidence?.type === 'file' && !!imageData && imageData.length > 0;
   const isTextAnalysis = (analysisEvidence?.type === 'text' || (analysisEvidence?.type === 'file' && (!imageData || imageData.length === 0))) && !!analysisEvidence.content;
 

@@ -1,181 +1,190 @@
-import React, { useCallback, useState } from 'react';
-import { UploadIcon, TextIcon } from './icons/index';
-
-interface FileUploadDisplayProps {
-  onFilesChange: (files: { name: string; imageBase64?: string | null; content?: string | null }[]) => void;
-  onClearFiles: () => void;
-  fileNames: string[] | null;
-  imageData: string[] | null;
-}
-
-const MAX_FILES = 4;
-const MAX_SIZE_MB = 10;
-const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
-const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-const SUPPORTED_TEXT_TYPES = ['text/plain', 'text/markdown'];
+import React, { useCallback, useState, useRef, useEffect } from 'react';
+import { useAnalysis } from '../context/AnalysisContext';
+import { XMarkIcon, UploadIcon } from './icons/index';
 
 const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
-  });
-};
-
-const fileToText = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.readAsText(file);
+        reader.readAsDataURL(file);
         reader.onload = () => resolve(reader.result as string);
         reader.onerror = error => reject(error);
     });
 };
 
-export const FileUploadDisplay: React.FC<FileUploadDisplayProps> = React.memo(({ onFilesChange, onClearFiles, fileNames, imageData }) => {
-    const [isDragging, setIsDragging] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+// Helper to convert Base64 Data URL to a Blob
+const dataUrlToBlob = async (dataUrl: string): Promise<Blob> => {
+    const res = await fetch(dataUrl);
+    return await res.blob();
+}
 
-    const handleFiles = useCallback(async (files: FileList | null) => {
-      setError(null);
-      if (!files || files.length === 0) return;
+// Component Version: 2024-05-11-BLOB-URL-FIX
 
-      if (files.length > MAX_FILES) {
-        setError(`You can upload a maximum of ${MAX_FILES} files.`);
-        return;
-      }
+export const FileUploadDisplay: React.FC = () => {
+    const { fileData, dispatch } = useAnalysis();
+    const [isDragActive, setIsDragActive] = useState(false);
+    const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-      const processedFiles: { name: string; imageBase64?: string | null; content?: string | null }[] = [];
-      let hasTextFile = false;
-      let hasImageFile = false;
+    // Effect to create and manage Blob URLs for previews
+    useEffect(() => {
+        // Function to create blob URLs from fileData
+        const createPreviews = async () => {
+            if (fileData && fileData.length > 0) {
+                const urls = await Promise.all(
+                    fileData.map(async (file) => {
+                        if (file.imageBase64) {
+                            try {
+                                const blob = await dataUrlToBlob(file.imageBase64);
+                                return URL.createObjectURL(blob);
+                            } catch (e) {
+                                console.error("Failed to create blob from data URL", e);
+                                return ''; // return an empty string or a placeholder URL on failure
+                            }
+                        }
+                        return '';
+                    })
+                );
+                setImagePreviewUrls(urls.filter(Boolean));
+            } else {
+                setImagePreviewUrls([]);
+            }
+        };
 
-      for (const file of Array.from(files)) {
-        if (file.size > MAX_SIZE_BYTES) {
-          setError(`File "${file.name}" is too large (max ${MAX_SIZE_MB}MB).`);
-          return;
+        createPreviews();
+
+        // Cleanup function to revoke Blob URLs on component unmount or when fileData changes
+        return () => {
+            imagePreviewUrls.forEach(url => URL.revokeObjectURL(url));
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fileData]);
+
+
+    const processFiles = useCallback(async (files: FileList | null) => {
+        if (!files || files.length === 0) return;
+
+        const currentFileCount = fileData.length;
+        if (currentFileCount + files.length > 4) {
+            dispatch({ type: 'ANALYSIS_ERROR', payload: 'You can upload a maximum of 4 images.' });
+            return;
         }
 
-        if (SUPPORTED_IMAGE_TYPES.includes(file.type)) {
-          if (hasTextFile) {
-            setError("You cannot mix text and image files in a single upload.");
-            return;
-          }
-          const base64 = await fileToBase64(file);
-          processedFiles.push({ name: file.name, imageBase64: base64 });
-          hasImageFile = true;
-        } else if (SUPPORTED_TEXT_TYPES.includes(file.type)) {
-          if (hasImageFile || hasTextFile) {
-            setError("You can only upload one text file and cannot mix it with images.");
-            return;
-          }
-          const textContent = await fileToText(file);
-          processedFiles.push({ name: file.name, content: textContent });
-          hasTextFile = true;
-        } else {
-           setError(`File type for "${file.name}" is not supported. Please use images or plain text files.`);
-           return;
+        try {
+            const acceptedFiles = Array.from(files).filter(file => 
+                ['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type) && file.size <= 10 * 1024 * 1024
+            );
+            
+            if (acceptedFiles.length !== files.length) {
+                 dispatch({ type: 'ANALYSIS_ERROR', payload: 'Some files were rejected. Ensure images are PNG, JPG, WEBP, or GIF and under 10MB.' });
+            }
+            
+            if (acceptedFiles.length === 0) return;
+
+            const newFilesData = await Promise.all(
+                acceptedFiles.map(async (file) => {
+                    const imageBase64 = await fileToBase64(file);
+                    return { name: file.name, imageBase64 };
+                })
+            );
+            
+            const combinedFiles = [...fileData, ...newFilesData].slice(0, 4);
+            dispatch({ type: 'SET_FILE_DATA', payload: combinedFiles });
+
+        } catch (error) {
+            console.error("Error processing files:", error);
+            dispatch({ type: 'ANALYSIS_ERROR', payload: 'Failed to process one or more images.' });
         }
-      }
-
-      onFilesChange(processedFiles);
-
-    }, [onFilesChange]);
-
-    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(true);
+    }, [dispatch, fileData]);
+    
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        processFiles(event.target.files);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
     };
 
-    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
+    const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsDragActive(false);
+        processFiles(event.dataTransfer.files);
     };
 
-    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
+    const handleDragEvent = (event: React.DragEvent<HTMLDivElement>, active: boolean) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsDragActive(active);
     };
 
-    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
-      handleFiles(e.dataTransfer.files);
+    const handleRemoveFile = (fileName: string) => {
+        const newFileData = fileData.filter(file => file.name !== fileName);
+        dispatch({ type: 'SET_FILE_DATA', payload: newFileData });
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      handleFiles(e.target.files);
-      e.target.value = ''; // Reset input to allow re-uploading the same file
-    };
-
-    if ((imageData && imageData.length > 0) || (fileNames && fileNames.length > 0 && !imageData)) {
-        return (
-            <div className="animate-fade-in text-center">
-                <div className="p-4 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg">
-                    <h4 className="font-semibold text-slate-800 dark:text-white mb-4">Evidence Submitted:</h4>
-                    <div className="flex justify-center items-start gap-4 flex-wrap">
-                      {/* THE FIX: Iterate over imageData if it exists, ensuring the image is always rendered. Fallback to fileNames for text files. */}
-                      {imageData ? (
-                        imageData.map((imageSrc, index) => {
-                          const name = fileNames?.[index] || 'image.png';
-                          return (
-                            <div key={name + index} className="flex flex-col items-center gap-2">
-                              <div className="w-24 h-24 p-1 bg-slate-200 dark:bg-slate-800 rounded-lg flex items-center justify-center border border-slate-300 dark:border-slate-600">
-                                  <img src={imageSrc} alt={`Preview of ${name}`} className="w-full h-full object-contain rounded-md" />
-                              </div>
-                              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-[100px] truncate" title={name}>{name}</p>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        fileNames?.map((name, index) => (
-                           <div key={name + index} className="flex flex-col items-center gap-2">
-                            <div className="w-24 h-24 p-1 bg-slate-200 dark:bg-slate-800 rounded-lg flex items-center justify-center border border-slate-300 dark:border-slate-600">
-                                <TextIcon className="w-10 h-10 text-slate-400" />
-                            </div>
-                            <p className="text-xs text-slate-600 dark:text-slate-400 max-w-[100px] truncate" title={name}>{name}</p>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                </div>
-                <button onClick={onClearFiles} className="mt-4 text-sm text-cyan-600 dark:text-cyan-400 hover:underline">
-                    Clear Evidence and Start Over
-                </button>
-            </div>
-        )
-    }
+    const triggerFileSelect = () => fileInputRef.current?.click();
 
     return (
-        <div
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            className={`relative p-8 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors duration-200 ${
-            isDragging ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20' : 'border-slate-300 dark:border-slate-600 hover:border-cyan-500 hover:bg-slate-50 dark:hover:bg-slate-800'
-            }`}
-        >
-            <input
-                type="file"
+        <div className="flex flex-col gap-4">
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                accept="image/png,image/jpeg,image/webp,image/gif"
                 multiple
-                accept={[...SUPPORTED_IMAGE_TYPES, ...SUPPORTED_TEXT_TYPES].join(',')}
-                onChange={handleFileChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                id="file-upload"
+                className="hidden"
             />
-            <label htmlFor="file-upload" className="flex flex-col items-center justify-center cursor-pointer">
-                <UploadIcon className="w-10 h-10 text-slate-400 dark:text-slate-500" />
-                <p className="mt-2 font-semibold text-slate-700 dark:text-slate-200">
-                    Drag & drop files or <span className="text-cyan-600 dark:text-cyan-400">click to browse</span>
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Images (JPG, PNG) or text files. Up to {MAX_FILES} files, {MAX_SIZE_MB} each.
-                </p>
-            </label>
-            {error && <p aria-live="polite" className="mt-2 text-center text-red-500 text-sm">{error}</p>}
+            <div
+                onDrop={handleDrop}
+                onDragOver={(e) => handleDragEvent(e, true)}
+                onDragEnter={(e) => handleDragEvent(e, true)}
+                onDragLeave={(e) => handleDragEvent(e, false)}
+                className={`relative p-4 border-2 border-dashed rounded-lg transition-colors min-h-[180px]
+                    ${isDragActive ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/30' : 'border-slate-300 dark:border-slate-600'}
+                `}
+            >
+                {fileData.length === 0 && (
+                     <div onClick={triggerFileSelect} className="flex flex-col items-center justify-center h-full text-center cursor-pointer">
+                        <UploadIcon className="w-10 h-10 text-slate-400 dark:text-slate-500" />
+                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                           <span className="font-semibold text-cyan-600 dark:text-cyan-400">Drag & drop images here,</span> or click to select files
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">(Up to 4 images: PNG, JPG, WEBP, GIF)</p>
+                    </div>
+                )}
+                
+                {fileData.length > 0 && (
+                    <div>
+                        <h4 className="font-semibold text-sm text-slate-700 dark:text-slate-300 mb-3">
+                            Evidence Queue ({fileData.length}/4):
+                        </h4>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                             {fileData.map((file, index) => (
+                                <div key={`${file.name}-${index}`} className="relative group aspect-square bg-slate-100 dark:bg-slate-900/50 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700">
+                                    {imagePreviewUrls[index] && (
+                                        <img
+                                            src={imagePreviewUrls[index]}
+                                            alt={`Preview of ${file.name}`}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    )}
+                                    <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-black/60 backdrop-blur-sm text-center">
+                                        <p className="text-xs text-white truncate">{file.name}</p>
+                                    </div>
+                                    <button onClick={() => handleRemoveFile(file.name)} className="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-500 transition-all" aria-label={`Remove ${file.name}`}>
+                                        <XMarkIcon className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ))}
+                            {fileData.length < 4 && (
+                                <button onClick={triggerFileSelect} className="flex flex-col items-center justify-center aspect-square bg-slate-50 dark:bg-slate-800/50 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-cyan-500 hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors">
+                                    <UploadIcon className="w-8 h-8" />
+                                    <span className="text-xs mt-2">Add more</span>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
-});
+};
