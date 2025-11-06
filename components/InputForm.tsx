@@ -12,8 +12,7 @@ import { Card, Button } from './ui';
 import { XMarkIcon } from './icons/index';
 import { TextInputPanel } from './TextInputPanel';
 import { UrlInputPanel } from './UrlInputPanel';
-
-const URL_REGEX = /(https?:\/\/[^\s]+)/;
+import { isInputReadyForAnalysis } from '../utils/validation';
 
 export const InputForm: React.FC = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
@@ -39,18 +38,7 @@ export const InputForm: React.FC = () => {
     }, [inputDispatch]);
 
     const isInputValid = useMemo(() => {
-        switch (activeInput) {
-            case 'text':
-                // The input is valid only if it has content AND it does NOT contain a URL.
-                return textContent.trim().length > 0 && !URL_REGEX.test(textContent);
-            case 'file':
-                return fileData.length > 0;
-            case 'url':
-                // This feature is disabled, so it's never valid for submission.
-                return false;
-            default:
-                return false;
-        }
+        return isInputReadyForAnalysis(activeInput, textContent, fileData);
     }, [activeInput, textContent, fileData]);
     
     const handleSubmit = (e: React.FormEvent) => {

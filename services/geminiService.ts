@@ -26,6 +26,14 @@ interface AnalyzeContentParams {
   systemInstructionPreamble?: string;
 }
 
+const executeAnalysis = async (payload: any): Promise<Response> => {
+  return fetch('/api/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+};
+
 export const analyzeContent = async ({
   text,
   images,
@@ -96,23 +104,18 @@ export const analyzeContent = async ({
         }
       };
 
-      // Create a timeout promise. It will reject after 9 seconds.
-      const timeoutPromise = new Promise<Response>((_, reject) => {
+      const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => {
-          // Create a custom error to easily identify it in the catch block.
+          // Pass analysisMode in the error for contextual messaging.
           const timeoutError = new Error("Client-side request timeout.");
           timeoutError.name = 'TimeoutError';
+          (timeoutError as any).analysisMode = analysisMode;
           reject(timeoutError);
         }, 9000); // 9 seconds
       });
-
-      // Race the fetch request against the timeout.
+      
       const response = await Promise.race([
-        fetch('/api/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        }),
+        executeAnalysis(payload),
         timeoutPromise
       ]);
 
@@ -129,7 +132,8 @@ export const analyzeContent = async ({
       let errorMessage = "The deductive engine encountered a critical fault. Please try again.";
       
       if (e.name === 'TimeoutError') {
-        if (analysisMode === 'deep') {
+        const mode = (e as any).analysisMode || 'deep'; // Default to deep if mode is not passed
+        if (mode === 'deep') {
           errorMessage = "The analysis timed out. This can happen with complex requests on the 'Deep Dive' setting. Please try a 'Quick Scan' or simplify your input.";
         } else {
           errorMessage = "The analysis timed out, which is unusual for a 'Quick Scan'. The deductive engine may be busy. Please try your request again in a moment.";
