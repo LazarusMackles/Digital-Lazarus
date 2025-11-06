@@ -22,7 +22,6 @@ export const InputForm: React.FC = () => {
     const {
         textContent,
         fileData,
-        url,
         activeInput,
         analysisMode,
         forensicMode,
@@ -38,8 +37,8 @@ export const InputForm: React.FC = () => {
     }, [inputDispatch]);
 
     const isInputValid = useMemo(() => {
-        return isInputReadyForAnalysis(activeInput, textContent, fileData, url);
-    }, [activeInput, textContent, fileData, url]);
+        return isInputReadyForAnalysis(activeInput, textContent, fileData);
+    }, [activeInput, textContent, fileData]);
     
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -50,7 +49,7 @@ export const InputForm: React.FC = () => {
         }
     };
     
-    const hasInput = textContent.trim().length > 0 || fileData.length > 0 || url.trim().length > 0;
+    const hasInput = textContent.trim().length > 0 || fileData.length > 0;
 
     const renderInput = () => {
         switch (activeInput) {
@@ -58,8 +57,6 @@ export const InputForm: React.FC = () => {
                 return <TextInputPanel />;
             case 'file':
                 return <FileUploadDisplay />;
-            case 'url':
-                return <UrlInputPanel />;
             default:
                 return null;
         }

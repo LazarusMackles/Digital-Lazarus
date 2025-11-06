@@ -26,9 +26,7 @@ export const generateShareText = (
                 const truncatedText = evidence.content.length > 500 ? evidence.content.substring(0, 500) + '...' : evidence.content;
                 evidenceText = `EVIDENCE ANALYZED (TEXT):\n---\n${truncatedText}\n---\n\n`;
                 break;
-            case 'url':
-                evidenceText = `EVIDENCE ANALYZED (URL): ${evidence.content}\n`;
-                break;
+            // FIX: Removed 'url' case as it is not a valid InputType and was causing a type error.
         }
     }
 

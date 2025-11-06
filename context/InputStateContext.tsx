@@ -17,7 +17,6 @@ import * as actions from './actions';
 export interface InputState {
     textContent: string;
     fileData: { name: string; imageBase64?: string | null; content?: string | null }[];
-    url: string;
     activeInput: InputType;
     analysisMode: AnalysisMode;
     forensicMode: ForensicMode;
@@ -27,7 +26,6 @@ export interface InputState {
 const initialState: InputState = {
     textContent: '',
     fileData: [],
-    url: '',
     activeInput: 'file',
     analysisMode: 'quick',
     forensicMode: 'technical',
@@ -48,11 +46,11 @@ type Action =
 const inputReducer = (state: InputState, action: Action): InputState => {
     switch (action.type) {
         case actions.SET_TEXT_CONTENT:
-            return { ...state, textContent: action.payload, fileData: [], url: '' };
+            return { ...state, textContent: action.payload, fileData: [] };
         case actions.SET_FILE_DATA:
-            return { ...state, fileData: action.payload, textContent: '', url: '' };
-        case actions.SET_URL:
-            return { ...state, url: action.payload, textContent: '', fileData: [] };
+            return { ...state, fileData: action.payload, textContent: '' };
+        case actions.SET_URL: // This action is no longer used but kept for potential future re-activation
+            return state;
         case actions.SET_ACTIVE_INPUT:
             return { ...state, activeInput: action.payload };
         case actions.SET_ANALYSIS_MODE:
@@ -64,7 +62,6 @@ const inputReducer = (state: InputState, action: Action): InputState => {
                 ...state,
                 textContent: '',
                 fileData: [],
-                url: '',
                 activeInput: 'file', // Reset to the new default
             };
         case actions.LOAD_SCENARIO:

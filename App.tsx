@@ -78,13 +78,9 @@ const AppContent: React.FC = () => {
 
   const renderContent = () => {
     if (isLoading) {
-      let loaderMessage = isReanalyzing 
+      const loaderMessage = isReanalyzing 
         ? "Re-analysing with a critical eye ..." 
         : "Deducing the Digital DNA ...";
-
-      if (!isReanalyzing && analysisEvidence?.type === 'url') {
-          loaderMessage = "Accessing Web Evidence ...";
-      }
 
       return (
         <Card>

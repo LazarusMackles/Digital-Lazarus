@@ -57,14 +57,7 @@ describe('generateShareText', () => {
         expect(report).toContain('EVIDENCE ANALYZED (FILES): cat.png, dog.jpg');
     });
 
-    it('should generate a report for URL evidence', () => {
-        const mockEvidence: AnalysisEvidence = {
-            type: 'url',
-            content: 'https://example.com'
-        };
-        const report = generateShareText(mockResult, mockEvidence, mockTimestamp);
-        expect(report).toContain('EVIDENCE ANALYZED (URL): https://example.com');
-    });
+    // FIX: Removed test case for deprecated 'url' evidence type which was causing a type error.
 
     it('should handle missing evidence and timestamp gracefully', () => {
         const report = generateShareText(mockResult, null, null);

@@ -11,7 +11,7 @@ export const useAnalysisWorkflow = () => {
     const { state: resultState, dispatch: resultDispatch } = useResultState();
 
     const performAnalysis = useCallback(() => {
-        const { activeInput, textContent, fileData, url, analysisMode, forensicMode } = inputState;
+        const { activeInput, textContent, fileData, analysisMode, forensicMode } = inputState;
 
         let evidence;
         const images = fileData.map(f => f.imageBase64).filter(Boolean) as string[];
@@ -23,9 +23,6 @@ export const useAnalysisWorkflow = () => {
                 break;
             case 'file':
                 evidence = { type: 'file', content: fileData.map(f => f.name).join(', ') };
-                break;
-            case 'url':
-                 evidence = { type: 'url', content: url };
                 break;
             default:
                 console.error("Attempted analysis with unknown input type.");
@@ -43,7 +40,6 @@ export const useAnalysisWorkflow = () => {
         analyzeContent({
             text: activeInput === 'text' ? textContent : null,
             images: activeInput === 'file' ? images : null,
-            url: activeInput === 'url' ? url : null,
             analysisMode,
             forensicMode: activeInput === 'file' ? forensicMode : 'standard',
             activeInput,
@@ -63,7 +59,6 @@ export const useAnalysisWorkflow = () => {
         analyzeContent({
             text: null, // Re-analysis is only for images in the current setup
             images: images,
-            url: null,
             analysisMode: 'deep', // Re-analysis is always deep
             forensicMode: newForensicMode,
             systemInstructionPreamble: "This is a re-analysis. The user was not satisfied with the initial verdict. Adopt a more critical, skeptical perspective. Focus specifically on the requested forensic angle and provide a fresh, a more detailed explanation.",

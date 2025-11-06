@@ -14,7 +14,7 @@ export const EvidencePresenter: React.FC<EvidencePresenterProps> = React.memo(({
     if (!evidence) return null;
 
     const isImageAnalysis = evidence.type === 'file' && !!imageData && imageData.length > 0;
-    const isTextAnalysis = (evidence.type === 'text' || evidence.type === 'url') && !!evidence.content;
+    const isTextAnalysis = evidence.type === 'text' && !!evidence.content;
 
     if (isImageAnalysis) {
         return (
@@ -48,7 +48,7 @@ export const EvidencePresenter: React.FC<EvidencePresenterProps> = React.memo(({
         return (
             <div className="mb-8 w-full max-w-xl text-left bg-slate-100 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 animate-fade-in">
                 <h3 className="text-lg font-semibold text-center text-cyan-600 dark:text-cyan-400 mb-4">
-                    Annotated Evidence ({evidence.type === 'url' ? 'URL Content' : 'Text'})
+                    Annotated Evidence (Text)
                 </h3>
                 <div className="max-h-64 overflow-y-auto p-3 bg-slate-200 dark:bg-slate-900 rounded font-mono text-sm text-slate-700 dark:text-slate-300">
                     <InteractiveTextDisplay text={evidence.content} highlights={highlights || []} />

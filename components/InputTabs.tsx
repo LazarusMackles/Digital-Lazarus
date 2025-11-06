@@ -72,12 +72,6 @@ export const InputTabs: React.FC = React.memo(() => {
         isActive={activeInput === 'file'}
         onClick={() => handleTabChange('file')}
       />
-      <TabButton
-        label="URL"
-        icon="link"
-        isActive={activeInput === 'url'}
-        onClick={() => handleTabChange('url')}
-      />
     </div>
   );
 });
