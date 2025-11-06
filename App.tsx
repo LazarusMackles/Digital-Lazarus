@@ -71,18 +71,28 @@ const AppContent: React.FC = () => {
     isReanalyzing,
     showWelcome,
     analysisModeUsed,
+    analysisEvidence,
   } = state;
 
   const handleCloseWelcome = () => dispatch({ type: actions.SET_SHOW_WELCOME, payload: false });
 
   const renderContent = () => {
     if (isLoading) {
-      const loaderMessage = isReanalyzing 
+      let loaderMessage = isReanalyzing 
         ? "Re-analysing with a critical eye ..." 
         : "Deducing the Digital DNA ...";
+
+      if (!isReanalyzing && analysisEvidence?.type === 'url') {
+          loaderMessage = "Accessing Web Evidence ...";
+      }
+
       return (
         <Card>
-          <Loader message={loaderMessage} analysisMode={analysisModeUsed} />
+          <Loader 
+            message={loaderMessage} 
+            analysisMode={analysisModeUsed}
+            analysisEvidenceType={analysisEvidence?.type}
+          />
         </Card>
       );
     }

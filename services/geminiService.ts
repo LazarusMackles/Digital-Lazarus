@@ -115,7 +115,7 @@ export const analyzeContent = async ({
           timeoutError.name = 'TimeoutError';
           (timeoutError as any).analysisMode = analysisMode;
           reject(timeoutError);
-        }, 9000); // 9 seconds
+        }, 30000); // 30 seconds
       });
       
       const response = await Promise.race([
