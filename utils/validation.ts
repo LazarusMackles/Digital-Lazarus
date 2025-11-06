@@ -1,7 +1,5 @@
 import type { InputType } from '../types';
 
-const TEXT_URL_REGEX = /(https?:\/\/[^\s]+)/;
-
 export const isInputReadyForAnalysis = (
     activeInput: InputType,
     textContent: string,
@@ -9,8 +7,8 @@ export const isInputReadyForAnalysis = (
 ): boolean => {
     switch (activeInput) {
         case 'text':
-            // The input is valid only if it has content AND it does NOT contain a URL.
-            return textContent.trim().length > 0 && !TEXT_URL_REGEX.test(textContent);
+            // The input is valid if it has any content. URLs are permitted.
+            return textContent.trim().length > 0;
         case 'file':
             return fileData.length > 0;
         default:

@@ -18,7 +18,7 @@ export const useAnalysisWorkflow = () => {
 
         switch(activeInput) {
             case 'text':
-                // No longer sanitizing; the UI prevents submission with URLs.
+                // URLs are allowed in text; the system instruction tells the model to ignore them.
                 evidence = { type: 'text', content: textContent };
                 break;
             case 'file':

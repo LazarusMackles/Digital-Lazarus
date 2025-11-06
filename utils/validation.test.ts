@@ -19,14 +19,14 @@ describe('isInputReadyForAnalysis', () => {
             expect(isInputReadyForAnalysis(activeInput, '   ', fileData)).toBe(false);
         });
 
-        it('should return false for text content containing a URL', () => {
+        it('should return true for text content containing a URL', () => {
             const textWithUrl = 'Check out this site: https://example.com';
-            expect(isInputReadyForAnalysis(activeInput, textWithUrl, fileData)).toBe(false);
+            expect(isInputReadyForAnalysis(activeInput, textWithUrl, fileData)).toBe(true);
         });
         
-        it('should return false for text content with URL and other text', () => {
+        it('should return true for text content with URL and other text', () => {
              const textWithUrl = 'Some text http://google.com and more text.';
-             expect(isInputReadyForAnalysis(activeInput, textWithUrl, fileData)).toBe(false);
+             expect(isInputReadyForAnalysis(activeInput, textWithUrl, fileData)).toBe(true);
         });
     });
 
