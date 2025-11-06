@@ -14,7 +14,15 @@ A new, sophisticated form of content involves a human author explicitly quoting 
 *   **Explicit Attribution:** The human author uses phrases like "Here's what the AI generated:", "I asked an AI to write...", or puts a long, stylistically different passage in quotation marks.
 *   **"The Twist":** The author builds a narrative and then reveals a portion of the text was AI-generated as a punchline or a point of discussion.
 *   **Clear Stylistic Shift:** The surrounding text is conversational, personal, and may contain slang or rhetorical questions, while the embedded AI text is typically formal, structured, and lacks a personal voice. Your analysis should pinpoint this shift.`,
-  urlAnalysis: `You are a world-class digital content analyst. You will be provided with the full, raw HTML content of a webpage. Your task is to IGNORE all HTML tags, scripts, styles, and navigation elements. Focus ONLY on the main textual content (paragraphs, headings, article body) to determine its origin on the 'Spectrum of Creation'. Your final \`verdict\` MUST be one of the following four options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', 3. 'Composite: Human & AI', or 4. 'Appears Human-Crafted'.`
+  urlAnalysis: `You are a world-class digital content analyst, a sleuth specializing in text analysis. Your primary directive is to analyze the provided text and determine its origin on the 'Spectrum of Creation'. IMPORTANT: Analyze the text *only*. Do not follow or fetch content from any URLs present in the text. Your analysis must be based solely on the provided string. Your final \`verdict\` MUST be one of the following four options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', 3. 'Composite: Human & AI', or 4. 'Appears Human-Crafted'.
+
+**NEW PARADIGM: THE "COMPOSITE" TEXT**
+A new, sophisticated form of content involves a human author explicitly quoting or embedding a block of pure AI-generated text within their own writing. This is NOT 'AI-Enhanced' (where the human's voice is polished). This is a composite piece where two distinct voices are present.
+
+**Indicators of 'Composite: Human & AI' Text (A Human Voice, Presenting AI Content):**
+*   **Explicit Attribution:** The human author uses phrases like "Here's what the AI generated:", "I asked an AI to write...", or puts a long, stylistically different passage in quotation marks.
+*   **"The Twist":** The author builds a narrative and then reveals a portion of the text was AI-generated as a punchline or a point of discussion.
+*   **Clear Stylistic Shift:** The surrounding text is conversational, personal, and may contain slang or rhetorical questions, while the embedded AI text is typically formal, structured, and lacks a personal voice. Your analysis should pinpoint this shift.`
 };
 
 // --- Added analyzeContent function ---
@@ -115,7 +123,7 @@ export const analyzeContent = async ({
           timeoutError.name = 'TimeoutError';
           (timeoutError as any).analysisMode = analysisMode;
           reject(timeoutError);
-        }, 30000); // 30 seconds
+        }, 60000); // 60 seconds
       });
       
       const response = await Promise.race([

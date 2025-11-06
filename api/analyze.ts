@@ -21,6 +21,29 @@ import { analysisSchema } from '../utils/schemas';
 // where `process.env.API_KEY` is securely configured.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
+/**
+ * A robust, multi-step function to clean raw HTML and extract meaningful text.
+ * This is designed to be performant and avoid catastrophic backtracking.
+ * @param html The raw HTML string.
+ * @returns A string of cleaned, human-readable text.
+ */
+function cleanHtml(html: string): string {
+    // 1. Remove script and style elements entirely
+    let cleaned = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    cleaned = cleaned.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
+    
+    // 2. Remove all remaining HTML tags, leaving their content
+    cleaned = cleaned.replace(/<[^>]+>/g, ' ');
+    
+    // 3. Decode common HTML entities
+    cleaned = cleaned.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    
+    // 4. Normalize whitespace (replace multiple spaces/newlines with a single space)
+    cleaned = cleaned.replace(/\s+/g, ' ').trim();
+    
+    return cleaned;
+}
+
 // This handler function's signature is designed to be compatible with modern
 // serverless environments like Vercel Edge Functions or Next.js API Routes.
 export async function POST(request: Request) {
@@ -29,24 +52,38 @@ export async function POST(request: Request) {
         const body = await request.json();
         
         let contentForGemini = body.contents;
+        const finalConfig = { ...body.config };
 
-        // If this is a URL analysis, fetch the content on the server.
+        // If this is a URL analysis, fetch and clean the content on the server.
         if (body.activeInput === 'url' && typeof body.contents === 'string' && body.contents.startsWith('http')) {
             const urlToFetch = body.contents;
             console.log(`Fetching content from URL: ${urlToFetch}`);
             
-            const urlResponse = await fetch(urlToFetch, {
-                headers: { 'User-Agent': 'SleutherVanguardBot/1.0' }
-            });
+            const controller = new AbortController();
+            const fetchTimeout = setTimeout(() => controller.abort(), 15000);
+
+            let urlResponse;
+            try {
+                urlResponse = await fetch(urlToFetch, {
+                    signal: controller.signal,
+                    headers: { 'User-Agent': 'SleutherVanguardBot/1.0' }
+                });
+            } finally {
+                clearTimeout(fetchTimeout);
+            }
             
             if (!urlResponse.ok) {
                 throw new Error(`Failed to fetch the URL. Status: ${urlResponse.status}`);
             }
             
-            // We pass the entire HTML to Gemini, the system prompt will instruct it
-            // on how to parse it.
             const htmlContent = await urlResponse.text();
-            contentForGemini = htmlContent;
+            
+            // Clean the HTML to extract just the text content.
+            const cleanedText = cleanHtml(htmlContent);
+
+            // Use the cleaned text and apply a final truncation as a safeguard.
+            const MAX_TEXT_LENGTH = 25000;
+            contentForGemini = cleanedText.substring(0, MAX_TEXT_LENGTH);
         }
 
 
@@ -54,20 +91,15 @@ export async function POST(request: Request) {
         const response: GenerateContentResponse = await ai.models.generateContent({
             model: body.model,
             contents: contentForGemini,
-            config: body.config,
+            config: finalConfig,
         });
 
-        // Add a defensive check: Ensure the response text is a non-empty string before parsing.
-        // This handles cases where the model might be blocked for safety or returns an unexpected response.
         if (!response.text || typeof response.text !== 'string') {
             throw new Error("Received an empty or invalid response from the generative model.");
         }
 
-        // When using `responseSchema`, the Gemini API returns a JSON string in the `.text` property.
-        // We parse it on the server so the client receives a clean JSON object.
         const jsonResult = JSON.parse(response.text);
 
-        // Return the successful JSON response to the client with a 200 status.
         return new Response(JSON.stringify(jsonResult), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
@@ -76,9 +108,13 @@ export async function POST(request: Request) {
     } catch (error: any) {
         console.error("Error in serverless proxy function:", error);
         
-        // Return a structured error message to the client with a 500 status.
+        let errorMessage = error.message || "An internal server error occurred.";
+        if (error.name === 'AbortError') {
+            errorMessage = "The target website did not respond in time. Please try a different URL or check if the site is online.";
+        }
+        
         return new Response(JSON.stringify({ 
-            message: error.message || "An internal server error occurred." 
+            message: errorMessage
         }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },

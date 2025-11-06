@@ -12,8 +12,8 @@ export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Deducing t
   const renderSubtext = () => {
     if (analysisEvidenceType === 'url') {
       return (
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 animate-fade-in">
-            *Fetching website content can take a moment, especially for complex pages. Thank you for your patience.*
+        <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 animate-fade-in italic">
+            Accessing and analyzing web evidence is a complex task. It may take up to a minute. Thank you for your patience.
         </p>
       );
     }
