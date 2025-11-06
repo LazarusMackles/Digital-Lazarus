@@ -1,18 +1,4 @@
 /**
- * Converts a File object into a base64 encoded data URL.
- * @param file The file to convert.
- * @returns A promise that resolves to the base64 data URL string.
- */
-export const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = error => reject(error);
-    });
-};
-
-/**
  * Converts a base64 data URL into a Blob and returns a temporary object URL.
  * This version uses `atob` for maximum compatibility, avoiding potential `fetch`
  * API issues in some environments.

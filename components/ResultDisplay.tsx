@@ -5,7 +5,7 @@ import { Feedback } from './Feedback';
 import { SleuthNote } from './SleuthNote';
 import { ShareModal } from './ShareModal';
 import { ImageLightbox } from './ImageLightbox';
-import type { AnalysisMode } from '../types';
+import type { AnalysisMode, ForensicMode } from '../types';
 import { useResultState } from '../context/ResultStateContext';
 import { useInputState } from '../context/InputStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
@@ -115,8 +115,8 @@ const ResultDisplayComponent: React.FC = () => {
             <HighlightsDisplay highlights={highlights} />
           )}
 
-          {isImageAnalysis && !isSecondOpinion && !isReanalyzing && (
-            <ChallengeVerdict onChallenge={handleChallenge} />
+          {!isSecondOpinion && !isReanalyzing && (
+            <ChallengeVerdict onChallenge={handleChallenge} isImageAnalysis={isImageAnalysis} />
           )}
           
           <ResultActionButtons

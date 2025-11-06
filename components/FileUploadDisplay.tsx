@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useRef } from 'react';
 import { Icon } from './icons/index';
-import { fileToBase64 } from '../utils/fileUtils';
+import { compressAndEncodeFile } from '../utils/imageCompression';
 import { EvidenceImage } from './EvidenceImage';
 import { useInputState } from '../context/InputStateContext';
 import { useResultState } from '../context/ResultStateContext';
@@ -38,7 +38,7 @@ export const FileUploadDisplay: React.FC = () => {
 
             const newFilesData = await Promise.all(
                 acceptedFiles.map(async (file) => {
-                    const imageBase64 = await fileToBase64(file);
+                    const imageBase64 = await compressAndEncodeFile(file);
                     return { name: file.name, imageBase64 };
                 })
             );

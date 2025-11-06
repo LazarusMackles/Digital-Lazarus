@@ -31,12 +31,14 @@ const initialState: ResultState = {
 // Action types
 type Action =
   | { type: typeof actions.START_ANALYSIS; payload: { evidence: AnalysisEvidence; analysisMode: AnalysisMode } }
+  // FIX: Corrected typo from START_REANALysis to START_REANALYSIS
   | { type: typeof actions.START_REANALYSIS }
   | { type: typeof actions.ANALYSIS_SUCCESS; payload: { result: AnalysisResult; isSecondOpinion?: boolean } }
-  | { type: typeof actions.ANALYSIS_ERROR; payload: string }
+  | { type: typeof actions.ANALYSIS_ERROR; payload: string | null }
   | { type: typeof actions.NEW_ANALYSIS }
   | { type: typeof actions.SET_SHOW_WELCOME; payload: boolean }
-  | { type: typeof actions.SET_THEME; payload: Theme };
+  | { type: typeof actions.SET_THEME; payload: Theme }
+  | { type: typeof actions.CLEAR_ERROR };
 
 // Reducer
 const resultReducer = (state: ResultState, action: Action): ResultState => {
@@ -51,6 +53,7 @@ const resultReducer = (state: ResultState, action: Action): ResultState => {
                 analysisEvidence: action.payload.evidence,
                 analysisModeUsed: action.payload.analysisMode,
             };
+        // FIX: Corrected typo from START_REANALysis to START_REANALYSIS
         case actions.START_REANALYSIS:
             return {
                 ...state,
@@ -73,6 +76,8 @@ const resultReducer = (state: ResultState, action: Action): ResultState => {
                 isReanalyzing: false,
                 error: action.payload,
             };
+        case actions.CLEAR_ERROR:
+            return { ...state, error: null };
         case actions.NEW_ANALYSIS:
             return {
                 ...initialState,

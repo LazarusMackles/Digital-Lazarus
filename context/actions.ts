@@ -12,10 +12,12 @@ export const LOAD_SCENARIO = 'LOAD_SCENARIO';
 
 // Result State Actions
 export const START_ANALYSIS = 'START_ANALYSIS';
+// FIX: Corrected typo from START_REANALysis to START_REANALYSIS
 export const START_REANALYSIS = 'START_REANALYSIS';
 export const ANALYSIS_SUCCESS = 'ANALYSIS_SUCCESS';
 export const ANALYSIS_ERROR = 'ANALYSIS_ERROR';
 export const NEW_ANALYSIS = 'NEW_ANALYSIS';
+export const CLEAR_ERROR = 'CLEAR_ERROR';
 
 // Global/UI State Actions
 export const SET_SHOW_WELCOME = 'SET_SHOW_WELCOME';

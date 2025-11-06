@@ -2,7 +2,6 @@ import React, { useCallback, useMemo } from 'react';
 import { InputTabs } from './InputTabs';
 import { FileUploadDisplay } from './FileUploadDisplay';
 import { ModeSelector } from './ModeSelector';
-import { ForensicModeToggle } from './ForensicModeToggle';
 import { HowItWorks } from './HowItWorks';
 import { useInputState } from '../context/InputStateContext';
 import { useResultState } from '../context/ResultStateContext';
@@ -11,8 +10,8 @@ import * as actions from '../context/actions';
 import { Card, Button } from './ui';
 import { Icon } from './icons/index';
 import { TextInputPanel } from './TextInputPanel';
-import { UrlInputPanel } from './UrlInputPanel';
 import { isInputReadyForAnalysis } from '../utils/validation';
+import { ForensicModeToggle } from './ForensicModeToggle';
 
 export const InputForm: React.FC = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
@@ -31,7 +30,7 @@ export const InputForm: React.FC = () => {
     const handleAnalysisModeChange = useCallback((mode) => {
         inputDispatch({ type: actions.SET_ANALYSIS_MODE, payload: mode });
     }, [inputDispatch]);
-
+    
     const handleForensicModeChange = useCallback((mode) => {
         inputDispatch({ type: actions.SET_FORENSIC_MODE, payload: mode });
     }, [inputDispatch]);
@@ -71,7 +70,11 @@ export const InputForm: React.FC = () => {
                     <InputTabs />
                     <div className="p-6 bg-white dark:bg-slate-800/80 rounded-b-lg border-x border-b border-slate-200 dark:border-slate-700/50">
                         {renderInput()}
-                        {activeInput === 'file' && <ForensicModeToggle selectedMode={forensicMode} onModeChange={handleForensicModeChange} />}
+                        
+                        {activeInput === 'file' && (
+                          <ForensicModeToggle selectedMode={forensicMode} onModeChange={handleForensicModeChange} />
+                        )}
+                        
                         <ModeSelector selectedMode={analysisMode} onModeChange={handleAnalysisModeChange} />
 
                         {error && (

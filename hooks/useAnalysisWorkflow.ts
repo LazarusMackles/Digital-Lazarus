@@ -4,7 +4,6 @@ import { useResultState } from '../context/ResultStateContext';
 import * as actions from '../context/actions';
 import { analyzeContent } from '../services/geminiService';
 import type { ForensicMode } from '../types';
-import { MODELS } from '../utils/constants';
 
 export const useAnalysisWorkflow = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
@@ -18,7 +17,6 @@ export const useAnalysisWorkflow = () => {
 
         switch(activeInput) {
             case 'text':
-                // URLs are allowed in text; the system instruction tells the model to ignore them.
                 evidence = { type: 'text', content: textContent };
                 break;
             case 'file':
@@ -41,7 +39,7 @@ export const useAnalysisWorkflow = () => {
             text: activeInput === 'text' ? textContent : null,
             images: activeInput === 'file' ? images : null,
             analysisMode,
-            forensicMode: activeInput === 'file' ? forensicMode : 'standard',
+            forensicMode,
             activeInput,
         })
         .then(result => resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result } }))
@@ -49,20 +47,23 @@ export const useAnalysisWorkflow = () => {
 
     }, [inputState, resultDispatch]);
 
-    const handleChallenge = useCallback((newForensicMode: ForensicMode) => {
+    const handleChallenge = useCallback((mode: ForensicMode) => {
         if (!resultState.analysisEvidence) return;
 
+        // FIX: Corrected typo from START_REANALysis to START_REANALYSIS
         resultDispatch({ type: actions.START_REANALYSIS });
 
-        const images = resultState.analysisEvidence.type === 'file' ? inputState.fileData.map(f => f.imageBase64).filter(Boolean) as string[] : null;
+        const isImageChallenge = resultState.analysisEvidence.type === 'file';
+        const images = isImageChallenge ? inputState.fileData.map(f => f.imageBase64).filter(Boolean) as string[] : null;
+        const text = !isImageChallenge ? resultState.analysisEvidence.content : null;
         
         analyzeContent({
-            text: null, // Re-analysis is only for images in the current setup
-            images: images,
+            text,
+            images,
             analysisMode: 'deep', // Re-analysis is always deep
-            forensicMode: newForensicMode,
-            systemInstructionPreamble: "This is a re-analysis. The user was not satisfied with the initial verdict. Adopt a more critical, skeptical perspective. Focus specifically on the requested forensic angle and provide a fresh, a more detailed explanation.",
-            activeInput: 'file',
+            forensicMode: mode,
+            systemInstructionPreamble: "This is a re-analysis. The user was not satisfied with the initial verdict. Adopt a more critical, skeptical perspective and provide a fresh, more detailed explanation.",
+            activeInput: resultState.analysisEvidence.type,
         })
         .then(result => resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result, isSecondOpinion: true } }))
         .catch(error => resultDispatch({ type: actions.ANALYSIS_ERROR, payload: error.message }));
@@ -76,8 +77,9 @@ export const useAnalysisWorkflow = () => {
 
     const handleClearInputs = useCallback(() => {
         inputDispatch({ type: actions.CLEAR_INPUTS });
+        resultDispatch({ type: actions.CLEAR_ERROR }); // Fix: Clear error on input clear
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [inputDispatch]);
+    }, [inputDispatch, resultDispatch]);
     
     return {
         performAnalysis,

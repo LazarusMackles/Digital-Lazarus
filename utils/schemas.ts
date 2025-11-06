@@ -16,24 +16,8 @@ export const analysisSchema = {
       type: Type.STRING,
       description: 'A brief explanation for the verdict, tailored to whether the content appears fully generated, a composite, enhanced by AI filters/styles, or an authentic photograph.'
     },
-    highlights: {
-      type: Type.ARRAY,
-      description: "An array of specific examples or artifacts that justify the verdict. For composites, identify which elements appear photographic and which appear AI-generated. For stylistic filters, describe the visual evidence of the filter. If no specific highlights are found, return an empty array.",
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          text: {
-            type: Type.STRING,
-            description: "The exact phrase/sentence from the text, or a short description of a visual artifact (e.g., 'Central photographic subject', 'AI-generated barcode graphic', 'Uniform vintage film grain')."
-          },
-          reason: {
-            type: Type.STRING,
-            description: "A brief explanation of why this specific highlight is an indicator of its place on the spectrum of creation, noting if it appears human, AI-generated, or AI-filtered."
-          }
-        },
-        required: ["text", "reason"]
-      }
-    }
+    // The 'highlights' property has been removed to reduce model processing time and prevent timeouts.
+    // The frontend is designed to handle its absence gracefully.
   },
-  required: ['probability', 'verdict', 'explanation', 'highlights']
+  required: ['probability', 'verdict', 'explanation']
 };
