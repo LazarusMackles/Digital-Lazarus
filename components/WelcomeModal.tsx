@@ -28,19 +28,19 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = React.memo(({ onClose }
                 <li className="flex items-start gap-3">
                     <span className="text-cyan-500 font-bold mt-0.5">1.</span>
                     <div>
-                        <span className="font-semibold text-slate-800 dark:text-white">Our Goal is Clarity, Not Judgment.</span> This tool helps understand *how* content is made in our amazing new digital world. It's a celebration of human and AI collaboration!
+                        <span className="font-semibold text-slate-800 dark:text-white">Our Goal is Clarity, Not Judgment.</span> This tool helps understand <em>how</em> content is made in our amazing new digital realm. It's a celebration of human and AI collaboration!
                     </div>
                 </li>
                 <li className="flex items-start gap-3">
                     <span className="text-cyan-500 font-bold mt-0.5">2.</span>
                     <div>
-                        <span className="font-semibold text-slate-800 dark:text-white">Deductions are Expert Opinions.</span> AI detection is a complex, evolving science. Consider my findings a well-informed probability, not an absolute truth.
+                        <span className="font-semibold text-slate-800 dark:text-white">Deductions are Expert Opinions.</span> AI detection is a complex, evolving science. Consider my findings a well-informed probability, not the undisputed truth.
                     </div>
                 </li>
                  <li className="flex items-start gap-3">
                     <span className="text-cyan-500 font-bold mt-0.5">3.</span>
                     <div>
-                       <span className="font-semibold text-slate-800 dark:text-white">Choose Your Method.</span> Use 'Deep Analysis' for thoroughness or 'Quick Scan' for speed. You are in control of the investigation.
+                       <span className="font-semibold text-slate-800 dark:text-white">Choose Your Method.</span> Use 'Deep Dive' for thoroughness or 'Quick Scan' for speed. You are in control of the investigation.
                     </div>
                 </li>
                 <li className="flex items-start gap-3">
