@@ -21,28 +21,6 @@ import { analysisSchema } from '../utils/schemas';
 // where `process.env.API_KEY` is securely configured.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-/**
- * A robust, multi-step function to clean raw HTML and extract meaningful text.
- * This is designed to be performant and avoid catastrophic backtracking.
- * @param html The raw HTML string.
- * @returns A string of cleaned, human-readable text.
- */
-function cleanHtml(html: string): string {
-    // 1. Remove script and style elements entirely
-    let cleaned = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-    cleaned = cleaned.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
-    
-    // 2. Remove all remaining HTML tags, leaving their content
-    cleaned = cleaned.replace(/<[^>]+>/g, ' ');
-    
-    // 3. Decode common HTML entities
-    cleaned = cleaned.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-    
-    // 4. Normalize whitespace (replace multiple spaces/newlines with a single space)
-    cleaned = cleaned.replace(/\s+/g, ' ').trim();
-    
-    return cleaned;
-}
 
 // This handler function's signature is designed to be compatible with modern
 // serverless environments like Vercel Edge Functions or Next.js API Routes.
@@ -78,12 +56,15 @@ export async function POST(request: Request) {
             
             const htmlContent = await urlResponse.text();
             
-            // Clean the HTML to extract just the text content.
-            const cleanedText = cleanHtml(htmlContent);
-
-            // Use the cleaned text and apply a final truncation as a safeguard.
-            const MAX_TEXT_LENGTH = 25000;
-            contentForGemini = cleanedText.substring(0, MAX_TEXT_LENGTH);
+            // Instead of cleaning, which is slow and brittle, send the raw HTML and let the model parse it.
+            // Truncate the raw HTML to a safe but generous limit to prevent overly large payloads.
+            const MAX_HTML_LENGTH = 50000;
+            contentForGemini = htmlContent.substring(0, MAX_HTML_LENGTH);
+            
+            // Add a notice to the AI if the content was truncated.
+            if (htmlContent.length > MAX_HTML_LENGTH) {
+                finalConfig.systemInstruction = `IMPORTANT: The following HTML source code has been truncated for performance. Your analysis should be based solely on this partial data.\n\n${finalConfig.systemInstruction}`;
+            }
         }
 
 

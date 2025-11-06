@@ -14,7 +14,7 @@ A new, sophisticated form of content involves a human author explicitly quoting 
 *   **Explicit Attribution:** The human author uses phrases like "Here's what the AI generated:", "I asked an AI to write...", or puts a long, stylistically different passage in quotation marks.
 *   **"The Twist":** The author builds a narrative and then reveals a portion of the text was AI-generated as a punchline or a point of discussion.
 *   **Clear Stylistic Shift:** The surrounding text is conversational, personal, and may contain slang or rhetorical questions, while the embedded AI text is typically formal, structured, and lacks a personal voice. Your analysis should pinpoint this shift.`,
-  urlAnalysis: `You are a world-class digital content analyst, a sleuth specializing in text analysis. Your primary directive is to analyze the provided text and determine its origin on the 'Spectrum of Creation'. IMPORTANT: Analyze the text *only*. Do not follow or fetch content from any URLs present in the text. Your analysis must be based solely on the provided string. Your final \`verdict\` MUST be one of the following four options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', 3. 'Composite: Human & AI', or 4. 'Appears Human-Crafted'.
+  urlAnalysis: `You are a world-class digital content analyst, a sleuth specializing in text analysis. Your primary directive is to analyze the textual content found within the provided **RAW HTML SOURCE CODE**. Your task is to IGNORE all HTML tags, script elements, style definitions, and other non-visible code. Focus your analysis exclusively on the human-readable text to determine its origin on the 'Spectrum of Creation'. Your final \`verdict\` MUST be one of the following four options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', 3. 'Composite: Human & AI', or 4. 'Appears Human-Crafted'.
 
 **NEW PARADIGM: THE "COMPOSITE" TEXT**
 A new, sophisticated form of content involves a human author explicitly quoting or embedding a block of pure AI-generated text within their own writing. This is NOT 'AI-Enhanced' (where the human's voice is polished). This is a composite piece where two distinct voices are present.
@@ -126,8 +126,38 @@ export const analyzeContent = async ({
         }, 60000); // 60 seconds
       });
       
+      const analysisExecution = async (): Promise<Response> => {
+        if (activeInput === 'url') {
+          const MAX_RETRIES = 3;
+          const RETRY_DELAY = 2000; // 2 seconds
+          for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+              const response = await executeAnalysis(payload);
+              // If successful or a non-retriable client error (4xx), return immediately.
+              if (response.ok || (response.status >= 400 && response.status < 500)) {
+                return response;
+              }
+              // Log retriable server errors (5xx).
+              console.warn(`URL analysis attempt ${attempt} failed with status ${response.status}. Retrying in ${RETRY_DELAY}ms...`);
+            } catch (error) {
+              // Log network errors.
+              console.warn(`URL analysis attempt ${attempt} failed with a network error. Retrying in ${RETRY_DELAY}ms...`, error);
+            }
+
+            // Don't wait if it's the last attempt.
+            if (attempt < MAX_RETRIES) {
+              await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+            }
+          }
+          throw new Error(`Analysis failed after ${MAX_RETRIES} attempts.`);
+        } else {
+          // For non-URL inputs, execute once as before.
+          return executeAnalysis(payload);
+        }
+      };
+
       const response = await Promise.race([
-        executeAnalysis(payload),
+        analysisExecution(),
         timeoutPromise
       ]);
 
@@ -152,6 +182,8 @@ export const analyzeContent = async ({
         }
       } else if (e.message.toLowerCase().includes('quota')) {
           errorMessage = "My circuits are overheating due to high demand! Please wait a moment before trying again (quota exceeded).";
+      } else if (e.message.includes('after 3 attempts')) {
+          errorMessage = "The analysis failed after multiple attempts. The deductive engine may be temporarily unavailable. Please try again later.";
       }
       throw new Error(errorMessage);
   }

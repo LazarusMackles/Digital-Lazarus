@@ -10,8 +10,7 @@ interface State {
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  // FIX: The class field initialization was causing a TypeScript error where `this.props` was not being recognized.
-  // Switched to a constructor to explicitly initialize state and ensure the component's context is correctly set up.
+  // FIX: The class field method for state initialization was causing a TypeScript error where 'this.props' was not recognized. Reverting to a constructor-based initialization to ensure the component's props and state are correctly typed and handled.
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false };
