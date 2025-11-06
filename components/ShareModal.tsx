@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import type { AnalysisResult, AnalysisEvidence } from '../types';
-import { XMarkIcon, EnvelopeIcon } from './icons/index';
+import { Icon } from './icons/index';
 import { generateShareText } from '../utils/reportUtils';
 import { Button } from './ui';
 
@@ -57,7 +57,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose, evidenc
                 className="absolute top-4 right-4 p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                 aria-label="Close share modal"
             >
-                <XMarkIcon className="w-6 h-6" />
+                <Icon name="x-mark" className="w-6 h-6" />
             </button>
             <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500">
                 Share Forensic Report
@@ -75,7 +75,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose, evidenc
                     className="flex-1 sm:flex-none"
                     onClick={() => window.location.href = `mailto:?subject=${reportTitle}&body=${encodedShareText}`}
                 >
-                    <EnvelopeIcon className="w-5 h-5" />
+                    <Icon name="envelope" className="w-5 h-5" />
                     <span>Send via Email</span>
                 </Button>
                 <Button

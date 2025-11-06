@@ -1,7 +1,8 @@
 
+
 import React from 'react';
 import type { Scenario } from '../types';
-import { CompositeIcon, ImageIcon } from './icons/index';
+import { Icon } from './icons/index';
 import { useInputState } from '../context/InputStateContext';
 import * as actions from '../context/actions';
 
@@ -15,7 +16,7 @@ const SCENARIOS: Scenario[] = [
     {
         title: 'Composite Text Analysis',
         description: 'See how Sleuther identifies human-written text that contains an AI-generated block.',
-        icon: <CompositeIcon className="w-8 h-8" />,
+        icon: <Icon name="composite" className="w-8 h-8" />,
         inputType: 'text',
         analysisMode: 'deep',
         payload: {
@@ -31,7 +32,7 @@ Pretty impressive, right? It's a bit dry, like a textbook, but it got all the ke
     {
         title: 'AI Image Forensics',
         description: 'Examine a purely AI-generated image to see what clues the system can uncover.',
-        icon: <ImageIcon className="w-8 h-8" />,
+        icon: <Icon name="image" className="w-8 h-8" />,
         inputType: 'file',
         analysisMode: 'deep',
         payload: {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { SunIcon, MoonIcon } from './icons/index';
+import { Icon } from './icons/index';
 import { useResultState } from '../context/ResultStateContext';
 import * as actions from '../context/actions';
 
@@ -19,9 +19,9 @@ export const ThemeToggle: React.FC = React.memo(() => {
       aria-label="Toggle theme"
     >
       {theme === 'light' ? (
-        <MoonIcon className="w-5 h-5" />
+        <Icon name="moon" className="w-5 h-5" />
       ) : (
-        <SunIcon className="w-5 h-5" />
+        <Icon name="sun" className="w-5 h-5" />
       )}
     </button>
   );

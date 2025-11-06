@@ -9,7 +9,7 @@ import { useResultState } from '../context/ResultStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
 import * as actions from '../context/actions';
 import { Card, Button } from './ui';
-import { XMarkIcon } from './icons/index';
+import { Icon } from './icons/index';
 import { TextInputPanel } from './TextInputPanel';
 import { UrlInputPanel } from './UrlInputPanel';
 import { isInputReadyForAnalysis } from '../utils/validation';
@@ -96,7 +96,7 @@ export const InputForm: React.FC = () => {
                                     variant="clear"
                                     onClick={handleClearInputs}
                                 >
-                                    <XMarkIcon className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                                    <Icon name="x-mark" className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                                     <span className="font-semibold text-slate-700 dark:text-slate-300">Clear</span>
                                 </Button>
                             )}

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { XMarkIcon } from './icons/index';
+import { Icon } from './icons/index';
 
 interface ImageLightboxProps {
   imageUrl: string;
@@ -39,7 +39,7 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({ imageUrl, onClose 
         className="absolute top-4 right-4 p-2 text-slate-300 hover:text-white rounded-full bg-black/30 hover:bg-black/50 transition-colors z-10"
         aria-label="Close image view"
       >
-        <XMarkIcon className="w-8 h-8" />
+        <Icon name="x-mark" className="w-8 h-8" />
       </button>
 
       <div className="relative w-full h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>

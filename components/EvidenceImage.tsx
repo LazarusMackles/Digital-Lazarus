@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base64ToBlobUrl } from '../utils/fileUtils';
-import { SpinnerIcon } from './icons/index';
+import { Icon } from './icons/index';
 
 interface EvidenceImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'src'> {
   base64Src: string;
@@ -59,7 +59,7 @@ export const EvidenceImage: React.FC<EvidenceImageProps> = ({ base64Src, alt, ..
     if (isLoading) {
         return (
             <div className="w-full h-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-                <SpinnerIcon className="w-6 h-6 text-slate-500 animate-spin" />
+                <Icon name="spinner" className="w-6 h-6 text-slate-500 animate-spin" />
             </div>
         );
     }

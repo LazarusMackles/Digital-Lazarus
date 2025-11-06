@@ -1,31 +1,18 @@
 
+
 import React from 'react';
 import type { InputType } from '../types';
-import { TextIcon, UploadIcon, LinkIcon } from './icons/index';
+import { Icon } from './icons/index';
 import { useInputState } from '../context/InputStateContext';
 import * as actions from '../context/actions';
 import { cn } from '../utils/cn';
 
 const TabButton: React.FC<{
   label: string;
-  icon: React.ReactNode;
+  icon: string;
   isActive: boolean;
   onClick: () => void;
 }> = ({ label, icon, isActive, onClick }) => {
-  // By cloning the icon, we can dynamically add color classes
-  // that are theme-aware and state-aware (active/inactive), fixing the light mode visibility issue.
-  const iconWithClass = React.cloneElement(icon as React.ReactElement, {
-    className: cn(
-      (icon as React.ReactElement).props.className,
-      'transition-colors duration-200',
-      {
-        'text-cyan-600 dark:text-cyan-400': isActive,
-        // A neutral, visible color for inactive icons in both light and dark mode.
-        'text-slate-500 dark:text-slate-400': !isActive,
-      }
-    )
-  });
-
   return (
     <button
       type="button"
@@ -40,7 +27,16 @@ const TabButton: React.FC<{
       aria-selected={isActive}
       role="tab"
     >
-      {iconWithClass}
+      <Icon
+        name={icon}
+        className={cn(
+          'w-6 h-6 transition-colors duration-200',
+          {
+            'text-cyan-600 dark:text-cyan-400': isActive,
+            'text-slate-500 dark:text-slate-400': !isActive,
+          }
+        )}
+      />
       <span className={cn(
         'mt-2 text-base font-semibold',
         {
@@ -66,19 +62,19 @@ export const InputTabs: React.FC = React.memo(() => {
     <div className="flex" role="tablist">
       <TabButton
         label="Text"
-        icon={<TextIcon className="w-6 h-6" />}
+        icon="text"
         isActive={activeInput === 'text'}
         onClick={() => handleTabChange('text')}
       />
       <TabButton
         label="File(s)"
-        icon={<UploadIcon className="w-6 h-6" />}
+        icon="upload"
         isActive={activeInput === 'file'}
         onClick={() => handleTabChange('file')}
       />
       <TabButton
         label="URL"
-        icon={<LinkIcon className="w-6 h-6" />}
+        icon="link"
         isActive={activeInput === 'url'}
         onClick={() => handleTabChange('url')}
       />

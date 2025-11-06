@@ -1,5 +1,5 @@
 import React from 'react';
-import { XMarkIcon } from './icons/index';
+import { Icon } from './icons/index';
 import { Button } from './ui';
 
 interface WelcomeModalProps {
@@ -16,7 +16,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = React.memo(({ onClose }
                 className="absolute top-4 right-4 p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                 aria-label="Close welcome message"
             >
-                <XMarkIcon className="w-6 h-6" />
+                <Icon name="x-mark" className="w-6 h-6" />
             </button>
             <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500">
                 Your Mission Briefing

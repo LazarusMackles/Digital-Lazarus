@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ThumbsUpIcon, ChatBubbleOvalLeftEllipsisIcon } from './icons/index';
+import { Icon } from './icons/index';
 import type { AnalysisResult, AnalysisEvidence } from '../types';
 import { generateShareText } from '../utils/reportUtils';
 import { FEEDBACK_EMAIL } from '../utils/constants';
@@ -42,7 +42,7 @@ export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence,
               aria-label="Yes, this was helpful"
               title="Helpful"
             >
-              <ThumbsUpIcon className="w-5 h-5 mx-auto" />
+              <Icon name="thumbs-up" className="w-5 h-5 mx-auto" />
             </button>
             <div className="border-l border-slate-300 dark:border-slate-600 mx-1"></div>
             <a 
@@ -52,7 +52,7 @@ export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence,
               aria-label="Send feedback or suggestion"
               title="Send Feedback"
             >
-              <ChatBubbleOvalLeftEllipsisIcon className="w-5 h-5 mx-auto" />
+              <Icon name="chat-bubble-oval-left-ellipsis" className="w-5 h-5 mx-auto" />
             </a>
           </div>
         </div>

@@ -1,6 +1,7 @@
 
+
 import React from 'react';
-import { ArrowPathIcon } from './icons/index';
+import { Icon } from './icons/index';
 import { Card, Button } from './ui';
 
 const ErrorFallbackComponent: React.FC = () => {
@@ -28,7 +29,7 @@ const ErrorFallbackComponent: React.FC = () => {
                     onClick={handleReload}
                     className="flex items-center justify-center gap-2 mx-auto"
                 >
-                    <ArrowPathIcon className="w-5 h-5" />
+                    <Icon name="arrow-path" className="w-5 h-5" />
                     <span>Reload the System</span>
                 </Button>
             </div>

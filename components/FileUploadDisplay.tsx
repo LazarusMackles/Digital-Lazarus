@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useRef } from 'react';
-import { XMarkIcon, UploadIcon } from './icons/index';
+import { Icon } from './icons/index';
 import { fileToBase64 } from '../utils/fileUtils';
 import { EvidenceImage } from './EvidenceImage';
 import { useInputState } from '../context/InputStateContext';
@@ -100,7 +100,7 @@ export const FileUploadDisplay: React.FC = () => {
             >
                 {fileData.length === 0 && (
                      <div onClick={triggerFileSelect} className="flex flex-col items-center justify-center h-full text-center cursor-pointer">
-                        <UploadIcon className="w-10 h-10 text-slate-400 dark:text-slate-500" />
+                        <Icon name="upload" className="w-10 h-10 text-slate-400 dark:text-slate-500" />
                         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
                            <span className="font-semibold text-cyan-600 dark:text-cyan-400">Drag & drop images here,</span> or click to select files
                         </p>
@@ -122,13 +122,13 @@ export const FileUploadDisplay: React.FC = () => {
 
                                     </div>
                                     <button onClick={() => handleRemoveFile(file.name)} className="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-500 transition-all" aria-label={`Remove ${file.name}`}>
-                                        <XMarkIcon className="w-4 h-4" />
+                                        <Icon name="x-mark" className="w-4 h-4" />
                                     </button>
                                 </div>
                             ))}
                             {fileData.length < MAX_FILES && (
                                 <Button type="button" onClick={triggerFileSelect} variant="add">
-                                    <UploadIcon className="w-8 h-8" />
+                                    <Icon name="upload" className="w-8 h-8" />
                                     <span className="text-xs mt-2">Add more</span>
                                 </Button>
                             )}

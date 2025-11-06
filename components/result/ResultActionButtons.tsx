@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '../ui';
-import { ArrowPathIcon, EnvelopeIcon } from '../icons/index';
+import { Icon } from '../icons/index';
 
 interface ResultActionButtonsProps {
     onNewAnalysis: () => void;
@@ -14,14 +14,14 @@ export const ResultActionButtons: React.FC<ResultActionButtonsProps> = React.mem
                 onClick={onNewAnalysis}
                 className="flex items-center justify-center gap-2"
             >
-                <ArrowPathIcon className="w-5 h-5" />
+                <Icon name="arrow-path" className="w-5 h-5" />
                 <span>Start New Analysis</span>
             </Button>
             <Button
                 onClick={onShowShareModal}
                 variant="secondary"
             >
-                <EnvelopeIcon className="w-5 h-5" />
+                <Icon name="envelope" className="w-5 h-5" />
                 <span>Email Report</span>
             </Button>
         </div>
