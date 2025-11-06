@@ -6,7 +6,7 @@
 //
 // The fix addresses this by:
 //
-// 1. **Updating Initial State:** The `initialState` object in this context has been modified to set `activeInput` to `'file'` and `forensicMode` to `'technical'`. This ensures that the user's first view after the welcome modal is the file upload interface with the "Technical Forensics" option pre-selected, aligning with the user's request for a more visually balanced and feature-forward default screen.
+// 1. **Updating Initial State:** The `initialState` object in this context has been modified to set `activeInput` to `'file'` and `forensicMode` to `'standard'`. This ensures that the user's first view after the welcome modal is the file upload interface with the "Standard Analysis" option pre-selected, aligning with the user's request for a more visually balanced and feature-forward default screen.
 //
 // ---
 import React, { createContext, useContext, useReducer, ReactNode, Dispatch } from 'react';
@@ -28,7 +28,7 @@ const initialState: InputState = {
     fileData: [],
     activeInput: 'file',
     analysisMode: 'quick',
-    forensicMode: 'technical',
+    forensicMode: 'standard',
 };
 
 // Action types

@@ -61,16 +61,16 @@ export const InputTabs: React.FC = React.memo(() => {
   return (
     <div className="flex" role="tablist">
       <TabButton
-        label="Text"
-        icon="text"
-        isActive={activeInput === 'text'}
-        onClick={() => handleTabChange('text')}
-      />
-      <TabButton
         label="File(s)"
         icon="upload"
         isActive={activeInput === 'file'}
         onClick={() => handleTabChange('file')}
+      />
+      <TabButton
+        label="Text"
+        icon="text"
+        isActive={activeInput === 'text'}
+        onClick={() => handleTabChange('text')}
       />
     </div>
   );
