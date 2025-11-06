@@ -1,11 +1,11 @@
 import { type GenerateContentResponse, type Part, type Content } from "@google/genai";
-import type { AnalysisResult, AnalysisMode, ForensicMode } from '../types';
+import type { AnalysisResult, AnalysisMode, ForensicMode, InputType } from '../types';
 import { MODELS } from '../utils/constants';
 import { analysisSchema } from '../utils/schemas';
 
 // --- Centralized System Instructions ---
 const systemInstructions = {
-  textAndUrl: `You are a world-class digital content analyst, a sleuth specializing in text analysis. Your primary directive is to analyze the provided text and determine its origin on the 'Spectrum of Creation'. IMPORTANT: Analyze the text *only*. Do not follow or fetch content from any URLs present in the text. Your analysis must be based solely on the provided string. Your final \`verdict\` MUST be one of the following four options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', 3. 'Composite: Human & AI', or 4. 'Appears Human-Crafted'.
+  text: `You are a world-class digital content analyst, a sleuth specializing in text analysis. Your primary directive is to analyze the provided text and determine its origin on the 'Spectrum of Creation'. IMPORTANT: Analyze the text *only*. Do not follow or fetch content from any URLs present in the text. Your analysis must be based solely on the provided string. Your final \`verdict\` MUST be one of the following four options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', 3. 'Composite: Human & AI', or 4. 'Appears Human-Crafted'.
 
 **NEW PARADIGM: THE "COMPOSITE" TEXT**
 A new, sophisticated form of content involves a human author explicitly quoting or embedding a block of pure AI-generated text within their own writing. This is NOT 'AI-Enhanced' (where the human's voice is polished). This is a composite piece where two distinct voices are present.
@@ -13,7 +13,8 @@ A new, sophisticated form of content involves a human author explicitly quoting 
 **Indicators of 'Composite: Human & AI' Text (A Human Voice, Presenting AI Content):**
 *   **Explicit Attribution:** The human author uses phrases like "Here's what the AI generated:", "I asked an AI to write...", or puts a long, stylistically different passage in quotation marks.
 *   **"The Twist":** The author builds a narrative and then reveals a portion of the text was AI-generated as a punchline or a point of discussion.
-*   **Clear Stylistic Shift:** The surrounding text is conversational, personal, and may contain slang or rhetorical questions, while the embedded AI text is typically formal, structured, and lacks a personal voice. Your analysis should pinpoint this shift.`
+*   **Clear Stylistic Shift:** The surrounding text is conversational, personal, and may contain slang or rhetorical questions, while the embedded AI text is typically formal, structured, and lacks a personal voice. Your analysis should pinpoint this shift.`,
+  urlAnalysis: `You are a world-class digital content analyst. You will be provided with the full, raw HTML content of a webpage. Your task is to IGNORE all HTML tags, scripts, styles, and navigation elements. Focus ONLY on the main textual content (paragraphs, headings, article body) to determine its origin on the 'Spectrum of Creation'. Your final \`verdict\` MUST be one of the following four options: 1. 'Fully AI-Generated', 2. 'Likely AI-Enhanced', 3. 'Composite: Human & AI', or 4. 'Appears Human-Crafted'.`
 };
 
 // --- Added analyzeContent function ---
@@ -24,6 +25,7 @@ interface AnalyzeContentParams {
   analysisMode: AnalysisMode;
   forensicMode: ForensicMode;
   systemInstructionPreamble?: string;
+  activeInput: InputType;
 }
 
 const executeAnalysis = async (payload: any): Promise<Response> => {
@@ -41,6 +43,7 @@ export const analyzeContent = async ({
   analysisMode,
   forensicMode,
   systemInstructionPreamble,
+  activeInput,
 }: AnalyzeContentParams): Promise<AnalysisResult> => {
   const modelName = analysisMode === 'deep' ? MODELS.DEEP : MODELS.QUICK;
 
@@ -81,10 +84,10 @@ export const analyzeContent = async ({
     requestContents = { parts };
   } else if (text) {
     requestContents = text;
-    systemInstruction = systemInstructions.textAndUrl;
+    systemInstruction = systemInstructions.text;
   } else if (url) {
-    requestContents = `Please analyze the content of the webpage at this URL: ${url}. Provide a summary and then determine its origin on the 'Spectrum of Creation'.`;
-    systemInstruction = systemInstructions.textAndUrl;
+    requestContents = url;
+    systemInstruction = systemInstructions.urlAnalysis;
   } else {
     throw new Error("No content provided for analysis.");
   }
@@ -101,7 +104,8 @@ export const analyzeContent = async ({
           responseMimeType: "application/json",
           responseSchema: analysisSchema,
           systemInstruction,
-        }
+        },
+        activeInput: activeInput,
       };
 
       const timeoutPromise = new Promise<never>((_, reject) => {

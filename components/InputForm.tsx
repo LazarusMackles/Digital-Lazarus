@@ -38,8 +38,8 @@ export const InputForm: React.FC = () => {
     }, [inputDispatch]);
 
     const isInputValid = useMemo(() => {
-        return isInputReadyForAnalysis(activeInput, textContent, fileData);
-    }, [activeInput, textContent, fileData]);
+        return isInputReadyForAnalysis(activeInput, textContent, fileData, url);
+    }, [activeInput, textContent, fileData, url]);
     
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

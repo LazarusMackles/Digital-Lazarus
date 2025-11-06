@@ -25,9 +25,8 @@ export const useAnalysisWorkflow = () => {
                 evidence = { type: 'file', content: fileData.map(f => f.name).join(', ') };
                 break;
             case 'url':
-                 // URL feature is disabled at the component level.
-                resultDispatch({ type: actions.ANALYSIS_ERROR, payload: "URL analysis is temporarily unavailable." });
-                return;
+                 evidence = { type: 'url', content: url };
+                break;
             default:
                 console.error("Attempted analysis with unknown input type.");
                 return;
@@ -47,6 +46,7 @@ export const useAnalysisWorkflow = () => {
             url: activeInput === 'url' ? url : null,
             analysisMode,
             forensicMode: activeInput === 'file' ? forensicMode : 'standard',
+            activeInput,
         })
         .then(result => resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result } }))
         .catch(err => resultDispatch({ type: actions.ANALYSIS_ERROR, payload: err.message }));
@@ -66,7 +66,8 @@ export const useAnalysisWorkflow = () => {
             url: null,
             analysisMode: 'deep', // Re-analysis is always deep
             forensicMode: newForensicMode,
-            systemInstructionPreamble: "This is a re-analysis. The user was not satisfied with the initial verdict. Adopt a more critical, skeptical perspective. Focus specifically on the requested forensic angle and provide a fresh, a more detailed explanation."
+            systemInstructionPreamble: "This is a re-analysis. The user was not satisfied with the initial verdict. Adopt a more critical, skeptical perspective. Focus specifically on the requested forensic angle and provide a fresh, a more detailed explanation.",
+            activeInput: 'file',
         })
         .then(result => resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result, isSecondOpinion: true } }))
         .catch(error => resultDispatch({ type: actions.ANALYSIS_ERROR, payload: error.message }));
