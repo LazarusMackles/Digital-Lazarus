@@ -4,6 +4,7 @@ import type { AnalysisResult, AnalysisEvidence } from '../types';
 import { Icon } from './icons/index';
 import { generateShareText } from '../utils/reportUtils';
 import { Button } from './ui';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 interface ShareModalProps {
   result: AnalysisResult;
@@ -21,13 +22,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose, evidenc
     setModalRoot(document.getElementById('modal-root'));
   }, []);
 
-  // Effect to lock body scroll when modal is open for better UX on long pages.
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, []); // Empty dependency array ensures this effect runs only once on mount and cleanup on unmount.
+  // Use the custom hook to lock body scroll when modal is open.
+  useBodyScrollLock();
 
   const shareText = generateShareText(result, evidence, timestamp, false);
   const encodedShareText = encodeURIComponent(shareText);

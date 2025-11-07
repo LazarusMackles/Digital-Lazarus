@@ -71,3 +71,55 @@ export const compressAndEncodeFile = (
         reader.onerror = (error) => reject(new Error(`File reader error for compression: ${error}`));
     });
 };
+
+
+/**
+ * Takes an existing base64 image string and applies aggressive compression,
+ * specifically for speeding up analysis by the Gemini Pro model.
+ * @param base64String The original base64 data URL.
+ * @returns A promise that resolves to the new, compressed base64 data URL.
+ */
+export const aggressivelyCompressImageForAnalysis = (
+    base64String: string
+): Promise<string> => {
+    // This is the optimal size for analysis, balancing detail and performance.
+    const MAX_DIMENSION = 768; 
+    const QUALITY = 0.8;
+
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = base64String;
+
+        img.onload = () => {
+            let { width, height } = img;
+
+            if (width > height) {
+                if (width > MAX_DIMENSION) {
+                    height = Math.round((height * MAX_DIMENSION) / width);
+                    width = MAX_DIMENSION;
+                }
+            } else {
+                if (height > MAX_DIMENSION) {
+                    width = Math.round((width * MAX_DIMENSION) / height);
+                    height = MAX_DIMENSION;
+                }
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+
+            if (!ctx) {
+                return reject(new Error("Could not get canvas context for aggressive compression."));
+            }
+            
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const dataUrl = canvas.toDataURL('image/jpeg', QUALITY);
+            resolve(dataUrl);
+        };
+
+        img.onerror = (error) => reject(new Error(`Image failed to load for aggressive compression: ${error}`));
+    });
+};

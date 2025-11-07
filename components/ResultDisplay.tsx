@@ -19,25 +19,24 @@ import { ResultActionButtons } from './result/ResultActionButtons';
 
 const CaseFileDetails: React.FC<{
   analysisModeUsed: AnalysisMode | null,
-  timestamp: string | null
-}> = ({ analysisModeUsed, timestamp }) => {
+  timestamp: string | null,
+  isImageAnalysis: boolean,
+}> = ({ analysisModeUsed, timestamp, isImageAnalysis }) => {
   if (!analysisModeUsed || !timestamp) return null;
 
-  const getModelName = (mode: AnalysisMode) => {
-    switch (mode) {
-      case 'quick': return MODELS.QUICK;
-      case 'deep': return MODELS.DEEP;
-      default: return 'unknown';
-    }
+  const getModelName = (isImg: boolean) => {
+    return isImg ? MODELS.DEEP : MODELS.QUICK;
   };
+
   const modeText = analysisModeUsed === 'quick' ? 'Quick Scan' : 'Deep Dive';
+  const modelName = getModelName(isImageAnalysis);
 
   return (
     <div className="mt-8 w-max max-w-full bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-lg py-4 px-6 text-sm">
       <h4 className="font-semibold text-center text-cyan-700 dark:text-cyan-400 mb-3">Case File Details</h4>
       <dl className="border-t border-slate-200 dark:border-slate-700 pt-3 grid grid-cols-[auto,1fr] gap-x-4 gap-y-1 text-left">
         <dt className="font-medium text-slate-500 dark:text-slate-400">Analysis Method</dt>
-        <dd className="text-slate-800 dark:text-slate-200">{modeText} ({getModelName(analysisModeUsed)})</dd>
+        <dd className="text-slate-800 dark:text-slate-200">{modeText} ({modelName})</dd>
         
         <dt className="font-medium text-slate-500 dark:text-slate-400">Date of Analysis</dt>
         <dd className="text-slate-800 dark:text-slate-200">{timestamp}</dd>
@@ -126,7 +125,11 @@ const ResultDisplayComponent: React.FC = () => {
           
           <Feedback result={analysisResult} evidence={analysisEvidence} timestamp={analysisTimestamp} />
 
-          <CaseFileDetails analysisModeUsed={resultState.analysisModeUsed} timestamp={analysisTimestamp} />
+          <CaseFileDetails 
+            analysisModeUsed={resultState.analysisModeUsed} 
+            timestamp={analysisTimestamp} 
+            isImageAnalysis={isImageAnalysis}
+          />
 
           <SleuthNote />
         </div>

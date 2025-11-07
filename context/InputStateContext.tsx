@@ -35,7 +35,6 @@ const initialState: InputState = {
 type Action =
   | { type: typeof actions.SET_TEXT_CONTENT; payload: string }
   | { type: typeof actions.SET_FILE_DATA; payload: { name: string; imageBase64?: string | null; content?: string | null }[] }
-  | { type: typeof actions.SET_URL; payload: string }
   | { type: typeof actions.SET_ACTIVE_INPUT; payload: InputType }
   | { type: typeof actions.SET_ANALYSIS_MODE; payload: AnalysisMode }
   | { type: typeof actions.SET_FORENSIC_MODE; payload: ForensicMode }
@@ -49,8 +48,6 @@ const inputReducer = (state: InputState, action: Action): InputState => {
             return { ...state, textContent: action.payload, fileData: [] };
         case actions.SET_FILE_DATA:
             return { ...state, fileData: action.payload, textContent: '' };
-        case actions.SET_URL: // This action is no longer used but kept for potential future re-activation
-            return state;
         case actions.SET_ACTIVE_INPUT:
             return { ...state, activeInput: action.payload };
         case actions.SET_ANALYSIS_MODE:

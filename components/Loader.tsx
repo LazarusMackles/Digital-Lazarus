@@ -10,17 +10,11 @@ interface LoaderProps {
 export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Deducing the Digital DNA ... ", analysisMode, analysisEvidenceType }) => {
   
   const renderSubtext = () => {
-    if (analysisEvidenceType === 'url') {
-      return (
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 animate-fade-in italic">
-            Accessing and analyzing web evidence is a complex task. It may take up to a minute. Thank you for your patience.
-        </p>
-      );
-    }
     if (analysisMode === 'deep') {
+      const evidenceType = analysisEvidenceType === 'file' ? 'image' : 'text';
       return (
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 animate-fade-in">
-            *Deep Dives are powerful, but may time out due to platform limits. If this occurs, a 'Quick Scan' is recommended.*
+        <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 animate-fade-in max-w-sm mx-auto">
+            A Deep Dive is underway. This level of scrutiny takes time. For images, I'm performing an extra optimization step to ensure a thorough analysis. Thank you for your patience.
         </p>
       );
     }
@@ -29,7 +23,7 @@ export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Deducing t
   
   return (
     <div className="flex flex-col items-center justify-center h-64 text-center">
-      <svg className="animate-spin h-12 w-12 text-cyan-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <svg className="animate-spin h-12 w-12 text-cyan-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg">
         <defs>
             <linearGradient id="spinner-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#22d3ee" /> 

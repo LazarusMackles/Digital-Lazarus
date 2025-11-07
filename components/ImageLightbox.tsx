@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from './icons/index';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 interface ImageLightboxProps {
   imageUrl: string;
@@ -8,9 +9,11 @@ interface ImageLightboxProps {
 }
 
 export const ImageLightbox: React.FC<ImageLightboxProps> = ({ imageUrl, onClose }) => {
-  // Effect to lock body scroll when modal is open.
+  // Use custom hook to lock body scroll.
+  useBodyScrollLock();
+
+  // Effect for handling the Escape key press to close the lightbox.
   useEffect(() => {
-    document.body.style.overflow = 'hidden';
     const handleEsc = (event: KeyboardEvent) => {
        if (event.key === 'Escape') {
         onClose();
@@ -19,7 +22,6 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({ imageUrl, onClose 
     window.addEventListener('keydown', handleEsc);
 
     return () => {
-      document.body.style.overflow = 'unset';
       window.removeEventListener('keydown', handleEsc);
     };
   }, [onClose]);

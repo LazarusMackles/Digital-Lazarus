@@ -16,8 +16,24 @@ export const analysisSchema = {
       type: Type.STRING,
       description: 'A brief explanation for the verdict, tailored to whether the content appears fully generated, a composite, enhanced by AI filters/styles, or an authentic photograph.'
     },
-    // The 'highlights' property has been removed to reduce model processing time and prevent timeouts.
-    // The frontend is designed to handle its absence gracefully.
+    highlights: {
+      type: Type.ARRAY,
+      description: 'A list of 1-3 specific text segments or image features that are key indicators of AI involvement, along with a reason for each.',
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          text: {
+            type: Type.STRING,
+            description: 'The specific text segment or a description of the image feature (e.g., "Unnatural shadow on the left hand").'
+          },
+          reason: {
+            type: Type.STRING,
+            description: 'The forensic reason why this is an indicator.'
+          }
+        },
+        required: ['text', 'reason']
+      }
+    }
   },
   required: ['probability', 'verdict', 'explanation']
 };
