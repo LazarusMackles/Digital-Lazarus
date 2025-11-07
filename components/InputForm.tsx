@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { InputTabs } from './InputTabs';
 import { FileUploadDisplay } from './FileUploadDisplay';
 import { ModeSelector } from './ModeSelector';
@@ -12,11 +12,27 @@ import { Icon } from './icons/index';
 import { TextInputPanel } from './TextInputPanel';
 import { isInputReadyForAnalysis } from '../utils/validation';
 import { ForensicModeToggle } from './ForensicModeToggle';
+import type { AnalysisMode, ForensicMode } from '../types';
+
+// FIX: Moved the AIStudio interface into the declare global block to fix a scope issue.
+// Define the AIStudio interface to provide type safety for the global window object.
+declare global {
+    interface AIStudio {
+        hasSelectedApiKey: () => Promise<boolean>;
+        openSelectKey: () => Promise<void>;
+    }
+    interface Window {
+        aistudio?: AIStudio;
+    }
+}
 
 export const InputForm: React.FC = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
     const { state: resultState, dispatch: resultDispatch } = useResultState();
     const { performAnalysis, handleClearInputs } = useAnalysisWorkflow();
+
+    const [hasApiKey, setHasApiKey] = useState(false);
+    const [isCheckingApiKey, setIsCheckingApiKey] = useState(true);
 
     const {
         textContent,
@@ -25,24 +41,55 @@ export const InputForm: React.FC = () => {
         analysisMode,
         forensicMode,
     } = inputState;
-    const { error } = resultState;
+    const { error, isLoading } = resultState;
 
-    const handleAnalysisModeChange = useCallback((mode) => {
-        inputDispatch({ type: actions.SET_ANALYSIS_MODE, payload: mode });
-    }, [inputDispatch]);
-    
-    const handleForensicModeChange = useCallback((mode) => {
-        inputDispatch({ type: actions.SET_FORENSIC_MODE, payload: mode });
-    }, [inputDispatch]);
+    useEffect(() => {
+        const checkKey = async () => {
+            setIsCheckingApiKey(true);
+            if (window.aistudio) {
+                try {
+                    const keyStatus = await window.aistudio.hasSelectedApiKey();
+                    setHasApiKey(keyStatus);
+                } catch (e) {
+                    console.error("Error checking for API key:", e);
+                    setHasApiKey(false);
+                }
+            }
+            setIsCheckingApiKey(false);
+        };
+        checkKey();
+    }, [isLoading]); // Re-check when an analysis starts/finishes
+
+    const handleSelectKey = async () => {
+        if (window.aistudio) {
+            await window.aistudio.openSelectKey();
+            // Optimistically update UI assuming the user selects a key.
+            // The useEffect will re-verify on the next render cycle.
+            setHasApiKey(true);
+            if (error?.includes('API key')) {
+                resultDispatch({ type: actions.CLEAR_ERROR });
+            }
+        }
+    };
 
     const isInputValid = useMemo(() => {
         return isInputReadyForAnalysis(activeInput, textContent, fileData);
     }, [activeInput, textContent, fileData]);
     
+    const handleAnalysisModeChange = (mode: AnalysisMode) => {
+        inputDispatch({ type: actions.SET_ANALYSIS_MODE, payload: mode });
+    };
+
+    const handleForensicModeChange = (mode: ForensicMode) => {
+        inputDispatch({ type: actions.SET_FORENSIC_MODE, payload: mode });
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (isInputValid) {
+        if (isInputValid && hasApiKey) {
             performAnalysis();
+        } else if (!hasApiKey) {
+             resultDispatch({ type: actions.ANALYSIS_ERROR, payload: 'Please select an API key to begin the analysis.' });
         } else {
              resultDispatch({ type: actions.ANALYSIS_ERROR, payload: 'Please provide valid input before starting the analysis.' });
         }
@@ -84,21 +131,40 @@ export const InputForm: React.FC = () => {
                         )}
                         
                         <div className="mt-8 flex items-center justify-center gap-4">
-                            <Button
-                                type="submit"
-                                disabled={!isInputValid}
-                            >
-                                Begin Deduction
-                            </Button>
-                            {hasInput && (
-                                <Button
-                                    type="button"
-                                    variant="clear"
-                                    onClick={handleClearInputs}
-                                >
-                                    <Icon name="x-mark" className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-                                    <span className="font-semibold text-slate-700 dark:text-slate-300">Clear</span>
-                                </Button>
+                            {isCheckingApiKey ? (
+                                <div className="h-[136px] flex items-center justify-center">
+                                    <Icon name="spinner" className="w-6 h-6 animate-spin text-slate-500" />
+                                </div>
+                            ) : !hasApiKey ? (
+                                <div className="text-center">
+                                    <p className="text-sm text-amber-600 dark:text-amber-400 mb-4">
+                                        To perform an analysis, please select a Google AI Studio API key.
+                                        <br />
+                                        For information on billing, please visit <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-300">ai.google.dev/gemini-api/docs/billing</a>.
+                                    </p>
+                                    <Button type="button" onClick={handleSelectKey}>
+                                        Select API Key to Begin
+                                    </Button>
+                                </div>
+                            ) : (
+                                <>
+                                    <Button
+                                        type="submit"
+                                        disabled={!isInputValid}
+                                    >
+                                        Begin Deduction
+                                    </Button>
+                                    {hasInput && (
+                                        <Button
+                                            type="button"
+                                            variant="clear"
+                                            onClick={handleClearInputs}
+                                        >
+                                            <Icon name="x-mark" className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                                            <span className="font-semibold text-slate-700 dark:text-slate-300">Clear</span>
+                                        </Button>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>

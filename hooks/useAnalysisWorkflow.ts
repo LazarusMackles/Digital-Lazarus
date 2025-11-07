@@ -4,7 +4,6 @@ import { useResultState } from '../context/ResultStateContext';
 import * as actions from '../context/actions';
 import type { ForensicMode } from '../types';
 import { aggressivelyCompressImageForAnalysis } from '../utils/imageCompression';
-import { parseAnalysisResponse } from '../utils/responseParser';
 
 export const useAnalysisWorkflow = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
@@ -12,12 +11,6 @@ export const useAnalysisWorkflow = () => {
     
     const performAnalysis = useCallback(async () => {
         const { activeInput, textContent, fileData, analysisMode, forensicMode } = inputState;
-        
-        const apiKey = localStorage.getItem('gemini_api_key');
-        if (!apiKey) {
-            resultDispatch({ type: actions.ANALYSIS_ERROR, payload: 'API key not found. Please set your API key in the settings.' });
-            return;
-        }
 
         let evidence;
         let images = fileData.map(f => f.imageBase64).filter(Boolean) as string[];
@@ -45,7 +38,6 @@ export const useAnalysisWorkflow = () => {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'x-api-key': apiKey,
                 },
                 body: JSON.stringify({
                     text: activeInput === 'text' ? textContent : null,
@@ -59,16 +51,20 @@ export const useAnalysisWorkflow = () => {
             const data = await response.json();
 
             if (!response.ok) {
+                if (response.status === 401 && data.message?.includes("API key not valid")) {
+                     throw new Error("The selected API key is not valid. Please select a valid key and try again.");
+                }
                 throw new Error(data.message || 'An unknown error occurred during analysis.');
             }
-
-            // Parse the plain-text result from the API into our required JSON structure
-            const parsedResult = parseAnalysisResponse(data.result);
             
-            resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result: parsedResult } });
+            resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result: data.result } });
 
         } catch (err: any) {
-            resultDispatch({ type: actions.ANALYSIS_ERROR, payload: err.message });
+             if (err.message?.includes("API key not valid")) {
+                resultDispatch({ type: actions.ANALYSIS_ERROR, payload: "The selected API key is not valid. Please select a different key and try again." });
+             } else {
+                resultDispatch({ type: actions.ANALYSIS_ERROR, payload: err.message });
+             }
         }
 
     }, [inputState, resultDispatch]);
@@ -76,12 +72,6 @@ export const useAnalysisWorkflow = () => {
     const handleChallenge = useCallback(async (mode: ForensicMode) => {
         if (!resultState.analysisEvidence) return;
         
-        const apiKey = localStorage.getItem('gemini_api_key');
-        if (!apiKey) {
-            resultDispatch({ type: actions.ANALYSIS_ERROR, payload: 'API key not found for re-analysis. Please set your API key in the settings.' });
-            return;
-        }
-
         resultDispatch({ type: actions.START_REANALYSIS });
 
         const isImageChallenge = resultState.analysisEvidence.type === 'file';
@@ -102,7 +92,6 @@ export const useAnalysisWorkflow = () => {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'x-api-key': apiKey,
                 },
                 body: JSON.stringify({
                     text,
@@ -119,10 +108,8 @@ export const useAnalysisWorkflow = () => {
             if (!response.ok) {
                 throw new Error(data.message || 'An unknown error occurred during re-analysis.');
             }
-
-            const parsedResult = parseAnalysisResponse(data.result);
             
-            resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result: parsedResult, isSecondOpinion: true } });
+            resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result: data.result, isSecondOpinion: true } });
 
         } catch (err: any) {
             resultDispatch({ type: actions.ANALYSIS_ERROR, payload: err.message });

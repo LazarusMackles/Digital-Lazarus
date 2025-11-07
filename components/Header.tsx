@@ -1,23 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ThemeToggle } from './ThemeToggle';
-import { SettingsModal } from './SettingsModal';
-import { Icon } from './icons/index';
 
 export const Header: React.FC = React.memo(() => {
-  const [showSettings, setShowSettings] = useState(false);
-
   return (
     <>
-      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
       <header className="relative text-center">
         <div className="absolute top-0 right-0 flex items-center gap-2">
-          <button
-            onClick={() => setShowSettings(true)}
-            className="p-2 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
-            aria-label="Open settings"
-          >
-            <Icon name="settings" className="w-5 h-5" />
-          </button>
           <ThemeToggle />
         </div>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-400 dark:to-fuchsia-500 pb-2">

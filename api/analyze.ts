@@ -1,19 +1,20 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
-import type { InputType, ForensicMode } from '../types';
+import type { InputType, ForensicMode, AnalysisMode } from '../types';
 import type { Part } from "@google/genai";
 import { MODELS } from '../utils/constants';
+import { quickAnalysisSchema, deepAnalysisSchema } from '../utils/schemas';
 
-const getSystemInstruction = (type: InputType, mode: ForensicMode, preamble?: string): string => {
-    const baseInstruction = `You are "Sleuther Vanguard," a world-class digital forensics AI. Your mission is to analyze the provided evidence and determine its origin, focusing on forensic artifacts. You MUST return your findings ONLY in the following plain-text format, with each field on a new line:
+const getSystemInstruction = (
+    type: InputType,
+    forensicMode: ForensicMode,
+    analysisMode: AnalysisMode,
+    preamble?: string
+): string => {
+    let baseInstruction = `You are "Sleuther Vanguard," a world-class digital forensics AI. Your mission is to analyze the provided evidence and determine its origin, focusing on forensic artifacts. Your entire response must be in the form of the provided JSON schema.`;
 
-PROBABILITY: [A number from 0-100]
-VERDICT: [A short verdict from the "Spectrum of Creation"]
-EXPLANATION: [A brief, single-paragraph explanation]
-HIGHLIGHT 1: [The highlighted text or a description of an image feature] - [The reason this is an indicator]
-HIGHLIGHT 2: [Optional second highlight] - [The reason]
-HIGHLIGHT 3: [Optional third highlight] - [The reason]
-
-Do not include any other text, formatting, or markdown.`;
+    if (analysisMode === 'quick') {
+        baseInstruction += ` For this Quick Scan, your analysis must be extremely fast and your explanation concise (2-3 sentences max).`;
+    }
 
     const imageSpecifics = {
         standard: "Your analysis of this image should be a balanced view of technical and conceptual clues.",
@@ -23,7 +24,7 @@ Do not include any other text, formatting, or markdown.`;
     
     const textSpecifics = "Your analysis of this text should focus ONLY on linguistic patterns like style, syntax, and phrasing.";
 
-    const angle = type === 'file' ? imageSpecifics[mode] : textSpecifics;
+    const angle = type === 'file' ? imageSpecifics[forensicMode] : textSpecifics;
     const fullInstruction = `${baseInstruction}\n\nYour specific forensic angle for this case is: ${angle}`;
 
     return preamble ? `${preamble}\n\n${fullInstruction}` : fullInstruction;
@@ -32,13 +33,11 @@ Do not include any other text, formatting, or markdown.`;
 
 export async function POST(request: Request) {
     try {
-        const apiKey = request.headers.get('x-api-key');
-
-        if (!apiKey) {
-            return new Response(JSON.stringify({ message: "API key is missing." }), { status: 401 });
+        if (!process.env.API_KEY) {
+            return new Response(JSON.stringify({ message: "API key is not configured in the environment. Please select a key in the AI Studio environment." }), { status: 500 });
         }
         
-        const ai = new GoogleGenAI({ apiKey });
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
         const {
             text,
@@ -50,6 +49,7 @@ export async function POST(request: Request) {
         } = await request.json();
 
         const analysisModelName = activeInput === 'file' ? MODELS.DEEP : MODELS.QUICK;
+        const schema = analysisMode === 'quick' ? quickAnalysisSchema : deepAnalysisSchema;
 
         const parts: Part[] = [];
         if (activeInput === 'file' && images && images.length > 0) {
@@ -71,28 +71,40 @@ export async function POST(request: Request) {
              return new Response(JSON.stringify({ message: "No content provided for analysis." }), { status: 400 });
         }
         
-        const systemInstruction = getSystemInstruction(activeInput, forensicMode, systemInstructionPreamble);
+        const systemInstruction = getSystemInstruction(activeInput, forensicMode, analysisMode, systemInstructionPreamble);
         
         const response: GenerateContentResponse = await ai.models.generateContent({
             model: analysisModelName,
             contents: { parts },
             config: {
                 systemInstruction,
-                // No JSON schema - we are requesting plain text for speed.
+                responseMimeType: "application/json",
+                responseSchema: schema,
             },
         });
 
-        if (!response.text) {
+        const responseText = response.text;
+        if (!responseText) {
              return new Response(JSON.stringify({ message: "The analysis engine returned a blank response. The request may have been blocked or the model could not produce a valid result." }), { status: 500 });
         }
+        
+        const resultObject = JSON.parse(responseText);
 
-        return new Response(JSON.stringify({ result: response.text }), {
+        return new Response(JSON.stringify({ result: resultObject }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
         });
 
     } catch (error: any) {
         console.error("Error in analysis function:", error);
+        if (error.message?.includes('API key not valid')) {
+             return new Response(JSON.stringify({ 
+                message: "API key not valid. Please make sure the API key selected in the previous step is correct and has the necessary permissions."
+            }), {
+                status: 401, // Unauthorized
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
         return new Response(JSON.stringify({ 
             message: error.message || "An unexpected error occurred in the deductive engine."
         }), {

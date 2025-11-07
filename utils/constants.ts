@@ -8,7 +8,8 @@ export const ACCEPTED_IMAGE_TYPES_STRING = ACCEPTED_IMAGE_TYPES.join(',');
 // Gemini Model Configuration
 export const MODELS = {
   QUICK: 'gemini-2.5-flash',
-  DEEP: 'gemini-2.5-pro',
+  // FIX: Switched to the faster, specialized model for image analysis.
+  DEEP: 'gemini-2.5-flash-image',
 };
 
 // UI and Styling Constants
