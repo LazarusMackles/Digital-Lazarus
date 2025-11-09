@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState, useRef } from 'react';
 import { Icon } from './icons/index';
 import { compressAndEncodeFile } from '../utils/imageCompression';
@@ -7,8 +6,8 @@ import { useInputState } from '../context/InputStateContext';
 import { useResultState } from '../context/ResultStateContext';
 import * as actions from '../context/actions';
 import { MAX_FILES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, ACCEPTED_IMAGE_TYPES, ACCEPTED_IMAGE_TYPES_STRING } from '../utils/constants';
-// FIX: Corrected import path for UI components.
 import { Button } from './ui';
+import { cn } from '../utils/cn';
 
 export const FileUploadDisplay: React.FC = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
@@ -96,15 +95,19 @@ export const FileUploadDisplay: React.FC = () => {
                 onDragOver={(e) => handleDragEvent(e, true)}
                 onDragEnter={(e) => handleDragEvent(e, true)}
                 onDragLeave={(e) => handleDragEvent(e, false)}
-                className={`relative p-4 border-2 border-dashed rounded-lg transition-colors min-h-[180px]
-                    ${isDragActive ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/30' : 'border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-900'}
-                `}
+                className={cn(
+                    'relative p-4 border-2 border-dashed rounded-lg transition-colors min-h-[180px]',
+                    isDragActive 
+                        ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/30' 
+                        : 'border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-900',
+                    { 'flex flex-col items-center justify-center': fileData.length === 0 }
+                )}
             >
                 {fileData.length === 0 && (
-                     <div onClick={triggerFileSelect} className="flex flex-col items-center justify-center h-full text-center cursor-pointer">
-                        <Icon name="upload" className="w-10 h-10 text-slate-400 dark:text-slate-500" />
+                     <div onClick={triggerFileSelect} className="text-center cursor-pointer">
+                        <Icon name="upload" className="w-10 h-10 text-slate-400 dark:text-slate-500 mx-auto" />
                         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-                           <span className="font-semibold text-cyan-600 dark:text-cyan-400">Drag & drop images here,</span> or click to select files
+                           <span className="font-semibold text-cyan-600 dark:text-cyan-400">Drag & drop images here,</span> or click to select files.
                         </p>
                         <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">(Up to {MAX_FILES} images: PNG, JPG, WEBP, GIF)</p>
                     </div>
