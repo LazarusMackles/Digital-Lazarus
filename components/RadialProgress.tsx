@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { VERDICT_COLORS } from '../utils/constants';
 
@@ -9,8 +8,10 @@ interface RadialProgressProps {
 
 export const RadialProgress: React.FC<RadialProgressProps> = ({ progress, duration = 1000 }) => {
     const [displayProgress, setDisplayProgress] = useState(0);
-    const frameRef = useRef<number>();
-    const startTimeRef = useRef<number>();
+    // FIX: Initialize useRef with an initial value to fix "Expected 1 arguments, but got 0" error.
+    // The type is also updated to allow undefined, which matches its usage.
+    const frameRef = useRef<number | undefined>(undefined);
+    const startTimeRef = useRef<number | undefined>(undefined);
 
     const radius = 80;
     const stroke = 12;
@@ -29,7 +30,7 @@ export const RadialProgress: React.FC<RadialProgressProps> = ({ progress, durati
             if (startTimeRef.current === undefined) {
                 startTimeRef.current = timestamp;
             }
-            const elapsedTime = timestamp - startTimeRef.current;
+            const elapsedTime = timestamp - (startTimeRef.current ?? timestamp);
             const progressFraction = Math.min(elapsedTime / duration, 1);
             
             // Ease-out function for a smoother stop
