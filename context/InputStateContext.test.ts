@@ -12,41 +12,37 @@ describe('inputReducer', () => {
 
     it('should handle SET_TEXT_CONTENT', () => {
         const payload = 'New text content';
-        const action = { type: actions.SET_TEXT_CONTENT, payload };
         const expectedState = { ...initialState, textContent: payload, fileData: [] };
-        expect(inputReducer(initialState, action)).toEqual(expectedState);
+        // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
+        expect(inputReducer(initialState, { type: actions.SET_TEXT_CONTENT, payload })).toEqual(expectedState);
     });
 
     it('should handle SET_FILE_DATA', () => {
         const payload = [{ name: 'test.png', imageBase64: 'base64str' }];
-        const action = { type: actions.SET_FILE_DATA, payload };
-        // @ts-ignore
         const expectedState = { ...initialState, fileData: payload, textContent: '' };
-        expect(inputReducer(initialState, action)).toEqual(expectedState);
+        // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
+        expect(inputReducer(initialState, { type: actions.SET_FILE_DATA, payload })).toEqual(expectedState);
     });
 
     it('should handle SET_ACTIVE_INPUT', () => {
         const payload = 'text';
-        const action = { type: actions.SET_ACTIVE_INPUT, payload };
         const expectedState = { ...initialState, activeInput: payload };
-        // @ts-ignore
-        expect(inputReducer(initialState, action)).toEqual(expectedState);
+        // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
+        expect(inputReducer(initialState, { type: actions.SET_ACTIVE_INPUT, payload })).toEqual(expectedState);
     });
 
     it('should handle SET_ANALYSIS_MODE', () => {
         const payload = 'deep';
-        const action = { type: actions.SET_ANALYSIS_MODE, payload };
         const expectedState = { ...initialState, analysisMode: payload };
-        // @ts-ignore
-        expect(inputReducer(initialState, action)).toEqual(expectedState);
+        // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
+        expect(inputReducer(initialState, { type: actions.SET_ANALYSIS_MODE, payload })).toEqual(expectedState);
     });
 
     it('should handle SET_FORENSIC_MODE', () => {
         const payload = 'technical';
-        const action = { type: actions.SET_FORENSIC_MODE, payload };
         const expectedState = { ...initialState, forensicMode: payload };
-        // @ts-ignore
-        expect(inputReducer(initialState, action)).toEqual(expectedState);
+        // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
+        expect(inputReducer(initialState, { type: actions.SET_FORENSIC_MODE, payload })).toEqual(expectedState);
 
     });
 
@@ -57,15 +53,14 @@ describe('inputReducer', () => {
             fileData: [{ name: 'file.jpg' }],
             activeInput: 'text',
         };
-        const action = { type: actions.CLEAR_INPUTS };
         const expectedState = {
             ...initialState,
             textContent: '',
             fileData: [],
-            activeInput: 'file', // Should reset to the default
+            activeInput: 'file', // Should reset to the new default
         };
-        // @ts-ignore
-        expect(inputReducer(currentState, action)).toEqual(expectedState);
+        // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
+        expect(inputReducer(currentState, { type: actions.CLEAR_INPUTS })).toEqual(expectedState);
     });
 
     it('should handle LOAD_SCENARIO for text', () => {
@@ -77,7 +72,6 @@ describe('inputReducer', () => {
             analysisMode: 'deep',
             payload: { text: 'Scenario text' }
         };
-        const action = { type: actions.LOAD_SCENARIO, payload: scenario };
         const expectedState = {
             ...initialState,
             activeInput: 'text',
@@ -85,7 +79,8 @@ describe('inputReducer', () => {
             textContent: 'Scenario text',
             fileData: [],
         };
-        expect(inputReducer(initialState, action)).toEqual(expectedState);
+        // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
+        expect(inputReducer(initialState, { type: actions.LOAD_SCENARIO, payload: scenario })).toEqual(expectedState);
     });
 
      it('should handle LOAD_SCENARIO for file', () => {
@@ -98,7 +93,6 @@ describe('inputReducer', () => {
             analysisMode: 'quick',
             payload: { files }
         };
-        const action = { type: actions.LOAD_SCENARIO, payload: scenario };
         const expectedState = {
             ...initialState,
             activeInput: 'file',
@@ -106,6 +100,7 @@ describe('inputReducer', () => {
             textContent: '',
             fileData: files,
         };
-        expect(inputReducer(initialState, action)).toEqual(expectedState);
+        // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
+        expect(inputReducer(initialState, { type: actions.LOAD_SCENARIO, payload: scenario })).toEqual(expectedState);
     });
 });

@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Header } from './components/Header';
 import { ResultDisplay } from './components/ResultDisplay';
@@ -10,8 +11,8 @@ import { ResultStateProvider, useResultState } from './context/ResultStateContex
 import { UIStateProvider, useUIState } from './context/UIStateContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import * as actions from './context/actions';
-// FIX: Corrected import path for UI components.
 import { Card } from './components/ui';
+import { useAppView } from './hooks/useAppView';
 
 const IconSprite: React.FC = React.memo(() => (
   <svg xmlns="http://www.w3.org/2000/svg" className="absolute w-0 h-0">
@@ -72,12 +73,10 @@ const IconSprite: React.FC = React.memo(() => (
 const AppContent: React.FC = () => {
   const { state: resultState } = useResultState();
   const { state: uiState, dispatch: uiDispatch } = useUIState();
+  const view = useAppView();
 
   const { 
-    isLoading, 
-    analysisResult,
     isReanalyzing,
-    isStreaming,
     analysisModeUsed,
     analysisEvidence,
   } = resultState;
@@ -87,37 +86,32 @@ const AppContent: React.FC = () => {
   const handleCloseWelcome = () => uiDispatch({ type: actions.SET_SHOW_WELCOME, payload: false });
 
   const renderContent = () => {
-    // Determine if we are in a state where the result view should be shown for streaming text.
-    // A re-analysis is a full loading state, not a text stream-in view.
-    const isStreamingTextView = isStreaming && analysisEvidence?.type === 'text' && !isReanalyzing;
+    switch (view) {
+      case 'LOADING': {
+        const loaderMessage = isReanalyzing 
+          ? "Re-analysing with a critical eye ..." 
+          : "Deducing the Digital DNA ...";
 
-    // Show the main loader for all loading states except when streaming new text results.
-    if (isLoading && !isStreamingTextView) {
-      const loaderMessage = isReanalyzing 
-        ? "Re-analysing with a critical eye ..." 
-        : "Deducing the Digital DNA ...";
-
-      return (
-        <Card>
-          <Loader 
-            message={loaderMessage} 
-            analysisMode={analysisModeUsed}
-            analysisEvidenceType={analysisEvidence?.type}
-          />
-        </Card>
-      );
+        return (
+          <Card>
+            <Loader 
+              message={loaderMessage} 
+              analysisMode={analysisModeUsed}
+              analysisEvidenceType={analysisEvidence?.type}
+            />
+          </Card>
+        );
+      }
+      case 'RESULT':
+        return (
+          <div className="animate-fade-in-up">
+            <ResultDisplay />
+          </div>
+        );
+      case 'INPUT':
+      default:
+        return <InputForm />;
     }
-    
-    // If there's a result (including a streaming placeholder), show the result display.
-    if (analysisResult) {
-      return (
-        <div className="animate-fade-in-up">
-          <ResultDisplay />
-        </div>
-      );
-    }
-
-    return <InputForm />;
   };
 
   return (

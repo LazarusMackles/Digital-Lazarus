@@ -16,8 +16,8 @@ describe('resultReducer', () => {
             evidence: { type: 'text', content: 'test' } as AnalysisEvidence,
             analysisMode: 'deep',
         };
-        const action = { type: actions.START_ANALYSIS, payload };
-        const state = resultReducer(initialState, action);
+        // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
+        const state = resultReducer(initialState, { type: actions.START_ANALYSIS, payload });
 
         expect(state.isLoading).toBe(true);
         expect(state.isStreaming).toBe(true);
@@ -32,8 +32,8 @@ describe('resultReducer', () => {
             evidence: { type: 'text', content: 'test' } as AnalysisEvidence,
             analysisMode: 'quick',
         };
-        const action = { type: actions.START_ANALYSIS, payload };
-        const state = resultReducer(initialState, action);
+        // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
+        const state = resultReducer(initialState, { type: actions.START_ANALYSIS, payload });
 
         expect(state.isLoading).toBe(true);
         expect(state.isStreaming).toBe(false);
@@ -45,9 +45,8 @@ describe('resultReducer', () => {
             ...initialState,
             analysisResult: { probability: 50, verdict: 'Mixed', explanation: 'Old' }
         };
-        const action = { type: actions.START_REANALYSIS };
-        // @ts-ignore
-        const state = resultReducer(previousState, action);
+        // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
+        const state = resultReducer(previousState, { type: actions.START_REANALYSIS });
 
         expect(state.isLoading).toBe(true);
         expect(state.isReanalyzing).toBe(true);
@@ -62,8 +61,8 @@ describe('resultReducer', () => {
             analysisResult: { probability: 0, verdict: 'Deducing...', explanation: 'Initial' }
         };
         const action = { type: actions.STREAM_ANALYSIS_UPDATE, payload: { explanation: 'Initial chunk' } };
-        // @ts-ignore
-        const state = resultReducer(startState, action);
+        // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
+        const state = resultReducer(startState, { type: actions.STREAM_ANALYSIS_UPDATE, payload: { explanation: 'Initial chunk' } });
         expect(state.analysisResult?.explanation).toBe('Initial chunk');
     });
 
@@ -72,9 +71,8 @@ describe('resultReducer', () => {
             result: { probability: 90, verdict: 'AI', explanation: 'Done' } as AnalysisResult,
             isSecondOpinion: true
         };
-        const action = { type: actions.ANALYSIS_SUCCESS, payload };
-        // @ts-ignore
-        const state = resultReducer({ ...initialState, isLoading: true }, action);
+        // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
+        const state = resultReducer({ ...initialState, isLoading: true }, { type: actions.ANALYSIS_SUCCESS, payload });
 
         expect(state.isLoading).toBe(false);
         expect(state.isStreaming).toBe(false);
@@ -85,9 +83,8 @@ describe('resultReducer', () => {
     });
 
     it('should handle ANALYSIS_ERROR', () => {
-        const action = { type: actions.ANALYSIS_ERROR, payload: 'API Error' };
-        // @ts-ignore
-        const state = resultReducer({ ...initialState, isLoading: true }, action);
+        // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
+        const state = resultReducer({ ...initialState, isLoading: true }, { type: actions.ANALYSIS_ERROR, payload: 'API Error' });
         expect(state.isLoading).toBe(false);
         expect(state.error).toBe('API Error');
     });
@@ -99,17 +96,15 @@ describe('resultReducer', () => {
             error: 'Some error',
             analysisResult: { probability: 1, verdict: 'V', explanation: 'E' }
         };
-        const action = { type: actions.NEW_ANALYSIS };
-        // @ts-ignore
-        const state = resultReducer(currentState, action);
+        // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
+        const state = resultReducer(currentState, { type: actions.NEW_ANALYSIS });
         expect(state).toEqual(initialState);
     });
 
     it('should handle CLEAR_ERROR', () => {
         const currentState = { ...initialState, error: 'Some error' };
-        const action = { type: actions.CLEAR_ERROR };
-        // @ts-ignore
-        const state = resultReducer(currentState, action);
+        // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
+        const state = resultReducer(currentState, { type: actions.CLEAR_ERROR });
         expect(state.error).toBeNull();
     });
 });
