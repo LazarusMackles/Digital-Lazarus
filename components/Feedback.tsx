@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Icon } from './icons/index';
 import type { AnalysisResult, AnalysisEvidence } from '../types';
@@ -39,8 +40,8 @@ export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence,
             <button 
               onClick={handlePositiveFeedback} 
               className="flex-1 p-2 text-slate-500 hover:text-green-500 hover:bg-slate-300 dark:text-slate-400 dark:hover:text-green-400 dark:hover:bg-slate-700 rounded-full transition-colors duration-200" 
-              aria-label="Yes, this was helpful"
-              title="Helpful"
+              aria-label="Yes Helpful"
+              title="Yes Helpful"
             >
               <Icon name="thumbs-up" className="w-5 h-5 mx-auto" />
             </button>
@@ -61,7 +62,7 @@ export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence,
   };
 
   return (
-    <div className="mt-6 text-sm text-center">
+    <div className="text-sm text-center">
       {renderContent()}
     </div>
   );

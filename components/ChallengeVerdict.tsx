@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from './ui/Button';
 import { Icon } from './icons/index';
@@ -19,12 +18,11 @@ export const ChallengeVerdict: React.FC<ChallengeVerdictProps> = React.memo(({ o
   }
   
   return (
-    <div className="mt-8 text-center">
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">Not convinced? A different perspective can be enlightening.</p>
+    <div className="flex flex-col items-center gap-3">
+        <p className="font-semibold text-slate-500 dark:text-slate-400">Not convinced? A different perspective can be enlightening.</p>
         <Button
             onClick={onReanalyze}
             variant="secondary"
-            className="flex items-center justify-center gap-2 mx-auto !bg-slate-700 hover:!bg-slate-600 !shadow-slate-900/30"
         >
             <Icon name="chat-bubble-oval-left-ellipsis" className="w-5 h-5" />
             <span>Request a Second Opinion</span>

@@ -7,6 +7,7 @@ import { WelcomeModal } from './components/WelcomeModal';
 import { InputForm } from './components/InputForm';
 import { InputStateProvider } from './context/InputStateContext';
 import { ResultStateProvider, useResultState } from './context/ResultStateContext';
+import { UIStateProvider, useUIState } from './context/UIStateContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import * as actions from './context/actions';
 // FIX: Corrected import path for UI components.
@@ -69,20 +70,29 @@ const IconSprite: React.FC = React.memo(() => (
 ));
 
 const AppContent: React.FC = () => {
-  const { state, dispatch } = useResultState();
+  const { state: resultState } = useResultState();
+  const { state: uiState, dispatch: uiDispatch } = useUIState();
+
   const { 
     isLoading, 
     analysisResult,
     isReanalyzing,
-    showWelcome,
+    isStreaming,
     analysisModeUsed,
     analysisEvidence,
-  } = state;
+  } = resultState;
+  
+  const { showWelcome } = uiState;
 
-  const handleCloseWelcome = () => dispatch({ type: actions.SET_SHOW_WELCOME, payload: false });
+  const handleCloseWelcome = () => uiDispatch({ type: actions.SET_SHOW_WELCOME, payload: false });
 
   const renderContent = () => {
-    if (isLoading && !state.isStreaming) {
+    // Determine if we are in a state where the result view should be shown for streaming text.
+    // A re-analysis is a full loading state, not a text stream-in view.
+    const isStreamingTextView = isStreaming && analysisEvidence?.type === 'text' && !isReanalyzing;
+
+    // Show the main loader for all loading states except when streaming new text results.
+    if (isLoading && !isStreamingTextView) {
       const loaderMessage = isReanalyzing 
         ? "Re-analysing with a critical eye ..." 
         : "Deducing the Digital DNA ...";
@@ -97,7 +107,8 @@ const AppContent: React.FC = () => {
         </Card>
       );
     }
-
+    
+    // If there's a result (including a streaming placeholder), show the result display.
     if (analysisResult) {
       return (
         <div className="animate-fade-in-up">
@@ -106,9 +117,7 @@ const AppContent: React.FC = () => {
       );
     }
 
-    return (
-       <InputForm />
-    );
+    return <InputForm />;
   };
 
   return (
@@ -131,11 +140,13 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <InputStateProvider>
-      <ResultStateProvider>
-        <ErrorBoundary>
-          <AppContent />
-        </ErrorBoundary>
-      </ResultStateProvider>
+      <UIStateProvider>
+        <ResultStateProvider>
+          <ErrorBoundary>
+            <AppContent />
+          </ErrorBoundary>
+        </ResultStateProvider>
+      </UIStateProvider>
     </InputStateProvider>
   );
 };

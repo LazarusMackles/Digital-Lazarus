@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { Icon } from './icons/index';
-import { useResultState } from '../context/ResultStateContext';
+import { useUIState } from '../context/UIStateContext';
 import * as actions from '../context/actions';
 
 export const ThemeToggle: React.FC = React.memo(() => {
-  const { state, dispatch } = useResultState();
+  const { state, dispatch } = useUIState();
   const { theme } = state;
 
   const toggleTheme = () => {

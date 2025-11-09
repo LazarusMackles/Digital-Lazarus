@@ -27,11 +27,19 @@ export const ResultDisplay: React.FC = () => {
   }
 
   const { probability, verdict, explanation, highlights, isSecondOpinion } = analysisResult;
+  const isFileAnalysis = analysisEvidence?.type === 'file';
   
   return (
     <>
       <Card className="flex flex-col items-center">
-        <VerdictPanel probability={probability} verdict={verdict} explanation={explanation} />
+        
+        {isFileAnalysis && <EvidencePresenter evidence={analysisEvidence} />}
+        
+        <VerdictPanel 
+            probability={probability} 
+            verdict={verdict} 
+            explanation={isFileAnalysis ? '' : explanation} 
+        />
 
         {analysisEvidence?.type === 'text' && analysisEvidence.content && (
            <div className="mt-8 w-full max-w-2xl bg-slate-100 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
@@ -42,21 +50,19 @@ export const ResultDisplay: React.FC = () => {
            </div>
         )}
         
-        {analysisEvidence?.type === 'file' && <EvidencePresenter evidence={analysisEvidence} />}
+        {isFileAnalysis && highlights && highlights.length > 0 && <HighlightsDisplay highlights={highlights} />}
         
-        {highlights && highlights.length > 0 && analysisEvidence?.type === 'file' && (
-          <HighlightsDisplay highlights={highlights} />
-        )}
-        
-        {!isStreaming && !isReanalyzing && (
+        {(!isStreaming && !isReanalyzing) && (
             <>
                 <div className="mt-8 border-t border-slate-200 dark:border-slate-700 w-full max-w-xl" />
-                <ChallengeVerdict 
-                    onReanalyze={handleReanalyze} 
-                    isSecondOpinion={isSecondOpinion || false} 
-                />
-                <Feedback result={analysisResult} evidence={analysisEvidence} timestamp={analysisTimestamp} />
-                <ResultActionButtons onNewAnalysis={handleNewAnalysis} onShowShareModal={() => setShowShareModal(true)} />
+                <div className="mt-4 flex w-full flex-col items-center gap-4">
+                    <ChallengeVerdict 
+                        onReanalyze={handleReanalyze} 
+                        isSecondOpinion={isSecondOpinion || false} 
+                    />
+                    <Feedback result={analysisResult} evidence={analysisEvidence} timestamp={analysisTimestamp} />
+                    <ResultActionButtons onNewAnalysis={handleNewAnalysis} onShowShareModal={() => setShowShareModal(true)} />
+                </div>
             </>
         )}
 

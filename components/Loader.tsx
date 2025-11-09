@@ -21,8 +21,8 @@ export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Deducing t
   };
   
   return (
-    <div className="flex flex-col items-center justify-center h-64 text-center">
-      <svg className="animate-spin h-12 w-12 text-cyan-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg">
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <svg className="animate-spin h-20 w-20 text-cyan-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg">
         <defs>
             <linearGradient id="spinner-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#22d3ee" /> 

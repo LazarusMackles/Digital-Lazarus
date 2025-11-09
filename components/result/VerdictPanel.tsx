@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { RadialProgress } from '../RadialProgress';
 import { useResultState } from '../../context/ResultStateContext';
@@ -39,18 +40,20 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
             ) : (
               <>
                 <RadialProgress progress={probability} />
-                <h2 className={`mt-6 text-3xl font-extrabold text-center ${verdictColorClass()}`}>
+                <h2 className={`mt-2 text-3xl font-extrabold text-center ${verdictColorClass()}`}>
                     {verdict}
                 </h2>
               </>
             )}
             
-            <p className="mt-4 text-center max-w-xl text-slate-600 dark:text-slate-300 whitespace-pre-wrap">
-                {explanation}
-                {isTextAnalysis && isStreaming && (
-                    <span className="inline-block w-2 h-5 bg-cyan-500 animate-pulse ml-1" aria-hidden="true"></span>
-                )}
-            </p>
+            {explanation && (
+                <p className="mt-4 text-center max-w-xl text-slate-600 dark:text-slate-300 whitespace-pre-wrap">
+                    {explanation}
+                    {isTextAnalysis && isStreaming && (
+                        <span className="inline-block w-2 h-5 bg-cyan-500 animate-pulse ml-1" aria-hidden="true"></span>
+                    )}
+                </p>
+            )}
         </>
     );
 });

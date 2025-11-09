@@ -1,3 +1,4 @@
+
 import type { AnalysisResult, AnalysisEvidence } from '../types';
 
 /**
@@ -19,7 +20,14 @@ export const generateShareText = (
     if (evidence) {
         switch (evidence.type) {
             case 'file':
-                evidenceText = `EVIDENCE ANALYZED (FILES): ${evidence.content}\n`;
+                try {
+                    const files: { name: string }[] = JSON.parse(evidence.content);
+                    const fileNames = files.map(f => f.name).join(', ');
+                    evidenceText = `EVIDENCE ANALYZED (FILES): ${fileNames}\n`;
+                } catch (e) {
+                    // Fallback for safety if parsing fails.
+                    evidenceText = `EVIDENCE ANALYZED (FILES): [Could not parse file list]\n`;
+                }
                 break;
             case 'text':
                 // Truncate long text for email body clarity

@@ -1,3 +1,4 @@
+
 import { analyzeContent, analyzeContentStream } from '../api/analyze';
 import { aggressivelyCompressImageForAnalysis } from '../utils/imageCompression';
 import { MODELS } from '../utils/constants';
@@ -40,7 +41,7 @@ const buildPrompt = (
     }
 
     const modeInstruction = analysisMode === 'deep'
-        ? `Conduct a "Deep Dive": a thorough, methodical examination. Provide a detailed explanation and identify 1-3 specific "highlights" (key indicators) that support your verdict.`
+        ? `Conduct a "Deep Dive": a thorough, methodical examination. Provide a brief explanation for the verdict, tailored to whether the content appears fully generated, a composite, enhanced by AI filters/styles, or an authentic photograph. Then, identify 1-3 specific "highlights" (key indicators) that support your verdict.`
         : `Conduct a "Quick Scan": a rapid, first-pass analysis. Identify the two most obvious artifacts supporting your verdict.`;
 
     return `${baseInstruction}\n\n**Case File:**\n${evidenceDescription}\n\n**Deductive Method:**\n${modeInstruction}`;

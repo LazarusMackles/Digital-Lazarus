@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useReducer, ReactNode, Dispatch, useEffect } from 'react';
-import type { AnalysisResult, AnalysisEvidence, Theme, AnalysisMode } from '../types';
+
+import React, { createContext, useContext, useReducer, ReactNode, Dispatch } from 'react';
+import type { AnalysisResult, AnalysisEvidence, AnalysisMode } from '../types';
 import * as actions from './actions';
 
 // State interface
@@ -8,8 +9,6 @@ export interface ResultState {
     isReanalyzing: boolean;
     isStreaming: boolean;
     error: string | null;
-    showWelcome: boolean;
-    theme: Theme;
     analysisResult: AnalysisResult | null;
     analysisTimestamp: string | null;
     analysisEvidence: AnalysisEvidence | null;
@@ -22,8 +21,6 @@ const initialState: ResultState = {
     isReanalyzing: false,
     isStreaming: false,
     error: null,
-    showWelcome: true,
-    theme: 'dark',
     analysisResult: null,
     analysisTimestamp: null,
     analysisEvidence: null,
@@ -38,8 +35,6 @@ type Action =
   | { type: typeof actions.ANALYSIS_SUCCESS; payload: { result: AnalysisResult; isSecondOpinion?: boolean } }
   | { type: typeof actions.ANALYSIS_ERROR; payload: string | null }
   | { type: typeof actions.NEW_ANALYSIS }
-  | { type: typeof actions.SET_SHOW_WELCOME; payload: boolean }
-  | { type: typeof actions.SET_THEME; payload: Theme }
   | { type: typeof actions.CLEAR_ERROR }
   | { type: typeof actions.STREAM_ANALYSIS_UPDATE; payload: { explanation: string } };
 
@@ -110,15 +105,8 @@ const resultReducer = (state: ResultState, action: Action): ResultState => {
         case actions.CLEAR_ERROR:
             return { ...state, error: null };
         case actions.NEW_ANALYSIS:
-            return {
-                ...initialState,
-                showWelcome: false, // Don't show welcome again
-                theme: state.theme, // Persist theme
-            };
-        case actions.SET_SHOW_WELCOME:
-            return { ...state, showWelcome: action.payload };
-        case actions.SET_THEME:
-            return { ...state, theme: action.payload };
+            // This action now simply resets the result state to its initial values.
+            return initialState;
         default:
             return state;
     }
@@ -134,14 +122,6 @@ const ResultStateContext = createContext<ResultStateContextType | undefined>(und
 // Provider
 export const ResultStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [state, dispatch] = useReducer(resultReducer, initialState);
-
-    useEffect(() => {
-        if (state.theme === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    }, [state.theme]);
 
     return (
         <ResultStateContext.Provider value={{ state, dispatch }}>

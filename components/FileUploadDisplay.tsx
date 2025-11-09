@@ -103,7 +103,7 @@ export const FileUploadDisplay: React.FC = () => {
                 {fileData.length === 0 && (
                      <div onClick={triggerFileSelect} className="flex flex-col items-center justify-center h-full text-center cursor-pointer">
                         <Icon name="upload" className="w-10 h-10 text-slate-400 dark:text-slate-500" />
-                        <p className="mt-2 text-slate-600 dark:text-slate-400">
+                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
                            <span className="font-semibold text-cyan-600 dark:text-cyan-400">Drag & drop images here,</span> or click to select files
                         </p>
                         <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">(Up to {MAX_FILES} images: PNG, JPG, WEBP, GIF)</p>
