@@ -18,6 +18,8 @@ export const ANALYSIS_SUCCESS = 'ANALYSIS_SUCCESS';
 export const ANALYSIS_ERROR = 'ANALYSIS_ERROR';
 export const NEW_ANALYSIS = 'NEW_ANALYSIS';
 export const CLEAR_ERROR = 'CLEAR_ERROR';
+export const STREAM_ANALYSIS_UPDATE = 'STREAM_ANALYSIS_UPDATE';
+
 
 // Global/UI State Actions
 export const SET_SHOW_WELCOME = 'SET_SHOW_WELCOME';

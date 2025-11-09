@@ -1,8 +1,10 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import type { AnalysisResult, AnalysisEvidence } from '../types';
 import { Icon } from './icons/index';
 import { generateShareText } from '../utils/reportUtils';
+// FIX: Corrected import path for UI components.
 import { Button } from './ui';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 

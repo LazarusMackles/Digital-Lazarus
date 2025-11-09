@@ -1,3 +1,4 @@
+
 import React, { useCallback, useState, useRef } from 'react';
 import { Icon } from './icons/index';
 import { compressAndEncodeFile } from '../utils/imageCompression';
@@ -6,6 +7,7 @@ import { useInputState } from '../context/InputStateContext';
 import { useResultState } from '../context/ResultStateContext';
 import * as actions from '../context/actions';
 import { MAX_FILES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, ACCEPTED_IMAGE_TYPES, ACCEPTED_IMAGE_TYPES_STRING } from '../utils/constants';
+// FIX: Corrected import path for UI components.
 import { Button } from './ui';
 
 export const FileUploadDisplay: React.FC = () => {

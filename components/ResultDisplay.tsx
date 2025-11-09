@@ -1,141 +1,75 @@
-import React, { useState } from 'react';
-import { HighlightsDisplay } from './HighlightsDisplay';
-import { ChallengeVerdict } from './ChallengeVerdict';
-import { Feedback } from './Feedback';
-import { SleuthNote } from './SleuthNote';
-import { ShareModal } from './ShareModal';
-import { ImageLightbox } from './ImageLightbox';
-import type { AnalysisMode, ForensicMode } from '../types';
+
+import React, { useState, useCallback } from 'react';
 import { useResultState } from '../context/ResultStateContext';
-import { useInputState } from '../context/InputStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
-import { Card } from './ui';
-import { MODELS } from '../utils/constants';
-
-// New, decomposed components
-import { EvidencePresenter } from './result/EvidencePresenter';
 import { VerdictPanel } from './result/VerdictPanel';
+import { EvidencePresenter } from './result/EvidencePresenter';
+import { HighlightsDisplay } from './HighlightsDisplay';
+import { Feedback } from './Feedback';
 import { ResultActionButtons } from './result/ResultActionButtons';
+import { ShareModal } from './ShareModal';
+import { Card } from './ui/Card';
+import { ChallengeVerdict } from './ChallengeVerdict';
+import { InteractiveTextDisplay } from './InteractiveTextDisplay';
 
-const CaseFileDetails: React.FC<{
-  analysisModeUsed: AnalysisMode | null,
-  timestamp: string | null,
-  isImageAnalysis: boolean,
-}> = ({ analysisModeUsed, timestamp, isImageAnalysis }) => {
-  if (!analysisModeUsed || !timestamp) return null;
-
-  const getModelName = (isImg: boolean) => {
-    return isImg ? MODELS.DEEP : MODELS.QUICK;
-  };
-
-  const modeText = analysisModeUsed === 'quick' ? 'Quick Scan' : 'Deep Dive';
-  const modelName = getModelName(isImageAnalysis);
-
-  return (
-    <div className="mt-8 w-max max-w-full bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-lg py-4 px-6 text-sm">
-      <h4 className="font-semibold text-center text-cyan-700 dark:text-cyan-400 mb-3">Case File Details</h4>
-      <dl className="border-t border-slate-200 dark:border-slate-700 pt-3 grid grid-cols-[auto,1fr] gap-x-4 gap-y-1 text-left">
-        <dt className="font-medium text-slate-500 dark:text-slate-400">Analysis Method</dt>
-        <dd className="text-slate-800 dark:text-slate-200">{modeText} ({modelName})</dd>
-        
-        <dt className="font-medium text-slate-500 dark:text-slate-400">Date of Analysis</dt>
-        <dd className="text-slate-800 dark:text-slate-200">{timestamp}</dd>
-      </dl>
-    </div>
-  );
-};
-
-
-const ResultDisplayComponent: React.FC = () => {
-  const { state: resultState } = useResultState();
-  const { state: inputState } = useInputState();
-  const { handleChallenge, handleNewAnalysis } = useAnalysisWorkflow();
-  
-  const { 
-    analysisResult, 
-    isReanalyzing,
-    analysisTimestamp,
-    analysisEvidence,
-  } = resultState;
-  const { fileData } = inputState;
-  
+export const ResultDisplay: React.FC = () => {
+  const { state } = useResultState();
+  const { handleNewAnalysis, performAnalysis } = useAnalysisWorkflow();
+  const { analysisResult, analysisEvidence, analysisTimestamp, isStreaming, isReanalyzing } = state;
   const [showShareModal, setShowShareModal] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const handleReanalyze = useCallback(() => {
+    performAnalysis(true);
+  }, [performAnalysis]);
 
   if (!analysisResult) {
-    return null;
+    return null; // Or some fallback UI
   }
-
-  const handleCloseShareModal = () => {
-    setShowShareModal(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
   const { probability, verdict, explanation, highlights, isSecondOpinion } = analysisResult;
   
-  const imageData = fileData.length > 0 ? fileData.map(f => f.imageBase64!).filter(Boolean) : null;
-  const isImageAnalysis = analysisEvidence?.type === 'file' && !!imageData && imageData.length > 0;
-
   return (
     <>
+      <Card className="flex flex-col items-center">
+        <VerdictPanel probability={probability} verdict={verdict} explanation={explanation} />
+
+        {analysisEvidence?.type === 'text' && analysisEvidence.content && (
+           <div className="mt-8 w-full max-w-2xl bg-slate-100 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+               <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Evidence Analyzed:</h3>
+               <div className="text-slate-800 dark:text-slate-200 max-h-60 overflow-y-auto pr-2">
+                    <InteractiveTextDisplay text={analysisEvidence.content} highlights={highlights || []} />
+               </div>
+           </div>
+        )}
+        
+        {analysisEvidence?.type === 'file' && <EvidencePresenter evidence={analysisEvidence} />}
+        
+        {highlights && highlights.length > 0 && analysisEvidence?.type === 'file' && (
+          <HighlightsDisplay highlights={highlights} />
+        )}
+        
+        {!isStreaming && !isReanalyzing && (
+            <>
+                <div className="mt-8 border-t border-slate-200 dark:border-slate-700 w-full max-w-xl" />
+                <ChallengeVerdict 
+                    onReanalyze={handleReanalyze} 
+                    isSecondOpinion={isSecondOpinion || false} 
+                />
+                <Feedback result={analysisResult} evidence={analysisEvidence} timestamp={analysisTimestamp} />
+                <ResultActionButtons onNewAnalysis={handleNewAnalysis} onShowShareModal={() => setShowShareModal(true)} />
+            </>
+        )}
+
+      </Card>
+      
       {showShareModal && (
-        <ShareModal 
-          result={analysisResult} 
-          onClose={handleCloseShareModal}
+        <ShareModal
+          result={analysisResult}
           evidence={analysisEvidence}
           timestamp={analysisTimestamp}
+          onClose={() => setShowShareModal(false)}
         />
       )}
-      {selectedImage && <ImageLightbox imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />}
-
-      <Card>
-        <div className="flex flex-col items-center">
-
-          <EvidencePresenter
-            evidence={analysisEvidence}
-            imageData={imageData}
-            highlights={highlights}
-            onImageClick={setSelectedImage}
-          />
-          
-          {isSecondOpinion && !isReanalyzing && (
-            <div className="mb-4 bg-fuchsia-100 dark:bg-fuchsia-900/30 text-fuchsia-700 dark:text-fuchsia-300 text-sm font-semibold px-4 py-2 rounded-full animate-fade-in">
-              RE-EVALUATION COMPLETE
-            </div>
-          )}
-
-          <VerdictPanel 
-            probability={probability}
-            verdict={verdict}
-            explanation={explanation}
-          />
-
-          {isImageAnalysis && highlights && highlights.length > 0 && (
-            <HighlightsDisplay highlights={highlights} />
-          )}
-
-          {!isSecondOpinion && !isReanalyzing && (
-            <ChallengeVerdict onChallenge={handleChallenge} isImageAnalysis={isImageAnalysis} />
-          )}
-          
-          <ResultActionButtons
-            onNewAnalysis={handleNewAnalysis}
-            onShowShareModal={() => setShowShareModal(true)}
-          />
-          
-          <Feedback result={analysisResult} evidence={analysisEvidence} timestamp={analysisTimestamp} />
-
-          <CaseFileDetails 
-            analysisModeUsed={resultState.analysisModeUsed} 
-            timestamp={analysisTimestamp} 
-            isImageAnalysis={isImageAnalysis}
-          />
-
-          <SleuthNote />
-        </div>
-      </Card>
     </>
   );
 };
-
-export const ResultDisplay = React.memo(ResultDisplayComponent);

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Icon } from './icons/index';
 
@@ -30,7 +31,8 @@ export const HowItWorks: React.FC = React.memo(() => {
                         <li><strong className="text-slate-700 dark:text-slate-100">1. Submit Your Evidence:</strong> Paste text or upload files. For multiple images, first upload is the <strong className="text-cyan-600 dark:text-cyan-400">Primary Evidence</strong>, with others serving as supporting clues.</li>
                         <li><strong className="text-slate-700 dark:text-slate-100">2. Guide the Investigation:</strong> For images, choose a forensic angle: balanced <strong className="text-cyan-600 dark:text-cyan-400">Standard</strong>, pixel-focused <strong className="text-cyan-600 dark:text-cyan-400">Technical</strong>, or story-focused <strong className="text-cyan-600 dark:text-cyan-400">Conceptual</strong>.</li>
                         <li><strong className="text-slate-700 dark:text-slate-100">3. Set the Pace:</strong> Choose <strong className="text-cyan-600 dark:text-cyan-400">Quick Scan</strong> for speed or <strong className="text-cyan-600 dark:text-cyan-400">Deep Dive</strong> for a more thorough examination.</li>
-                        <li><strong className="text-slate-700 dark:text-slate-100">4. Review the Findings:</strong> I'll return a <strong className="text-cyan-600 dark:text-cyan-400">Probability Score</strong> and a <strong className="text-cyan-600 dark:text-cyan-400">Detailed Verdict</strong>. My analysis is a professional opinion, not an absolute fact. Your feedback helps sharpen my skills for the next case.</li>
+                        <li><strong className="text-slate-700 dark:text-slate-100">4. Review the Findings:</strong> I'll return a <strong className="text-cyan-600 dark:text-cyan-400">Probability Score</strong> and a <strong className="text-cyan-600 dark:text-cyan-400">Detailed Verdict</strong>. My analysis is a professional opinion, not the undisputed truth.</li>
+                        <li><strong className="text-slate-700 dark:text-slate-100">5. Engage with the Verdict:</strong> Not convinced? You can <strong className="text-cyan-600 dark:text-cyan-400">Request a Second Opinion</strong> for a 'Deep Dive' from a new angle. Sending your <strong className="text-cyan-600 dark:text-cyan-400">Feedback</strong> is also crucial—it helps sharpen my skills for the next case!</li>
                     </ul>
                 </div>
             </div>

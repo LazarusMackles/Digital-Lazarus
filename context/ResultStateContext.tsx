@@ -6,6 +6,7 @@ import * as actions from './actions';
 export interface ResultState {
     isLoading: boolean;
     isReanalyzing: boolean;
+    isStreaming: boolean;
     error: string | null;
     showWelcome: boolean;
     theme: Theme;
@@ -19,6 +20,7 @@ export interface ResultState {
 const initialState: ResultState = {
     isLoading: false,
     isReanalyzing: false,
+    isStreaming: false,
     error: null,
     showWelcome: true,
     theme: 'dark',
@@ -38,34 +40,62 @@ type Action =
   | { type: typeof actions.NEW_ANALYSIS }
   | { type: typeof actions.SET_SHOW_WELCOME; payload: boolean }
   | { type: typeof actions.SET_THEME; payload: Theme }
-  | { type: typeof actions.CLEAR_ERROR };
+  | { type: typeof actions.CLEAR_ERROR }
+  | { type: typeof actions.STREAM_ANALYSIS_UPDATE; payload: { explanation: string } };
 
 // Reducer
 const resultReducer = (state: ResultState, action: Action): ResultState => {
     switch (action.type) {
-        case actions.START_ANALYSIS:
+        case actions.START_ANALYSIS: {
+            const isDeepMode = action.payload.analysisMode === 'deep';
+            const shouldStream = isDeepMode;
+
             return {
                 ...state,
                 isLoading: true,
                 isReanalyzing: false,
+                isStreaming: shouldStream,
                 error: null,
-                analysisResult: null,
+                // For any streaming analysis, create a placeholder result to show the result view immediately.
+                analysisResult: shouldStream ? {
+                    probability: 0,
+                    verdict: 'Deducing...',
+                    explanation: '',
+                    isSecondOpinion: false,
+                } : null,
                 analysisEvidence: action.payload.evidence,
                 analysisModeUsed: action.payload.analysisMode,
             };
+        }
         // FIX: Corrected typo from START_REANALysis to START_REANALYSIS
         case actions.START_REANALYSIS:
             return {
                 ...state,
                 isLoading: true,
                 isReanalyzing: true,
+                isStreaming: true, // Re-analysis is always a deep dive, therefore always streaming.
                 error: null,
+                 analysisResult: {
+                    ...state.analysisResult!,
+                    explanation: '', // Clear previous explanation for streaming
+                    isSecondOpinion: true,
+                },
+            };
+        case actions.STREAM_ANALYSIS_UPDATE:
+            if (!state.analysisResult) return state;
+            return {
+                ...state,
+                 analysisResult: {
+                    ...state.analysisResult,
+                    explanation: action.payload.explanation,
+                },
             };
         case actions.ANALYSIS_SUCCESS:
             return {
                 ...state,
                 isLoading: false,
                 isReanalyzing: false,
+                isStreaming: false,
                 analysisResult: { ...action.payload.result, isSecondOpinion: action.payload.isSecondOpinion },
                 analysisTimestamp: new Date().toLocaleString(),
             };
@@ -74,6 +104,7 @@ const resultReducer = (state: ResultState, action: Action): ResultState => {
                 ...state,
                 isLoading: false,
                 isReanalyzing: false,
+                isStreaming: false,
                 error: action.payload,
             };
         case actions.CLEAR_ERROR:

@@ -1,7 +1,9 @@
 
 
+
 import React from 'react';
 import { Icon } from './icons/index';
+// FIX: Corrected import path for UI components.
 import { Card, Button } from './ui';
 
 const ErrorFallbackComponent: React.FC = () => {

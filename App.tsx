@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Header } from './components/Header';
 import { ResultDisplay } from './components/ResultDisplay';
@@ -8,6 +9,7 @@ import { InputStateProvider } from './context/InputStateContext';
 import { ResultStateProvider, useResultState } from './context/ResultStateContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import * as actions from './context/actions';
+// FIX: Corrected import path for UI components.
 import { Card } from './components/ui';
 
 const IconSprite: React.FC = React.memo(() => (
@@ -36,6 +38,9 @@ const IconSprite: React.FC = React.memo(() => (
       </symbol>
       <symbol id="icon-link" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+      </symbol>
+       <symbol id="icon-light-bulb" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.311V21m-3.75 0h-1.5a1.5 1.5 0 0 1-1.5-1.5v-1.5m3.75 0v-1.5a1.5 1.5 0 0 0-1.5-1.5h-1.5m-6.375 7.375a12.057 12.057 0 0 1-4.5 0m3.75 2.311V21m-3.75 0h-1.5a1.5 1.5 0 0 1-1.5-1.5v-1.5m3.75 0v-1.5a1.5 1.5 0 0 0-1.5-1.5h-1.5M9 6.75a3 3 0 0 1 3-3h0a3 3 0 0 1 3 3v.75M9 7.5h6" />
       </symbol>
       <symbol id="icon-moon" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
@@ -77,7 +82,7 @@ const AppContent: React.FC = () => {
   const handleCloseWelcome = () => dispatch({ type: actions.SET_SHOW_WELCOME, payload: false });
 
   const renderContent = () => {
-    if (isLoading) {
+    if (isLoading && !state.isStreaming) {
       const loaderMessage = isReanalyzing 
         ? "Re-analysing with a critical eye ..." 
         : "Deducing the Digital DNA ...";

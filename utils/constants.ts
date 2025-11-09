@@ -7,9 +7,12 @@ export const ACCEPTED_IMAGE_TYPES_STRING = ACCEPTED_IMAGE_TYPES.join(',');
 
 // Gemini Model Configuration
 export const MODELS = {
-  QUICK: 'gemini-2.5-flash',
-  // FIX: Switched to the faster, specialized model for image analysis.
-  DEEP: 'gemini-2.5-flash-image',
+  FLASH: 'gemini-2.5-flash',
+  PRO: 'gemini-2.5-pro',
+  // FIX: This was the root cause of the hang. 'gemini-2.5-flash-image' is an image-to-image
+  // model and does not support this type of JSON analysis. The correct model for a fast,
+  // multimodal analysis is 'gemini-2.5-flash'.
+  QUICK_IMAGE: 'gemini-2.5-flash',
 };
 
 // UI and Styling Constants

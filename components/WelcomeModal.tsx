@@ -1,5 +1,7 @@
+
 import React from 'react';
 import { Icon } from './icons/index';
+// FIX: Corrected import path for UI components.
 import { Button } from './ui';
 
 interface WelcomeModalProps {

@@ -1,4 +1,6 @@
+
 import React from 'react';
+// FIX: Corrected import path for UI components.
 import { Button } from '../ui';
 import { Icon } from '../icons/index';
 

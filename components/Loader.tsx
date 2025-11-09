@@ -11,10 +11,9 @@ export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Deducing t
   
   const renderSubtext = () => {
     if (analysisMode === 'deep') {
-      const evidenceType = analysisEvidenceType === 'file' ? 'image' : 'text';
       return (
         <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 animate-fade-in max-w-sm mx-auto">
-            A Deep Dive is underway. This level of scrutiny takes time. For images, I'm performing an extra optimization step to ensure a thorough analysis. Thank you for your patience.
+            A Deep Dive is underway. This level of scrutiny can take a moment. Thank you for your patience.
         </p>
       );
     }

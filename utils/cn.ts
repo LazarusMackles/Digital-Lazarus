@@ -6,7 +6,17 @@
  * objects with boolean values, or arrays of other class values.
  * @returns A single string of space-separated class names.
  */
-type ClassValue = string | number | null | boolean | undefined | { [key: string]: boolean | null | undefined };
+// FIX: Broadened the ClassValue type to correctly handle nested arrays and object values,
+// resolving TypeScript errors in tests that use complex, nested structures.
+type ClassValue =
+  | string
+  | number
+  | null
+  | boolean
+  | undefined
+  | { [key: string]: any }
+  | ReadonlyArray<ClassValue>;
+
 
 export function cn(...inputs: ClassValue[]): string {
     const classList: string[] = [];

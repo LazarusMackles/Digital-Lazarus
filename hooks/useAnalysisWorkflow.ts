@@ -2,136 +2,77 @@ import { useCallback } from 'react';
 import { useInputState } from '../context/InputStateContext';
 import { useResultState } from '../context/ResultStateContext';
 import * as actions from '../context/actions';
-import type { ForensicMode } from '../types';
-import { aggressivelyCompressImageForAnalysis } from '../utils/imageCompression';
+import { runAnalysis } from '../services/analysisService';
+import type { AnalysisEvidence } from '../types';
 
 export const useAnalysisWorkflow = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
-    const { state: resultState, dispatch: resultDispatch } = useResultState();
-    
-    const performAnalysis = useCallback(async () => {
+    const { dispatch: resultDispatch } = useResultState();
+
+    const performAnalysis = useCallback(async (isReanalysis = false) => {
         const { activeInput, textContent, fileData, analysisMode, forensicMode } = inputState;
 
-        let evidence;
-        let images = fileData.map(f => f.imageBase64).filter(Boolean) as string[];
+        // For re-analysis, we force a deep dive.
+        const currentAnalysisMode = isReanalysis ? 'deep' : analysisMode;
 
-        // Apply compression to all images before sending
-        if (activeInput === 'file' && images.length > 0) {
-            try {
-                images = await Promise.all(images.map(imgBase64 => aggressivelyCompressImageForAnalysis(imgBase64)));
-            } catch (err) {
-                 resultDispatch({ type: actions.ANALYSIS_ERROR, payload: 'Failed to optimize image for analysis. Please try again.' });
-                 return;
-            }
-        }
-
-        switch(activeInput) {
-            case 'text': evidence = { type: 'text', content: textContent }; break;
-            case 'file': evidence = { type: 'file', content: fileData.map(f => f.name).join(', ') }; break;
-            default: console.error("Attempted analysis with unknown input type."); return;
+        // Prepare evidence payload
+        let evidence: AnalysisEvidence;
+        if (activeInput === 'text') {
+            evidence = { type: 'text', content: textContent };
+        } else {
+            // For file evidence, we stringify the file data array.
+            // This is how we pass it to the result state for display.
+            const fileContent = JSON.stringify(fileData.map(f => ({
+                name: f.name,
+                imageBase64: f.imageBase64,
+            })));
+            evidence = { type: 'file', content: fileContent };
         }
         
-        resultDispatch({ type: actions.START_ANALYSIS, payload: { evidence, analysisMode } });
+        // Dispatch start action
+        if (isReanalysis) {
+            resultDispatch({ type: actions.START_REANALYSIS });
+        } else {
+            resultDispatch({ type: actions.START_ANALYSIS, payload: { evidence, analysisMode: currentAnalysisMode } });
+        }
 
         try {
-            const response = await fetch('/api/analyze', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    text: activeInput === 'text' ? textContent : null,
-                    images: activeInput === 'file' ? images : null,
-                    analysisMode,
-                    forensicMode,
-                    activeInput,
-                }),
-            });
+            // Handler for streaming updates
+            const onStreamUpdate = (partialExplanation: string) => {
+                resultDispatch({ 
+                    type: actions.STREAM_ANALYSIS_UPDATE, 
+                    payload: { explanation: partialExplanation }
+                });
+            };
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                if (response.status === 401 && data.message?.includes("API key not valid")) {
-                     throw new Error("The selected API key is not valid. Please select a valid key and try again.");
-                }
-                throw new Error(data.message || 'An unknown error occurred during analysis.');
-            }
+            const result = await runAnalysis(
+                activeInput,
+                textContent,
+                fileData.map(f => ({ name: f.name, imageBase64: f.imageBase64 as string })),
+                currentAnalysisMode,
+                forensicMode,
+                onStreamUpdate // Pass the handler
+            );
             
-            resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result: data.result } });
+            resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result, isSecondOpinion: isReanalysis } });
 
-        } catch (err: any) {
-             if (err.message?.includes("API key not valid")) {
-                resultDispatch({ type: actions.ANALYSIS_ERROR, payload: "The selected API key is not valid. Please select a different key and try again." });
-             } else {
-                resultDispatch({ type: actions.ANALYSIS_ERROR, payload: err.message });
-             }
+        } catch (error) {
+            console.error("Analysis workflow error:", error);
+            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+            resultDispatch({ type: actions.ANALYSIS_ERROR, payload: errorMessage });
         }
 
     }, [inputState, resultDispatch]);
 
-    const handleChallenge = useCallback(async (mode: ForensicMode) => {
-        if (!resultState.analysisEvidence) return;
-        
-        resultDispatch({ type: actions.START_REANALYSIS });
-
-        const isImageChallenge = resultState.analysisEvidence.type === 'file';
-        let images = isImageChallenge ? inputState.fileData.map(f => f.imageBase64).filter(Boolean) as string[] : null;
-        const text = !isImageChallenge ? resultState.analysisEvidence.content : null;
-
-        if (isImageChallenge && images && images.length > 0) {
-            try {
-                 images = await Promise.all(images.map(imgBase64 => aggressivelyCompressImageForAnalysis(imgBase64)));
-            } catch (err) {
-                 resultDispatch({ type: actions.ANALYSIS_ERROR, payload: 'Failed to optimize image for re-analysis.' });
-                 return;
-            }
-        }
-        
-         try {
-            const response = await fetch('/api/analyze', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    text,
-                    images,
-                    analysisMode: 'deep', // Re-analysis is always deep
-                    forensicMode: mode,
-                    systemInstructionPreamble: "This is a re-analysis. The user was not satisfied with the initial verdict. Adopt a more critical, skeptical perspective and provide a fresh, more detailed explanation.",
-                    activeInput: resultState.analysisEvidence.type,
-                }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'An unknown error occurred during re-analysis.');
-            }
-            
-            resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result: data.result, isSecondOpinion: true } });
-
-        } catch (err: any) {
-            resultDispatch({ type: actions.ANALYSIS_ERROR, payload: err.message });
-        }
-    }, [resultState.analysisEvidence, inputState.fileData, resultDispatch]);
-
     const handleNewAnalysis = useCallback(() => {
         resultDispatch({ type: actions.NEW_ANALYSIS });
         inputDispatch({ type: actions.CLEAR_INPUTS });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     }, [resultDispatch, inputDispatch]);
-
+    
     const handleClearInputs = useCallback(() => {
         inputDispatch({ type: actions.CLEAR_INPUTS });
         resultDispatch({ type: actions.CLEAR_ERROR });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     }, [inputDispatch, resultDispatch]);
-    
-    return {
-        performAnalysis,
-        handleChallenge,
-        handleNewAnalysis,
-        handleClearInputs
-    };
+
+    return { performAnalysis, handleNewAnalysis, handleClearInputs };
 };

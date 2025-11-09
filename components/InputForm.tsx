@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+
+import React, { useCallback, useMemo } from 'react';
 import { InputTabs } from './InputTabs';
 import { FileUploadDisplay } from './FileUploadDisplay';
 import { ModeSelector } from './ModeSelector';
@@ -6,7 +7,9 @@ import { HowItWorks } from './HowItWorks';
 import { useInputState } from '../context/InputStateContext';
 import { useResultState } from '../context/ResultStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
+import { useApiKey } from '../hooks/useApiKey';
 import * as actions from '../context/actions';
+// FIX: Corrected import path for UI components.
 import { Card, Button } from './ui';
 import { Icon } from './icons/index';
 import { TextInputPanel } from './TextInputPanel';
@@ -14,25 +17,13 @@ import { isInputReadyForAnalysis } from '../utils/validation';
 import { ForensicModeToggle } from './ForensicModeToggle';
 import type { AnalysisMode, ForensicMode } from '../types';
 
-// FIX: Moved the AIStudio interface into the declare global block to fix a scope issue.
-// Define the AIStudio interface to provide type safety for the global window object.
-declare global {
-    interface AIStudio {
-        hasSelectedApiKey: () => Promise<boolean>;
-        openSelectKey: () => Promise<void>;
-    }
-    interface Window {
-        aistudio?: AIStudio;
-    }
-}
+// The global AIStudio interface declaration is now managed within the useApiKey hook.
 
 export const InputForm: React.FC = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
     const { state: resultState, dispatch: resultDispatch } = useResultState();
     const { performAnalysis, handleClearInputs } = useAnalysisWorkflow();
-
-    const [hasApiKey, setHasApiKey] = useState(false);
-    const [isCheckingApiKey, setIsCheckingApiKey] = useState(true);
+    const { hasApiKey, isChecking: isCheckingApiKey, selectApiKey } = useApiKey();
 
     const {
         textContent,
@@ -41,36 +32,7 @@ export const InputForm: React.FC = () => {
         analysisMode,
         forensicMode,
     } = inputState;
-    const { error, isLoading } = resultState;
-
-    useEffect(() => {
-        const checkKey = async () => {
-            setIsCheckingApiKey(true);
-            if (window.aistudio) {
-                try {
-                    const keyStatus = await window.aistudio.hasSelectedApiKey();
-                    setHasApiKey(keyStatus);
-                } catch (e) {
-                    console.error("Error checking for API key:", e);
-                    setHasApiKey(false);
-                }
-            }
-            setIsCheckingApiKey(false);
-        };
-        checkKey();
-    }, [isLoading]); // Re-check when an analysis starts/finishes
-
-    const handleSelectKey = async () => {
-        if (window.aistudio) {
-            await window.aistudio.openSelectKey();
-            // Optimistically update UI assuming the user selects a key.
-            // The useEffect will re-verify on the next render cycle.
-            setHasApiKey(true);
-            if (error?.includes('API key')) {
-                resultDispatch({ type: actions.CLEAR_ERROR });
-            }
-        }
-    };
+    const { error } = resultState;
 
     const isInputValid = useMemo(() => {
         return isInputReadyForAnalysis(activeInput, textContent, fileData);
@@ -86,6 +48,11 @@ export const InputForm: React.FC = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        // Clear previous API key errors when a new submission is attempted
+        if (error?.includes('API key')) {
+            resultDispatch({ type: actions.CLEAR_ERROR });
+        }
+        
         if (isInputValid && hasApiKey) {
             performAnalysis();
         } else if (!hasApiKey) {
@@ -142,7 +109,7 @@ export const InputForm: React.FC = () => {
                                         <br />
                                         For information on billing, please visit <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-300">ai.google.dev/gemini-api/docs/billing</a>.
                                     </p>
-                                    <Button type="button" onClick={handleSelectKey}>
+                                    <Button type="button" onClick={selectApiKey}>
                                         Select API Key to Begin
                                     </Button>
                                 </div>
