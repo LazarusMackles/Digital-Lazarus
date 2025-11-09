@@ -1,6 +1,7 @@
+
 import React from 'react';
 import type { AnalysisMode } from '../types';
-import { ModeButton } from './ModeButton';
+import { ModeButton } from './ui';
 
 interface ModeSelectorProps {
   selectedMode: AnalysisMode;

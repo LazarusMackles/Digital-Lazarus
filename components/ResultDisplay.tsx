@@ -4,11 +4,10 @@ import { useResultState } from '../context/ResultStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
 import { VerdictPanel } from './result/VerdictPanel';
 import { EvidencePresenter } from './result/EvidencePresenter';
-import { HighlightsDisplay } from './HighlightsDisplay';
 import { Feedback } from './Feedback';
 import { ResultActionButtons } from './result/ResultActionButtons';
 import { ShareModal } from './ShareModal';
-import { Card } from './ui/Card';
+import { Card, HighlightsDisplay } from './ui';
 import { ChallengeVerdict } from './ChallengeVerdict';
 import { InteractiveTextDisplay } from './InteractiveTextDisplay';
 

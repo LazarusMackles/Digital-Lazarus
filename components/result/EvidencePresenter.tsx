@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import type { AnalysisEvidence } from '../../types';
 import { EvidenceImage } from '../EvidenceImage';
 import { ImageLightbox } from '../ImageLightbox';
-import { SleuthNote } from '../SleuthNote';
+import { SleuthNote } from '../ui';
 import { InteractiveTextDisplay } from '../InteractiveTextDisplay';
 import { useResultState } from '../../context/ResultStateContext';
 

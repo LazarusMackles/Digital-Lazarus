@@ -1,6 +1,7 @@
+
 import React from 'react';
 import type { ForensicMode } from '../types';
-import { ModeButton } from './ModeButton';
+import { ModeButton } from './ui';
 
 interface ForensicModeToggleProps {
   selectedMode: ForensicMode;

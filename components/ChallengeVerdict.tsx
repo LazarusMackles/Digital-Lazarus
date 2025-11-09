@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Button } from './ui/Button';
 import { Icon } from './icons/index';
-import { SleuthNote } from './SleuthNote';
+import { SleuthNote } from './ui';
 
 interface ChallengeVerdictProps {
   onReanalyze: () => void;

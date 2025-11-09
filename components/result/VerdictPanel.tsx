@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { RadialProgress } from '../RadialProgress';
 import { useResultState } from '../../context/ResultStateContext';
 // FIX: Changed import path from '../icons' to '../icons/index' to resolve ambiguity with an empty 'icons.tsx' file.
 import { Icon } from '../icons/index';
+import { RadialProgress } from '../ui';
 
 interface VerdictPanelProps {
     probability: number;
