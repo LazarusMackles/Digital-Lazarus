@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, ReactNode, Dispatch } from 'react';
 import type { AnalysisResult, AnalysisEvidence, AnalysisMode } from '../types';
 import * as actions from './actions';
@@ -16,7 +15,8 @@ export interface ResultState {
 }
 
 // Initial state
-const initialState: ResultState = {
+// FIX: Export for testing.
+export const initialState: ResultState = {
     isLoading: false,
     isReanalyzing: false,
     isStreaming: false,
@@ -39,7 +39,8 @@ type Action =
   | { type: typeof actions.STREAM_ANALYSIS_UPDATE; payload: { explanation: string } };
 
 // Reducer
-const resultReducer = (state: ResultState, action: Action): ResultState => {
+// FIX: Export for testing and provide default state.
+export const resultReducer = (state: ResultState = initialState, action: Action): ResultState => {
     switch (action.type) {
         case actions.START_ANALYSIS: {
             const isDeepMode = action.payload.analysisMode === 'deep';

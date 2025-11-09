@@ -23,7 +23,8 @@ export interface InputState {
 }
 
 // Initial state
-const initialState: InputState = {
+// FIX: Export for testing.
+export const initialState: InputState = {
     textContent: '',
     fileData: [],
     activeInput: 'file',
@@ -42,7 +43,8 @@ type Action =
   | { type: typeof actions.LOAD_SCENARIO; payload: Scenario };
 
 // Reducer
-const inputReducer = (state: InputState, action: Action): InputState => {
+// FIX: Export for testing and provide default state.
+export const inputReducer = (state: InputState = initialState, action: Action): InputState => {
     switch (action.type) {
         case actions.SET_TEXT_CONTENT:
             return { ...state, textContent: action.payload, fileData: [] };
