@@ -1,7 +1,6 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import type { AnalysisResult, AnalysisEvidence } from '../types';
+import type { AnalysisResult, AnalysisEvidence, AnalysisMode } from '../types';
 import { Icon } from './icons/index';
 import { generateShareText } from '../utils/reportUtils';
 // FIX: Corrected import path for UI components.
@@ -13,9 +12,11 @@ interface ShareModalProps {
   onClose: () => void;
   evidence: AnalysisEvidence | null;
   timestamp: string | null;
+  analysisModeUsed: AnalysisMode | null;
+  modelUsed: string | null;
 }
 
-export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose, evidence, timestamp }) => {
+export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose, evidence, timestamp, analysisModeUsed, modelUsed }) => {
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
   const [modalRoot, setModalRoot] = useState<HTMLElement | null>(null);
 
@@ -27,7 +28,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose, evidenc
   // Use the custom hook to lock body scroll when modal is open.
   useBodyScrollLock();
 
-  const shareText = generateShareText(result, evidence, timestamp, false);
+  const shareText = generateShareText(result, evidence, timestamp, false, analysisModeUsed, modelUsed);
   const encodedShareText = encodeURIComponent(shareText);
   const reportTitle = encodeURIComponent('GenAI Sleuther Vanguard Forensic Report');
 

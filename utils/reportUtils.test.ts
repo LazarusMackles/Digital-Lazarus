@@ -19,7 +19,8 @@ describe('generateShareText', () => {
             type: 'text',
             content: 'This is the text that was analyzed.'
         };
-        const report = generateShareText(mockResult, mockEvidence, mockTimestamp);
+        // FIX: Provided all 6 arguments to satisfy the function's signature.
+        const report = generateShareText(mockResult, mockEvidence, mockTimestamp, false, 'deep', 'gemini-2.5-pro');
 
         expect(report).toContain('--- FORENSIC REPORT ---');
         expect(report).toContain('Analysis by: GenAI Sleuther Vanguard');
@@ -41,7 +42,8 @@ describe('generateShareText', () => {
             type: 'text',
             content: longText,
         };
-        const report = generateShareText(mockResult, mockEvidence, mockTimestamp);
+        // FIX: Provided all 6 arguments to satisfy the function's signature.
+        const report = generateShareText(mockResult, mockEvidence, mockTimestamp, false, 'quick', 'gemini-2.5-flash');
         const expectedTruncatedText = 'a'.repeat(500) + '...';
 
         expect(report).toContain(expectedTruncatedText);
@@ -51,16 +53,19 @@ describe('generateShareText', () => {
     it('should generate a report for file evidence', () => {
         const mockEvidence: AnalysisEvidence = {
             type: 'file',
-            content: 'cat.png, dog.jpg'
+            // FIX: Corrected evidence content to be a stringified JSON array as the implementation expects.
+            content: JSON.stringify([{ name: 'cat.png' }, { name: 'dog.jpg' }])
         };
-        const report = generateShareText(mockResult, mockEvidence, mockTimestamp);
+        // FIX: Provided all 6 arguments to satisfy the function's signature.
+        const report = generateShareText(mockResult, mockEvidence, mockTimestamp, false, 'deep', 'gemini-2.5-pro');
         expect(report).toContain('EVIDENCE ANALYZED (FILES): cat.png, dog.jpg');
     });
 
     // FIX: Removed test case for deprecated 'url' evidence type which was causing a type error.
 
     it('should handle missing evidence and timestamp gracefully', () => {
-        const report = generateShareText(mockResult, null, null);
+        // FIX: Provided all 6 arguments to satisfy the function's signature.
+        const report = generateShareText(mockResult, null, null, false, null, null);
         expect(report).not.toContain('Date of Analysis:');
         expect(report).not.toContain('EVIDENCE ANALYZED');
     });
@@ -68,13 +73,15 @@ describe('generateShareText', () => {
     it('should handle results with no highlights', () => {
         const resultWithoutHighlights = { ...mockResult, highlights: [] };
         const mockEvidence: AnalysisEvidence = { type: 'text', content: 'text' };
-        const report = generateShareText(resultWithoutHighlights, mockEvidence, mockTimestamp);
+        // FIX: Provided all 6 arguments to satisfy the function's signature.
+        const report = generateShareText(resultWithoutHighlights, mockEvidence, mockTimestamp, false, null, null);
         expect(report).not.toContain('KEY INDICATORS:');
     });
 
     it('should prepend a feedback placeholder when forEmailBody is true', () => {
         const mockEvidence: AnalysisEvidence = { type: 'text', content: 'text' };
-        const report = generateShareText(mockResult, mockEvidence, mockTimestamp, true);
+        // FIX: Provided all 6 arguments to satisfy the function's signature.
+        const report = generateShareText(mockResult, mockEvidence, mockTimestamp, true, 'deep', 'gemini-2.5-pro');
         expect(report).toContain('[--- PLEASE PROVIDE YOUR FEEDBACK OR SUGGESTION HERE ---]');
         expect(report).toContain('--- AUTOMATED CASE FILE ---');
         expect(report).not.toContain('--- FORENSIC REPORT ---');

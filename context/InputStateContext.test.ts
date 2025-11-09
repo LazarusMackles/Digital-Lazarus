@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 // FIX: Export `inputReducer` and `initialState` from the context file to make them importable for testing.
 import { inputReducer, initialState } from './InputStateContext';
 import * as actions from './actions';
-import type { Scenario } from '../types';
+import type { Scenario, InputType } from '../types';
 
 describe('inputReducer', () => {
     it('should return the initial state', () => {
@@ -47,11 +47,12 @@ describe('inputReducer', () => {
     });
 
     it('should handle CLEAR_INPUTS', () => {
+        // FIX: Explicitly cast `activeInput` to `InputType` to prevent TypeScript from widening the type to a generic `string`, which causes a type mismatch with the reducer's state parameter.
         const currentState = {
             ...initialState,
             textContent: 'some text',
             fileData: [{ name: 'file.jpg' }],
-            activeInput: 'text',
+            activeInput: 'text' as InputType,
         };
         const expectedState = {
             ...initialState,

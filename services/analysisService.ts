@@ -1,4 +1,3 @@
-
 import { analyzeContent, analyzeContentStream } from '../api/analyze';
 import { aggressivelyCompressImageForAnalysis } from '../utils/imageCompression';
 import { MODELS } from '../utils/constants';
@@ -81,7 +80,7 @@ export const runAnalysis = async (
     analysisMode: AnalysisMode,
     forensicMode: ForensicMode,
     onStreamUpdate?: (partialExplanation: string) => void
-): Promise<AnalysisResult> => {
+): Promise<{ result: AnalysisResult; modelName: string; }> => {
     
     const prompt = buildPrompt(inputType, textContent, fileData, analysisMode, forensicMode);
     
@@ -123,10 +122,10 @@ export const runAnalysis = async (
             }
         };
         const rawResult = await analyzeContentStream(prompt, filesForApi, modelName, handleStream);
-        return normalizeResult(rawResult, false);
+        return { result: normalizeResult(rawResult, false), modelName };
     }
 
     // For quick scans, use the standard API call.
     const rawResult = await analyzeContent(prompt, filesForApi, analysisMode, modelName);
-    return normalizeResult(rawResult, isQuickScan);
+    return { result: normalizeResult(rawResult, isQuickScan), modelName };
 };

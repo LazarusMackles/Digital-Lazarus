@@ -45,7 +45,7 @@ export const useAnalysisWorkflow = () => {
                 });
             };
 
-            const result = await runAnalysis(
+            const { result, modelName } = await runAnalysis(
                 activeInput,
                 textContent,
                 fileData.map(f => ({ name: f.name, imageBase64: f.imageBase64 as string })),
@@ -54,7 +54,7 @@ export const useAnalysisWorkflow = () => {
                 onStreamUpdate // Pass the handler
             );
             
-            resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result, isSecondOpinion: isReanalysis } });
+            resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result, modelName, isSecondOpinion: isReanalysis } });
 
         } catch (error) {
             console.error("Analysis workflow error:", error);

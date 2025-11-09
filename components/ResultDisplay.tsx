@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { useResultState } from '../context/ResultStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
@@ -14,7 +13,7 @@ import { InteractiveTextDisplay } from './InteractiveTextDisplay';
 export const ResultDisplay: React.FC = () => {
   const { state } = useResultState();
   const { handleNewAnalysis, performAnalysis } = useAnalysisWorkflow();
-  const { analysisResult, analysisEvidence, analysisTimestamp, isStreaming, isReanalyzing } = state;
+  const { analysisResult, analysisEvidence, analysisTimestamp, isStreaming, isReanalyzing, analysisModeUsed, modelUsed } = state;
   const [showShareModal, setShowShareModal] = useState(false);
 
   const handleReanalyze = useCallback(() => {
@@ -59,7 +58,7 @@ export const ResultDisplay: React.FC = () => {
                         onReanalyze={handleReanalyze} 
                         isSecondOpinion={isSecondOpinion || false} 
                     />
-                    <Feedback result={analysisResult} evidence={analysisEvidence} timestamp={analysisTimestamp} />
+                    <Feedback result={analysisResult} evidence={analysisEvidence} timestamp={analysisTimestamp} analysisModeUsed={analysisModeUsed} modelUsed={modelUsed} />
                     <ResultActionButtons onNewAnalysis={handleNewAnalysis} onShowShareModal={() => setShowShareModal(true)} />
                 </div>
             </>
@@ -72,6 +71,8 @@ export const ResultDisplay: React.FC = () => {
           result={analysisResult}
           evidence={analysisEvidence}
           timestamp={analysisTimestamp}
+          analysisModeUsed={analysisModeUsed}
+          modelUsed={modelUsed}
           onClose={() => setShowShareModal(false)}
         />
       )}

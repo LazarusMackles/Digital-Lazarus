@@ -12,6 +12,7 @@ export interface ResultState {
     analysisTimestamp: string | null;
     analysisEvidence: AnalysisEvidence | null;
     analysisModeUsed: AnalysisMode | null;
+    modelUsed: string | null;
 }
 
 // Initial state
@@ -25,6 +26,7 @@ export const initialState: ResultState = {
     analysisTimestamp: null,
     analysisEvidence: null,
     analysisModeUsed: null,
+    modelUsed: null,
 };
 
 // Action types
@@ -32,7 +34,7 @@ type Action =
   | { type: typeof actions.START_ANALYSIS; payload: { evidence: AnalysisEvidence; analysisMode: AnalysisMode } }
   // FIX: Corrected typo from START_REANALysis to START_REANALYSIS
   | { type: typeof actions.START_REANALYSIS }
-  | { type: typeof actions.ANALYSIS_SUCCESS; payload: { result: AnalysisResult; isSecondOpinion?: boolean } }
+  | { type: typeof actions.ANALYSIS_SUCCESS; payload: { result: AnalysisResult; modelName: string; isSecondOpinion?: boolean } }
   | { type: typeof actions.ANALYSIS_ERROR; payload: string | null }
   | { type: typeof actions.NEW_ANALYSIS }
   | { type: typeof actions.CLEAR_ERROR }
@@ -61,6 +63,7 @@ export const resultReducer = (state: ResultState = initialState, action: Action)
                 } : null,
                 analysisEvidence: action.payload.evidence,
                 analysisModeUsed: action.payload.analysisMode,
+                modelUsed: null,
             };
         }
         // FIX: Corrected typo from START_REANALysis to START_REANALYSIS
@@ -93,6 +96,7 @@ export const resultReducer = (state: ResultState = initialState, action: Action)
                 isReanalyzing: false,
                 isStreaming: false,
                 analysisResult: { ...action.payload.result, isSecondOpinion: action.payload.isSecondOpinion },
+                modelUsed: action.payload.modelName,
                 analysisTimestamp: new Date().toLocaleString(),
             };
         case actions.ANALYSIS_ERROR:

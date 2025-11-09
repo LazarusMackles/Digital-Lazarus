@@ -1,5 +1,4 @@
-
-import type { AnalysisResult, AnalysisEvidence } from '../types';
+import type { AnalysisResult, AnalysisEvidence, AnalysisMode } from '../types';
 
 /**
  * Generates a formatted plain text report from the analysis results.
@@ -8,19 +7,24 @@ import type { AnalysisResult, AnalysisEvidence } from '../types';
  * @param evidence The evidence object.
  * @param timestamp The timestamp of the analysis.
  * @param forEmailBody If true, prepends a placeholder for user feedback.
+ * @param analysisModeUsed The analysis mode ('quick' or 'deep') used.
+ * @param modelUsed The specific Gemini model name used.
  * @returns A formatted string representing the forensic report.
  */
 export const generateShareText = (
     result: AnalysisResult, 
     evidence: AnalysisEvidence | null, 
     timestamp: string | null,
-    forEmailBody: boolean = false
+    forEmailBody: boolean = false,
+    analysisModeUsed: AnalysisMode | null,
+    modelUsed: string | null
 ): string => {
     let evidenceText = '';
     if (evidence) {
         switch (evidence.type) {
             case 'file':
                 try {
+                    // FIX: Evidence content for files is a stringified JSON array. It needs to be parsed first.
                     const files: { name: string }[] = JSON.parse(evidence.content);
                     const fileNames = files.map(f => f.name).join(', ');
                     evidenceText = `EVIDENCE ANALYZED (FILES): ${fileNames}\n`;
@@ -46,6 +50,10 @@ export const generateShareText = (
     }
     
     text += `Analysis by: GenAI Sleuther Vanguard\n`;
+    if (analysisModeUsed && modelUsed) {
+        const modeText = analysisModeUsed === 'deep' ? 'Deep Analysis' : 'Quick Scan';
+        text += `Analysis Method: ${modeText} (${modelUsed})\n`;
+    }
     if (timestamp) {
         text += `Date of Analysis: ${timestamp}\n`;
     }

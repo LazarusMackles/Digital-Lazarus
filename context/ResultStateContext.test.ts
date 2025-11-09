@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 // FIX: Export `resultReducer` and `initialState` from the context file to make them importable for testing.
 import { resultReducer, initialState } from './ResultStateContext';
 import * as actions from './actions';
-import type { AnalysisEvidence, AnalysisResult } from '../types';
+import type { AnalysisEvidence, AnalysisResult, AnalysisMode } from '../types';
 
 describe('resultReducer', () => {
 
@@ -12,9 +12,10 @@ describe('resultReducer', () => {
     });
 
     it('should handle START_ANALYSIS for deep mode (streaming)', () => {
+        // FIX: Explicitly cast `analysisMode` to `AnalysisMode` to prevent TypeScript from widening the type to a generic `string`, which causes a type mismatch with the reducer's action payload.
         const payload = {
             evidence: { type: 'text', content: 'test' } as AnalysisEvidence,
-            analysisMode: 'deep',
+            analysisMode: 'deep' as AnalysisMode,
         };
         // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
         const state = resultReducer(initialState, { type: actions.START_ANALYSIS, payload });
@@ -28,9 +29,10 @@ describe('resultReducer', () => {
     });
 
     it('should handle START_ANALYSIS for quick mode (not streaming)', () => {
+        // FIX: Explicitly cast `analysisMode` to `AnalysisMode` to prevent TypeScript from widening the type to a generic `string`, which causes a type mismatch with the reducer's action payload.
         const payload = {
             evidence: { type: 'text', content: 'test' } as AnalysisEvidence,
-            analysisMode: 'quick',
+            analysisMode: 'quick' as AnalysisMode,
         };
         // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
         const state = resultReducer(initialState, { type: actions.START_ANALYSIS, payload });
@@ -69,6 +71,8 @@ describe('resultReducer', () => {
     it('should handle ANALYSIS_SUCCESS', () => {
         const payload = {
             result: { probability: 90, verdict: 'AI', explanation: 'Done' } as AnalysisResult,
+            // FIX: Added the required `modelName` property to the payload.
+            modelName: 'gemini-2.5-pro',
             isSecondOpinion: true
         };
         // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
@@ -80,6 +84,7 @@ describe('resultReducer', () => {
         expect(state.analysisResult?.probability).toBe(90);
         expect(state.analysisResult?.isSecondOpinion).toBe(true);
         expect(state.analysisTimestamp).not.toBeNull();
+        expect(state.modelUsed).toBe('gemini-2.5-pro');
     });
 
     it('should handle ANALYSIS_ERROR', () => {
