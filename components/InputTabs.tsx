@@ -38,7 +38,7 @@ const TabButton: React.FC<{
         )}
       />
       <span className={cn(
-        'mt-2 text-base font-semibold',
+        'mt-2 text-lg font-semibold',
         {
           'text-cyan-600 dark:text-cyan-400': isActive,
           'text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-400 dark:to-fuchsia-500': !isActive,
@@ -61,13 +61,13 @@ export const InputTabs: React.FC = React.memo(() => {
   return (
     <div className="flex" role="tablist">
       <TabButton
-        label="File(s)"
+        label="Upload File(s)"
         icon="upload"
         isActive={activeInput === 'file'}
         onClick={() => handleTabChange('file')}
       />
       <TabButton
-        label="Text"
+        label="Paste Text"
         icon="text"
         isActive={activeInput === 'text'}
         onClick={() => handleTabChange('text')}

@@ -12,7 +12,7 @@ interface ModeButtonProps {
 
 export const ModeButton: React.FC<ModeButtonProps> = React.memo(({ active, onClick, title, description, size = 'md', titleStyle = 'default' }) => {
     const padding = size === 'md' ? 'p-4' : 'p-3';
-    const titleSize = size === 'md' ? 'font-bold' : 'font-bold text-sm';
+    const titleSize = size === 'md' ? 'text-lg font-bold' : 'font-bold text-sm';
     
     let titleClasses = '';
     if (active) {

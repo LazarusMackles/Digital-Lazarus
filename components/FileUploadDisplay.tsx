@@ -97,7 +97,7 @@ export const FileUploadDisplay: React.FC = () => {
                 onDragEnter={(e) => handleDragEvent(e, true)}
                 onDragLeave={(e) => handleDragEvent(e, false)}
                 className={`relative p-4 border-2 border-dashed rounded-lg transition-colors min-h-[180px]
-                    ${isDragActive ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/30' : 'border-slate-300 dark:border-slate-600'}
+                    ${isDragActive ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/30' : 'border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-900'}
                 `}
             >
                 {fileData.length === 0 && (

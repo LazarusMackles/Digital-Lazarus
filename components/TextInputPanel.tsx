@@ -10,9 +10,7 @@ export const TextInputPanel: React.FC = () => {
         dispatch({ type: actions.SET_TEXT_CONTENT, payload: e.target.value });
     };
 
-    const placeholderText = `Awaiting your text evidence...
-
-Paste your text here to begin the analysis.`;
+    const placeholderText = `Awaiting your text evidence ... Paste your text here.`;
 
 
     return (
