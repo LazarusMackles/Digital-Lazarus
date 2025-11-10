@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { Icon } from './icons/index';
 
@@ -10,18 +8,17 @@ export const HowItWorks: React.FC = React.memo(() => {
         <div className="mb-8 bg-slate-100 dark:bg-slate-900/50 rounded-lg border border-slate-300 dark:border-slate-700/50 transition-all duration-300">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex justify-center items-center p-4 relative"
+                className="w-full flex justify-center items-center p-4 gap-4"
                 aria-expanded={isOpen}
                 aria-controls="how-it-works-content"
             >
-                <div className="flex items-center gap-3">
-                    <Icon name="information-circle" className="w-6 h-6 text-cyan-600 dark:text-cyan-400 flex-shrink-0" />
-                    <div className="text-center">
-                        <span className="text-xs font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-400">Mission Briefing</span>
-                        <span className="block text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-400 dark:to-fuchsia-500">How Sleuther Works: Quick Guide</span>
-                    </div>
+                <h3 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-400 dark:to-fuchsia-500">
+                    How Sleuther Works: Quick Guide
+                </h3>
+                
+                <div className="flex-shrink-0 p-2 bg-slate-200 dark:bg-slate-800 rounded-full border border-slate-400 dark:border-slate-600">
+                    <Icon name="chevron-down" className={`w-5 h-5 text-cyan-500 dark:text-cyan-400 transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
-                <Icon name="chevron-down" className={`w-5 h-5 text-slate-500 dark:text-slate-400 transform transition-transform duration-300 absolute right-4 top-1/2 -translate-y-1/2 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
             <div
                 id="how-it-works-content"

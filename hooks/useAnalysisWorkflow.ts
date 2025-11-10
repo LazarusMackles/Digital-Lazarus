@@ -85,6 +85,7 @@ export const useAnalysisWorkflow = () => {
     const handleClearInputs = useCallback(() => {
         inputDispatch({ type: actions.CLEAR_INPUTS });
         uiDispatch({ type: actions.CLEAR_ERROR });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }, [inputDispatch, uiDispatch]);
 
     return { performAnalysis, handleNewAnalysis, handleClearInputs };
