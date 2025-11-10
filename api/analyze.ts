@@ -1,10 +1,53 @@
-import { GoogleGenAI, Part } from '@google/genai';
+import { GoogleGenAI, Part, GenerateContentResponse } from '@google/genai';
 import { deepAnalysisSchema, quickAnalysisSchema } from '../utils/schemas';
 import type { AnalysisMode } from '../types';
 
 // Initialize the Google AI client.
 // The API key is automatically provided by the environment.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+
+/**
+ * A helper function to introduce a delay.
+ * @param ms The number of milliseconds to wait.
+ */
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+/**
+ * A higher-order function that wraps an API call with a retry mechanism
+ * featuring exponential backoff. It specifically targets '429' rate limit errors.
+ * @param apiCall The asynchronous function to execute.
+ * @param maxRetries The maximum number of retry attempts.
+ * @param initialDelay The initial delay in milliseconds before the first retry.
+ * @returns A promise that resolves with the result of the API call.
+ */
+const withRetry = async <T>(
+  apiCall: () => Promise<T>,
+  maxRetries: number = 3,
+  initialDelay: number = 1000
+): Promise<T> => {
+  let lastError: Error | undefined;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await apiCall();
+    } catch (error) {
+      lastError = error as Error;
+      // Check for the specific rate limit error
+      if (error instanceof Error && error.message.includes('429')) {
+        if (attempt < maxRetries) {
+          const waitTime = initialDelay * Math.pow(2, attempt);
+          console.warn(`Rate limit hit. Retrying in ${waitTime}ms... (Attempt ${attempt + 1}/${maxRetries})`);
+          await delay(waitTime);
+          continue; // Move to the next attempt
+        }
+      }
+      // If it's not a rate limit error or we've exhausted retries, throw the error.
+      throw lastError;
+    }
+  }
+  // This line is technically unreachable but required for TypeScript to be certain.
+  throw lastError || new Error('Unknown error after retries.');
+};
+
 
 // Helper to prepare content parts for the API request
 const prepareContentParts = (
@@ -40,7 +83,7 @@ export const analyzeContent = async (
   const schema = analysisMode === 'deep' ? deepAnalysisSchema : quickAnalysisSchema;
 
   try {
-    const response = await ai.models.generateContent({
+    const apiCall = () => ai.models.generateContent({
       model: modelName,
       contents,
       config: {
@@ -48,6 +91,10 @@ export const analyzeContent = async (
         responseSchema: schema,
       },
     });
+
+    // FIX: Explicitly provide the generic type to `withRetry` to ensure `response` is correctly typed
+    // as `GenerateContentResponse`, resolving the error on `response.text`.
+    const response = await withRetry<GenerateContentResponse>(apiCall);
 
     // The response.text property contains the full text string, which should be JSON.
     const responseJson = response.text.trim();
@@ -59,7 +106,7 @@ export const analyzeContent = async (
             throw new Error('The API key is not valid. Please select a valid key.');
         }
         if (error.message.includes('429')) {
-             throw new Error('Rate limit exceeded. Please wait a moment before trying again.');
+             throw new Error('Sleuther is in high demand! The analysis could not be completed at this time. Please try again in a moment.');
         }
     }
     throw new Error('The analysis could not be completed due to an unexpected API error.');
@@ -77,7 +124,7 @@ export const analyzeContentStream = async (
   const schema = deepAnalysisSchema;
 
   try {
-    const responseStream = await ai.models.generateContentStream({
+    const apiCall = () => ai.models.generateContentStream({
       model: modelName,
       contents,
       config: {
@@ -85,6 +132,10 @@ export const analyzeContentStream = async (
         responseSchema: schema,
       },
     });
+
+    // FIX: Explicitly provide the generic type to `withRetry` to ensure `responseStream` is correctly
+    // typed as an async iterator, resolving the "does not have a '[Symbol.asyncIterator]'" error.
+    const responseStream = await withRetry<AsyncGenerator<GenerateContentResponse>>(apiCall);
 
     let fullResponseText = '';
     for await (const chunk of responseStream) {
@@ -105,7 +156,7 @@ export const analyzeContentStream = async (
             throw new Error('The API key is not valid. Please select a valid key.');
         }
          if (error.message.includes('429')) {
-             throw new Error('Rate limit exceeded. Please wait a moment before trying again.');
+             throw new Error('Sleuther is in high demand! The analysis could not be completed at this time. Please try again in a moment.');
         }
     }
     throw new Error('The streaming analysis could not be completed due to an unexpected API error.');

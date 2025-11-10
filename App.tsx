@@ -76,12 +76,11 @@ const AppContent: React.FC = () => {
   const view = useAppView();
 
   const { 
-    isReanalyzing,
     analysisModeUsed,
     analysisEvidence,
   } = resultState;
   
-  const { showWelcome } = uiState;
+  const { showWelcome, isReanalyzing } = uiState;
 
   const handleCloseWelcome = () => uiDispatch({ type: actions.SET_SHOW_WELCOME, payload: false });
 
@@ -118,10 +117,10 @@ const AppContent: React.FC = () => {
     <>
       <IconSprite />
       {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
-      <div className="min-h-screen p-4 sm:p-6 md:p-8 dark:text-white transition-colors duration-300">
-        <div className="max-w-4xl mx-auto">
+      <div className="h-full flex flex-col p-4 sm:p-6 md:p-8 dark:text-white transition-colors duration-300">
+        <div className="max-w-4xl mx-auto w-full flex flex-col flex-grow">
           <Header />
-          <main className="mt-12">
+          <main className="mt-12 flex-grow">
             {renderContent()}
           </main>
         </div>

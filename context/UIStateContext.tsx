@@ -1,4 +1,5 @@
 
+
 import React, { createContext, useContext, useReducer, ReactNode, Dispatch, useEffect } from 'react';
 import type { Theme } from '../types';
 import * as actions from './actions';
@@ -7,18 +8,32 @@ import * as actions from './actions';
 export interface UIState {
     showWelcome: boolean;
     theme: Theme;
+    isLoading: boolean;
+    isStreaming: boolean;
+    isReanalyzing: boolean;
+    error: string | null;
 }
 
 // Initial state
-const initialState: UIState = {
+// FIX: Export initial state for use in test mocks.
+export const initialState: UIState = {
     showWelcome: true,
     theme: 'dark',
+    isLoading: false,
+    isStreaming: false,
+    isReanalyzing: false,
+    error: null,
 };
 
 // Action types
 type Action =
   | { type: typeof actions.SET_SHOW_WELCOME; payload: boolean }
-  | { type: typeof actions.SET_THEME; payload: Theme };
+  | { type: typeof actions.SET_THEME; payload: Theme }
+  | { type: typeof actions.SET_LOADING; payload: boolean }
+  | { type: typeof actions.SET_STREAMING; payload: boolean }
+  | { type: typeof actions.SET_REANALYZING; payload: boolean }
+  | { type: typeof actions.SET_ERROR; payload: string | null }
+  | { type: typeof actions.CLEAR_ERROR };
 
 // Reducer
 const uiReducer = (state: UIState, action: Action): UIState => {
@@ -27,6 +42,18 @@ const uiReducer = (state: UIState, action: Action): UIState => {
             return { ...state, showWelcome: action.payload };
         case actions.SET_THEME:
             return { ...state, theme: action.payload };
+        case actions.SET_LOADING:
+            // When loading starts, clear any previous errors.
+            return { ...state, isLoading: action.payload, error: action.payload ? null : state.error };
+        case actions.SET_STREAMING:
+            return { ...state, isStreaming: action.payload };
+        case actions.SET_REANALYZING:
+            return { ...state, isReanalyzing: action.payload };
+        case actions.SET_ERROR:
+             // When an error occurs, turn off loading flags.
+            return { ...state, error: action.payload, isLoading: false, isStreaming: false, isReanalyzing: false };
+        case actions.CLEAR_ERROR:
+            return { ...state, error: null };
         default:
             return state;
     }

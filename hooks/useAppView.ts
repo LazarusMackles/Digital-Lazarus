@@ -1,4 +1,5 @@
 import { useResultState } from '../context/ResultStateContext';
+import { useUIState } from '../context/UIStateContext';
 
 export type AppView = 'LOADING' | 'RESULT' | 'INPUT';
 
@@ -9,14 +10,18 @@ export type AppView = 'LOADING' | 'RESULT' | 'INPUT';
  * @returns {AppView} A string representing the current view state.
  */
 export const useAppView = (): AppView => {
-    const { state } = useResultState();
+    const { state: resultState } = useResultState();
+    const { state: uiState } = useUIState();
+    
     const { 
-        isLoading, 
-        isReanalyzing, 
-        isStreaming, 
         analysisEvidence, 
         analysisResult 
-    } = state;
+    } = resultState;
+    const {
+        isLoading,
+        isReanalyzing,
+        isStreaming
+    } = uiState;
 
     // Determine if we are in a state where the result view should be shown for streaming text.
     // A re-analysis is a full loading state, not a text stream-in view.

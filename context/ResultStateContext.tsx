@@ -4,10 +4,6 @@ import * as actions from './actions';
 
 // State interface
 export interface ResultState {
-    isLoading: boolean;
-    isReanalyzing: boolean;
-    isStreaming: boolean;
-    error: string | null;
     analysisResult: AnalysisResult | null;
     analysisTimestamp: string | null;
     analysisEvidence: AnalysisEvidence | null;
@@ -18,10 +14,6 @@ export interface ResultState {
 // Initial state
 // FIX: Export for testing.
 export const initialState: ResultState = {
-    isLoading: false,
-    isReanalyzing: false,
-    isStreaming: false,
-    error: null,
     analysisResult: null,
     analysisTimestamp: null,
     analysisEvidence: null,
@@ -35,9 +27,7 @@ type Action =
   // FIX: Corrected typo from START_REANALysis to START_REANALYSIS
   | { type: typeof actions.START_REANALYSIS }
   | { type: typeof actions.ANALYSIS_SUCCESS; payload: { result: AnalysisResult; modelName: string; isSecondOpinion?: boolean } }
-  | { type: typeof actions.ANALYSIS_ERROR; payload: string | null }
   | { type: typeof actions.NEW_ANALYSIS }
-  | { type: typeof actions.CLEAR_ERROR }
   | { type: typeof actions.STREAM_ANALYSIS_UPDATE; payload: { explanation: string } };
 
 // Reducer
@@ -50,10 +40,6 @@ export const resultReducer = (state: ResultState = initialState, action: Action)
 
             return {
                 ...state,
-                isLoading: true,
-                isReanalyzing: false,
-                isStreaming: shouldStream,
-                error: null,
                 // For any streaming analysis, create a placeholder result to show the result view immediately.
                 analysisResult: shouldStream ? {
                     probability: 0,
@@ -70,10 +56,6 @@ export const resultReducer = (state: ResultState = initialState, action: Action)
         case actions.START_REANALYSIS:
             return {
                 ...state,
-                isLoading: true,
-                isReanalyzing: true,
-                isStreaming: true, // Re-analysis is always a deep dive, therefore always streaming.
-                error: null,
                  analysisResult: {
                     ...state.analysisResult!,
                     explanation: '', // Clear previous explanation for streaming
@@ -92,23 +74,10 @@ export const resultReducer = (state: ResultState = initialState, action: Action)
         case actions.ANALYSIS_SUCCESS:
             return {
                 ...state,
-                isLoading: false,
-                isReanalyzing: false,
-                isStreaming: false,
                 analysisResult: { ...action.payload.result, isSecondOpinion: action.payload.isSecondOpinion },
                 modelUsed: action.payload.modelName,
                 analysisTimestamp: new Date().toLocaleString(),
             };
-        case actions.ANALYSIS_ERROR:
-            return {
-                ...state,
-                isLoading: false,
-                isReanalyzing: false,
-                isStreaming: false,
-                error: action.payload,
-            };
-        case actions.CLEAR_ERROR:
-            return { ...state, error: null };
         case actions.NEW_ANALYSIS:
             // This action now simply resets the result state to its initial values.
             return initialState;

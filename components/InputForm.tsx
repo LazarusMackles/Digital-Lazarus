@@ -1,11 +1,12 @@
 
+
 import React, { useCallback, useMemo } from 'react';
 import { InputTabs } from './InputTabs';
 import { FileUploadDisplay } from './FileUploadDisplay';
 import { ModeSelector } from './ModeSelector';
 import { HowItWorks } from './HowItWorks';
 import { useInputState } from '../context/InputStateContext';
-import { useResultState } from '../context/ResultStateContext';
+import { useUIState } from '../context/UIStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
 import { useApiKey } from '../hooks/useApiKey';
 import * as actions from '../context/actions';
@@ -21,7 +22,7 @@ import type { AnalysisMode, ForensicMode } from '../types';
 
 export const InputForm: React.FC = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
-    const { state: resultState, dispatch: resultDispatch } = useResultState();
+    const { state: uiState, dispatch: uiDispatch } = useUIState();
     const { performAnalysis, handleClearInputs } = useAnalysisWorkflow();
     const { hasApiKey, isChecking: isCheckingApiKey, selectApiKey } = useApiKey();
 
@@ -32,7 +33,7 @@ export const InputForm: React.FC = () => {
         analysisMode,
         forensicMode,
     } = inputState;
-    const { error } = resultState;
+    const { error } = uiState;
 
     const isInputValid = useMemo(() => {
         return isInputReadyForAnalysis(activeInput, textContent, fileData);
@@ -50,15 +51,15 @@ export const InputForm: React.FC = () => {
         e.preventDefault();
         // Clear previous API key errors when a new submission is attempted
         if (error?.includes('API key')) {
-            resultDispatch({ type: actions.CLEAR_ERROR });
+            uiDispatch({ type: actions.CLEAR_ERROR });
         }
         
         if (isInputValid && hasApiKey) {
             performAnalysis();
         } else if (!hasApiKey) {
-             resultDispatch({ type: actions.ANALYSIS_ERROR, payload: 'Please select an API key to begin the analysis.' });
+             uiDispatch({ type: actions.SET_ERROR, payload: 'Please select an API key to begin the analysis.' });
         } else {
-             resultDispatch({ type: actions.ANALYSIS_ERROR, payload: 'Please provide valid input before starting the analysis.' });
+             uiDispatch({ type: actions.SET_ERROR, payload: 'Please provide valid input before starting the analysis.' });
         }
     };
     

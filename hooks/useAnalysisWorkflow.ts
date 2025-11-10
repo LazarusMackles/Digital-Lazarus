@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useInputState } from '../context/InputStateContext';
 import { useResultState } from '../context/ResultStateContext';
+import { useUIState } from '../context/UIStateContext';
 import * as actions from '../context/actions';
 import { runAnalysis } from '../services/analysisService';
 import type { AnalysisEvidence } from '../types';
@@ -8,6 +9,7 @@ import type { AnalysisEvidence } from '../types';
 export const useAnalysisWorkflow = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
     const { dispatch: resultDispatch } = useResultState();
+    const { dispatch: uiDispatch } = useUIState();
 
     const performAnalysis = useCallback(async (isReanalysis = false) => {
         const { activeInput, textContent, fileData, analysisMode, forensicMode } = inputState;
@@ -29,10 +31,15 @@ export const useAnalysisWorkflow = () => {
             evidence = { type: 'file', content: fileContent };
         }
         
-        // Dispatch start action
+        // Dispatch start actions to both UI and Result contexts
+        uiDispatch({ type: actions.SET_LOADING, payload: true });
         if (isReanalysis) {
+            uiDispatch({ type: actions.SET_REANALYZING, payload: true });
+            uiDispatch({ type: actions.SET_STREAMING, payload: true }); // Re-analysis always streams
             resultDispatch({ type: actions.START_REANALYSIS });
         } else {
+            const shouldStream = currentAnalysisMode === 'deep';
+            uiDispatch({ type: actions.SET_STREAMING, payload: shouldStream });
             resultDispatch({ type: actions.START_ANALYSIS, payload: { evidence, analysisMode: currentAnalysisMode } });
         }
 
@@ -59,10 +66,15 @@ export const useAnalysisWorkflow = () => {
         } catch (error) {
             console.error("Analysis workflow error:", error);
             const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-            resultDispatch({ type: actions.ANALYSIS_ERROR, payload: errorMessage });
+            uiDispatch({ type: actions.SET_ERROR, payload: errorMessage });
+        } finally {
+            // Reset all transient UI flags
+            uiDispatch({ type: actions.SET_LOADING, payload: false });
+            uiDispatch({ type: actions.SET_STREAMING, payload: false });
+            uiDispatch({ type: actions.SET_REANALYZING, payload: false });
         }
 
-    }, [inputState, resultDispatch]);
+    }, [inputState, resultDispatch, uiDispatch]);
 
     const handleNewAnalysis = useCallback(() => {
         resultDispatch({ type: actions.NEW_ANALYSIS });
@@ -72,8 +84,8 @@ export const useAnalysisWorkflow = () => {
     
     const handleClearInputs = useCallback(() => {
         inputDispatch({ type: actions.CLEAR_INPUTS });
-        resultDispatch({ type: actions.CLEAR_ERROR });
-    }, [inputDispatch, resultDispatch]);
+        uiDispatch({ type: actions.CLEAR_ERROR });
+    }, [inputDispatch, uiDispatch]);
 
     return { performAnalysis, handleNewAnalysis, handleClearInputs };
 };

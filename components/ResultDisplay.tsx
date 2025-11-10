@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useResultState } from '../context/ResultStateContext';
+import { useUIState } from '../context/UIStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
 import { VerdictPanel } from './result/VerdictPanel';
 import { EvidencePresenter } from './result/EvidencePresenter';
@@ -11,9 +12,11 @@ import { ChallengeVerdict } from './ChallengeVerdict';
 import { InteractiveTextDisplay } from './InteractiveTextDisplay';
 
 export const ResultDisplay: React.FC = () => {
-  const { state } = useResultState();
+  const { state: resultState } = useResultState();
+  const { state: uiState } = useUIState();
   const { handleNewAnalysis, performAnalysis } = useAnalysisWorkflow();
-  const { analysisResult, analysisEvidence, analysisTimestamp, isStreaming, isReanalyzing, analysisModeUsed, modelUsed } = state;
+  const { analysisResult, analysisEvidence, analysisTimestamp, analysisModeUsed, modelUsed } = resultState;
+  const { isStreaming, isReanalyzing } = uiState;
   const [showShareModal, setShowShareModal] = useState(false);
 
   const handleReanalyze = useCallback(() => {

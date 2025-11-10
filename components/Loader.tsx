@@ -21,16 +21,34 @@ export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Deducing t
   };
   
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <svg className="animate-spin h-20 w-20 text-cyan-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg">
+    <div className="flex flex-col items-center justify-center py-4 text-center">
+      <svg className="animate-spin h-32 w-32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
         <defs>
-            <linearGradient id="spinner-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#22d3ee" /> 
-                <stop offset="100%" stopColor="#9333ea" />
+            <linearGradient id="spinner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#22d3ee" />
+                <stop offset="100%" stopColor="#d946ef" />
             </linearGradient>
         </defs>
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-        <path className="opacity-75" fill="url(#spinner-gradient)" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        {/* Background track */}
+        <circle
+            cx="50"
+            cy="50"
+            r="45"
+            fill="none"
+            className="stroke-slate-200 dark:stroke-slate-700 opacity-25"
+            strokeWidth="8"
+        />
+        {/* Foreground spinning arc */}
+        <circle
+            cx="50"
+            cy="50"
+            r="45"
+            fill="none"
+            stroke="url(#spinner-gradient)"
+            strokeWidth="8"
+            strokeLinecap="round"
+            strokeDasharray="70 283"
+        />
       </svg>
       <h2 className="mt-4 text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-400 dark:to-fuchsia-500">{message}</h2>
       <p className="text-slate-500 dark:text-slate-400">The clues are revealing themselves. One moment while I consult my circuits.</p>

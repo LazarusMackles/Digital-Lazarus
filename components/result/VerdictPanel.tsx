@@ -1,6 +1,8 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useResultState } from '../../context/ResultStateContext';
+import { useUIState } from '../../context/UIStateContext';
 // FIX: Changed import path from '../icons' to '../icons/index' to resolve ambiguity with an empty 'icons.tsx' file.
 import { Icon } from '../icons/index';
 import { RadialProgress } from '../RadialProgress';
@@ -12,8 +14,10 @@ interface VerdictPanelProps {
 }
 
 export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probability, verdict, explanation }) => {
-    const { state } = useResultState();
-    const { isStreaming, analysisEvidence } = state;
+    const { state: resultState } = useResultState();
+    const { state: uiState } = useUIState();
+    const { analysisEvidence } = resultState;
+    const { isStreaming } = uiState;
     const isTextAnalysis = analysisEvidence?.type === 'text';
     const [verdictVisible, setVerdictVisible] = useState(false);
     const ANIMATION_DURATION = 1200; // ms
