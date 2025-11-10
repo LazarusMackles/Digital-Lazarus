@@ -23,7 +23,7 @@ export const ResultDisplay: React.FC = () => {
   }, [performAnalysis]);
 
   const handleShowShareModal = useCallback(() => {
-    window.scrollTo(0, 0);
+    document.documentElement.scrollTo(0, 0);
     setShowShareModal(true);
   }, []);
 

@@ -12,9 +12,9 @@ export const useAnalysisWorkflow = () => {
     const { dispatch: uiDispatch } = useUIState();
 
     const performAnalysis = useCallback(async (isReanalysis = false) => {
-        if (isReanalysis) {
-            window.scrollTo(0, 0);
-        }
+        // This is a more robust, instantaneous scroll that targets the root element.
+        // It now runs for EVERY analysis, not just re-analysis.
+        document.documentElement.scrollTo(0, 0);
         
         const { activeInput, textContent, fileData, analysisMode, forensicMode } = inputState;
 
@@ -83,13 +83,13 @@ export const useAnalysisWorkflow = () => {
     const handleNewAnalysis = useCallback(() => {
         resultDispatch({ type: actions.NEW_ANALYSIS });
         inputDispatch({ type: actions.CLEAR_INPUTS });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.documentElement.scrollTo(0, 0);
     }, [resultDispatch, inputDispatch]);
     
     const handleClearInputs = useCallback(() => {
         inputDispatch({ type: actions.CLEAR_INPUTS });
         uiDispatch({ type: actions.CLEAR_ERROR });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.documentElement.scrollTo(0, 0);
     }, [inputDispatch, uiDispatch]);
 
     return { performAnalysis, handleNewAnalysis, handleClearInputs };
