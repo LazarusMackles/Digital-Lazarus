@@ -1,3 +1,4 @@
+
 import { analyzeContent, analyzeContentStream } from '../api/analyze';
 import { aggressivelyCompressImageForAnalysis } from '../utils/imageCompression';
 import { MODELS } from '../utils/constants';
@@ -18,7 +19,7 @@ const buildPrompt = (
 
     let evidenceDescription = '';
     if (inputType === 'text') {
-        evidenceDescription = `The evidence is the following text block. Analyze its style, tone, structure, and content to determine if it was written by an AI. Look for tells like unnatural phrasing, excessive complexity or simplicity, lack of personal voice, or factual hallucinations.`;
+        evidenceDescription = `The evidence is the following text block. Analyze its style, tone, structure, and content to determine if it was written by an AI. Look for tells like unnatural phrasing, excessive complexity or simplicity, lack of personal voice, or factual hallucinations. Even for very short text, analyze jargon and structure.`;
     } else { // 'file'
         const primaryEvidence = fileData[0]?.name || 'the primary image';
         const supportingEvidence = fileData.length > 1 
@@ -54,10 +55,10 @@ const normalizeResult = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         return {
             probability: rawResult.confidence_score,
             verdict: rawResult.quick_verdict,
-            explanation: `Key indicators found: 1) ${rawResult.artifact_1}. 2) ${rawResult.artifact_2}.`,
+            explanation: `My rapid analysis points to these primary indicators. For a more thorough examination, request a Second Opinion.`,
             highlights: [
-                { text: 'Indicator 1', reason: rawResult.artifact_1 },
-                { text: 'Indicator 2', reason: rawResult.artifact_2 }
+                { text: 'Primary Indicator', reason: rawResult.artifact_1 },
+                { text: 'Secondary Indicator', reason: rawResult.artifact_2 }
             ],
         };
     }
@@ -71,6 +72,19 @@ const normalizeResult = (rawResult: any, isQuickScan: boolean): AnalysisResult =
 };
 
 /**
+ * Cleans input text to remove non-standard characters and formatting
+ * that can interfere with AI analysis.
+ * @param text The raw input text.
+ * @returns The sanitized text.
+ */
+const sanitizeTextInput = (text: string): string => {
+    // Replaces non-printable characters (except for standard whitespace like tabs, newlines)
+    // with a space. Normalizes different newline characters to \n.
+    return text.replace(/[\r\n]+/g, '\n').replace(/[^\p{L}\p{N}\p{P}\p{Z}\p{S}]/gu, '');
+};
+
+
+/**
  * The main analysis function that prepares data and calls the appropriate API.
  */
 export const runAnalysis = async (
@@ -82,7 +96,8 @@ export const runAnalysis = async (
     onStreamUpdate?: (partialExplanation: string) => void
 ): Promise<{ result: AnalysisResult; modelName: string; }> => {
     
-    const prompt = buildPrompt(inputType, textContent, fileData, analysisMode, forensicMode);
+    const sanitizedText = inputType === 'text' ? sanitizeTextInput(textContent) : '';
+    const prompt = buildPrompt(inputType, sanitizedText, fileData, analysisMode, forensicMode);
     
     let modelName: string;
     let filesForApi = fileData;
@@ -100,7 +115,8 @@ export const runAnalysis = async (
             );
         }
     } else { // 'text'
-        modelName = MODELS.FLASH; // Always use the fast model for text.
+        // For text, we use the faster model for quick scans and the more powerful one for deep dives.
+        modelName = analysisMode === 'deep' ? MODELS.PRO : MODELS.FLASH;
     }
 
     const isQuickScan = analysisMode === 'quick';
@@ -121,11 +137,11 @@ export const runAnalysis = async (
                 // Ignore parsing errors on partial chunks
             }
         };
-        const rawResult = await analyzeContentStream(prompt, filesForApi, modelName, handleStream);
+        const rawResult = await analyzeContentStream(prompt, filesForApi, modelName, handleStream, sanitizedText);
         return { result: normalizeResult(rawResult, false), modelName };
     }
 
     // For quick scans, use the standard API call.
-    const rawResult = await analyzeContent(prompt, filesForApi, analysisMode, modelName);
+    const rawResult = await analyzeContent(prompt, filesForApi, analysisMode, modelName, sanitizedText);
     return { result: normalizeResult(rawResult, isQuickScan), modelName };
 };

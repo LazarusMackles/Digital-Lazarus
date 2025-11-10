@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { useResultState } from '../context/ResultStateContext';
 import { useUIState } from '../context/UIStateContext';
@@ -28,18 +29,17 @@ export const ResultDisplay: React.FC = () => {
   }
 
   const { probability, verdict, explanation, highlights, isSecondOpinion } = analysisResult;
-  const isFileAnalysis = analysisEvidence?.type === 'file';
   
   return (
     <>
       <Card className="flex flex-col items-center">
         
-        {isFileAnalysis && <EvidencePresenter evidence={analysisEvidence} />}
+        {analysisEvidence?.type === 'file' && <EvidencePresenter evidence={analysisEvidence} />}
         
         <VerdictPanel 
             probability={probability} 
             verdict={verdict} 
-            explanation={isFileAnalysis ? '' : explanation} 
+            explanation={explanation} 
         />
 
         {analysisEvidence?.type === 'text' && analysisEvidence.content && (
@@ -51,7 +51,7 @@ export const ResultDisplay: React.FC = () => {
            </div>
         )}
         
-        {isFileAnalysis && highlights && highlights.length > 0 && <HighlightsDisplay highlights={highlights} />}
+        {highlights && highlights.length > 0 && <HighlightsDisplay highlights={highlights} />}
         
         {(!isStreaming && !isReanalyzing) && (
             <>

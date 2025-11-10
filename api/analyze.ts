@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Part, GenerateContentResponse } from '@google/genai';
 import { deepAnalysisSchema, quickAnalysisSchema } from '../utils/schemas';
 import type { AnalysisMode } from '../types';
@@ -52,9 +53,14 @@ const withRetry = async <T>(
 // Helper to prepare content parts for the API request
 const prepareContentParts = (
   prompt: string,
+  sanitizedText: string,
   files: { name: string; imageBase64: string }[]
 ): Part[] => {
   const parts: Part[] = [{ text: prompt }];
+  // If there's sanitized text, add it as a separate part.
+  if (sanitizedText) {
+      parts.push({ text: `\n\n---BEGIN EVIDENCE---\n${sanitizedText}\n---END EVIDENCE---`});
+  }
   if (files.length > 0) {
     files.forEach(file => {
       // The base64 string includes the data URL prefix, which needs to be removed.
@@ -77,9 +83,10 @@ export const analyzeContent = async (
   prompt: string,
   files: { name: string; imageBase64: string }[],
   analysisMode: AnalysisMode,
-  modelName: string
+  modelName: string,
+  sanitizedText: string = ''
 ) => {
-  const contents = { parts: prepareContentParts(prompt, files) };
+  const contents = { parts: prepareContentParts(prompt, sanitizedText, files) };
   const schema = analysisMode === 'deep' ? deepAnalysisSchema : quickAnalysisSchema;
 
   try {
@@ -118,9 +125,10 @@ export const analyzeContentStream = async (
   prompt: string,
   files: { name: string; imageBase64: string }[],
   modelName: string,
-  onStreamUpdate: (chunk: string) => void
+  onStreamUpdate: (chunk: string) => void,
+  sanitizedText: string = ''
 ) => {
-  const contents = { parts: prepareContentParts(prompt, files) };
+  const contents = { parts: prepareContentParts(prompt, sanitizedText, files) };
   const schema = deepAnalysisSchema;
 
   try {
@@ -149,7 +157,8 @@ export const analyzeContentStream = async (
     // Once streaming is complete, parse the full JSON.
     return JSON.parse(fullResponseText.trim());
 
-  } catch (error) {
+  } catch (error)
+      {
     console.error(`Error during streaming analysis with model ${modelName}:`, error);
      if (error instanceof Error) {
         if (error.message.includes('API key not valid') || error.message.includes('Requested entity was not found')) {
