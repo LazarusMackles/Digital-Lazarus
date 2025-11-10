@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useUIState } from '../../context/UIStateContext';
 import { Icon } from '../icons/index';
@@ -58,7 +59,7 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
     
     // This is the final result view for all analysis types.
     return (
-        <>
+        <div className="w-full max-w-2xl flex flex-col items-center bg-white dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-lg border border-cyan-500/40 dark:border-cyan-400/40">
             {isStreaming ? 
                 <StreamingProgressIndicator /> : 
                 <RadialProgress progress={probability} duration={ANIMATION_DURATION} />
@@ -86,6 +87,6 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
                     )}
                 </p>
             )}
-        </>
+        </div>
     );
 });
