@@ -117,13 +117,11 @@ const AppContent: React.FC = () => {
     <>
       <IconSprite />
       {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
-      <div className="h-full flex flex-col p-4 sm:p-6 md:p-8 dark:text-white transition-colors duration-300">
-        <div className="max-w-4xl mx-auto w-full flex flex-col flex-grow">
+      <div className="h-full flex flex-col max-w-4xl mx-auto w-full p-4 sm:p-6 md:p-8 dark:text-white transition-colors duration-300">
           <Header />
           <main className="mt-12 flex-grow">
             {renderContent()}
           </main>
-        </div>
       </div>
     </>
   );
