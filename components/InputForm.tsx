@@ -1,6 +1,4 @@
-
-
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { useInputState } from '../context/InputStateContext';
 import { useUIState } from '../context/UIStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
@@ -19,7 +17,7 @@ import { FileUploadDisplay } from './FileUploadDisplay';
 export const InputForm: React.FC = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
     const { state: uiState, dispatch: uiDispatch } = useUIState();
-    const { performAnalysis, handleClearInputs } = useAnalysisWorkflow();
+    const { performAnalysis, handleClearInputs, isLoading, isStreaming, isReanalyzing, error: analysisError } = useAnalysisWorkflow();
     const { hasApiKey, isChecking: isCheckingApiKey, selectApiKey } = useApiKey();
 
     const {
@@ -30,6 +28,16 @@ export const InputForm: React.FC = () => {
         forensicMode,
     } = inputState;
     const { error } = uiState;
+
+    // This effect syncs the local state from the workflow hook to the global UI context.
+    useEffect(() => {
+        uiDispatch({ type: actions.SET_LOADING, payload: isLoading });
+        uiDispatch({ type: actions.SET_STREAMING, payload: isStreaming });
+        uiDispatch({ type: actions.SET_REANALYZING, payload: isReanalyzing });
+        if (analysisError) {
+            uiDispatch({ type: actions.SET_ERROR, payload: analysisError });
+        }
+    }, [isLoading, isStreaming, isReanalyzing, analysisError, uiDispatch]);
 
     const isInputValid = useMemo(() => {
         return isInputReadyForAnalysis(activeInput, textContent, fileData);
@@ -61,6 +69,11 @@ export const InputForm: React.FC = () => {
     };
     
     const hasInput = textContent.trim().length > 0 || fileData.length > 0;
+
+    const onClearClick = useCallback(() => {
+        handleClearInputs();
+        uiDispatch({ type: actions.CLEAR_ERROR });
+    }, [handleClearInputs, uiDispatch]);
 
     const renderInput = () => {
         switch (activeInput) {
@@ -123,7 +136,7 @@ export const InputForm: React.FC = () => {
                                         <Button
                                             type="button"
                                             variant="clear"
-                                            onClick={handleClearInputs}
+                                            onClick={onClearClick}
                                         >
                                             <Icon name="x-mark" className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                                             <span className="font-semibold text-slate-700 dark:text-slate-300">Clear</span>
