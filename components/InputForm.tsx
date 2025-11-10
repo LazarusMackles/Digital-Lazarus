@@ -55,6 +55,7 @@ export const InputForm: React.FC = () => {
         }
         
         if (isInputValid && hasApiKey) {
+            document.documentElement.scrollTo(0, 0); // Ensure view scrolls to top before analysis begins.
             performAnalysis();
         } else if (!hasApiKey) {
              uiDispatch({ type: actions.SET_ERROR, payload: 'Please select an API key to begin the analysis.' });

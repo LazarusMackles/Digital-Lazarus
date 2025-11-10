@@ -12,10 +12,6 @@ export const useAnalysisWorkflow = () => {
     const { dispatch: uiDispatch } = useUIState();
 
     const performAnalysis = useCallback(async (isReanalysis = false) => {
-        // This is a more robust, instantaneous scroll that targets the root element.
-        // It now runs for EVERY analysis, not just re-analysis.
-        document.documentElement.scrollTo(0, 0);
-        
         const { activeInput, textContent, fileData, analysisMode, forensicMode } = inputState;
 
         // For re-analysis, we force a deep dive.

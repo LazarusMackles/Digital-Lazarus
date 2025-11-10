@@ -9,7 +9,8 @@ interface State {
   hasError: boolean;
 }
 
-// FIX: The ErrorBoundary class was a plain class, causing errors because it lacked React Component features like `state` and `props`. It has been updated to extend `React.Component<Props, State>` to function correctly as an error boundary.
+// FIX: To function as an error boundary, this class must extend React.Component.
+// This provides access to `this.state`, `this.props`, and component lifecycle methods, resolving the errors.
 export class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
