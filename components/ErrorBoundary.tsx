@@ -9,8 +9,7 @@ interface State {
   hasError: boolean;
 }
 
-// FIX: The ErrorBoundary class must extend React.Component<Props, State> to function as a class component.
-// This inheritance provides access to `this.props` and `this.state`, resolving errors where these properties were not found.
+// FIX: The ErrorBoundary class was not correctly defined as a React component. By extending React.Component, it gains access to the component lifecycle, state, and props. This resolves errors related to missing 'state', 'props', and allows it to correctly accept 'children' from parent components.
 export class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);

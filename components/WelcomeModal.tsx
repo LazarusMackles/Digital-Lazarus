@@ -1,17 +1,26 @@
-
 import React from 'react';
 import { Icon } from './icons/index';
-// FIX: Corrected import path for UI components.
 import { Button } from './ui';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 interface WelcomeModalProps {
   onClose: () => void;
 }
 
 export const WelcomeModal: React.FC<WelcomeModalProps> = React.memo(({ onClose }) => {
+  useBodyScrollLock();
+  
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 modal-overlay-fade-in" aria-modal="true" role="dialog">
-      <div className="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 animate-fade-in-up">
+    // DEFINITIVE FIX:
+    // The overlay is now a flex container. `justify-center` handles horizontal centering,
+    // and `items-start` handles the vertical top alignment. Padding is added here to
+    // create space from the screen edges. This is a more robust pattern than absolute positioning.
+    <div 
+      className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex justify-center items-start p-4 sm:p-6 md:p-8 overflow-y-auto modal-overlay-fade-in" 
+      aria-modal="true" 
+      role="dialog"
+    >
+      <div className="w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 animate-fade-in-up">
         <div className="p-6 sm:p-8">
             <button 
                 onClick={onClose} 
@@ -30,7 +39,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = React.memo(({ onClose }
                 <li className="flex items-start gap-3">
                     <span className="text-cyan-500 font-bold mt-0.5">1.</span>
                     <div>
-                        <span className="font-semibold text-slate-800 dark:text-white">Our Goal is Clarity, Not Judgment.</span> This tool helps understand <em>how</em> content is made in our amazing new digital realm. It's a celebration of human and AI collaboration!
+                        <span className="font-semibold text-slate-800 dark:text-white">Our Goal is Clarity, Not Judgment.</span> This tool is designed to uncover the 'Digital DNA' of content, revealing whether its origins are human, AI, or a collaboration of both.
                     </div>
                 </li>
                 <li className="flex items-start gap-3">
@@ -42,17 +51,17 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = React.memo(({ onClose }
                  <li className="flex items-start gap-3">
                     <span className="text-cyan-500 font-bold mt-0.5">3.</span>
                     <div>
-                       <span className="font-semibold text-slate-800 dark:text-white">Choose Your Method.</span> Use 'Deep Dive' for thoroughness or 'Quick Scan' for speed. You are in control of the investigation.
+                       <span className="font-semibold text-slate-800 dark:text-white">Choose Your Method.</span> Use 'Quick Scan' for speed or 'Deep Dive' for thoroughness. You are in control of the investigation.
                     </div>
                 </li>
                 <li className="flex items-start gap-3">
                     <span className="text-cyan-500 font-bold mt-0.5">4.</span>
                     <div>
-                       <span className="font-semibold text-slate-800 dark:text-white">Powered by Google's Gemini API.</span> This tool uses advanced generative models to perform its analysis. You can <a href="https://ai.google.dev/gemini-api/docs" target="_blank" rel="noopener noreferrer" className="text-cyan-500 hover:underline">learn more here</a>.
+                       <span className="font-semibold text-slate-800 dark:text-white">Powered by Google's Gemini API.</span> This tool uses advanced generative models to perform its analysis. <a href="https://ai.google.dev/gemini-api/docs" target="_blank" rel="noopener noreferrer" className="text-cyan-500 hover:underline">Learn more here</a>.
                     </div>
                 </li>
             </ul>
-            <div className="mt-6 flex justify-end">
+            <div className="mt-6 flex justify-center">
                 <Button
                     onClick={onClose}
                     className="px-6 py-2"

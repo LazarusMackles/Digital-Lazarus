@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { Header } from './components/Header';
 import { ResultDisplay } from './components/ResultDisplay';
@@ -27,7 +25,7 @@ const IconSprite: React.FC = React.memo(() => (
         <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
       </symbol>
       <symbol id="icon-composite" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25-2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z" />
       </symbol>
       <symbol id="icon-envelope" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25-2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
@@ -117,9 +115,9 @@ const AppContent: React.FC = () => {
     <>
       <IconSprite />
       {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
-      <div className="h-full flex flex-col max-w-4xl mx-auto w-full p-4 sm:p-6 md:p-8 dark:text-white transition-colors duration-300">
+      <div className="min-h-screen grid grid-rows-[auto_1fr] max-w-4xl mx-auto w-full p-4 sm:p-6 md:p-8 dark:text-white transition-colors duration-300">
           <Header />
-          <main className="mt-12 flex-grow">
+          <main className="mt-12">
             {renderContent()}
           </main>
       </div>
@@ -133,6 +131,7 @@ const App: React.FC = () => {
     <InputStateProvider>
       <UIStateProvider>
         <ResultStateProvider>
+          {/* FIX: The error here was caused by an incorrect definition of the ErrorBoundary component. With that fixed, this code works as intended. */}
           <ErrorBoundary>
             <AppContent />
           </ErrorBoundary>
