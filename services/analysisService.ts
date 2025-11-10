@@ -51,13 +51,16 @@ const buildPrompt = (
  */
 const normalizeResult = (rawResult: any, isQuickScan: boolean): AnalysisResult => {
     if (isQuickScan) {
+        const artifact1 = rawResult.artifact_1 || 'No primary finding was provided.';
+        const artifact2 = rawResult.artifact_2 || 'No secondary finding was provided.';
+
         return {
             probability: rawResult.confidence_score,
             verdict: rawResult.quick_verdict,
-            explanation: `My rapid analysis points to these primary indicators. For a more thorough examination, request a Second Opinion.`,
+            explanation: `My initial scan suggests the verdict based on the following key indicators. For a more detailed analysis, a 'Deep Dive' is recommended.`,
             highlights: [
-                { text: 'Primary Indicator', reason: rawResult.artifact_1 },
-                { text: 'Secondary Indicator', reason: rawResult.artifact_2 }
+                { text: 'Primary Finding', reason: artifact1 },
+                { text: 'Secondary Finding', reason: artifact2 }
             ],
         };
     }

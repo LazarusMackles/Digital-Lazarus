@@ -1,4 +1,3 @@
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { runAnalysis } from './analysisService';
 import * as api from '../api/analyze';
@@ -31,7 +30,8 @@ describe('analysisService: runAnalysis', () => {
             expect.any(String), // prompt
             [], // files
             'quick',
-            MODELS.FLASH
+            MODELS.FLASH,
+            'some text' // sanitizedText
         );
     });
 
@@ -46,7 +46,8 @@ describe('analysisService: runAnalysis', () => {
             expect.any(String),
             [{...fileData[0], imageBase64: 'base64-compressed'}],
             'quick',
-            MODELS.QUICK_IMAGE
+            MODELS.QUICK_IMAGE,
+            '' // sanitizedText
         );
     });
 
@@ -62,7 +63,8 @@ describe('analysisService: runAnalysis', () => {
             expect.stringContaining('Focus your analysis STRICTLY on technical artifacts'),
             fileData,
             MODELS.PRO,
-            expect.any(Function)
+            expect.any(Function),
+            '' // sanitizedText
         );
     });
 
@@ -85,15 +87,15 @@ describe('analysisService: runAnalysis', () => {
         };
         (api.analyzeContent as any).mockResolvedValue(mockApiResponse);
 
-        const result = await runAnalysis('text', 'quick text', [], 'quick', 'standard');
+        const { result } = await runAnalysis('text', 'quick text', [], 'quick', 'standard');
 
         expect(result).toEqual({
             probability: 75,
             verdict: 'Likely AI',
-            explanation: 'Key indicators found: 1) Too perfect. 2) Unnatural symmetry.',
+            explanation: "My initial scan suggests the verdict based on the following key indicators. For a more detailed analysis, a 'Deep Dive' is recommended.",
             highlights: [
-                { text: 'Indicator 1', reason: 'Too perfect' },
-                { text: 'Indicator 2', reason: 'Unnatural symmetry' }
+                { text: 'Primary Finding', reason: 'Too perfect' },
+                { text: 'Secondary Finding', reason: 'Unnatural symmetry' }
             ]
         });
     });
@@ -107,8 +109,8 @@ describe('analysisService: runAnalysis', () => {
         };
         (api.analyzeContentStream as any).mockResolvedValue(mockApiResponse);
 
-        const result = await runAnalysis('text', 'deep text', [], 'deep', 'standard', vi.fn());
+        const { result } = await runAnalysis('text', 'deep text', [], 'deep', 'standard', vi.fn());
 
-        expect(result).toEqual(mockApiResponse);
+        expect(result).toEqual({ ...mockApiResponse, highlights: mockApiResponse.highlights || [] });
     });
 });

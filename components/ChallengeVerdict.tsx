@@ -20,13 +20,12 @@ export const ChallengeVerdict: React.FC<ChallengeVerdictProps> = React.memo(({ o
   
   return (
     <div className="flex flex-col items-center gap-3">
-        <p className="font-semibold text-slate-500 dark:text-slate-400">Not convinced? A different perspective can be enlightening.</p>
+        <p className="font-semibold text-cyan-600 dark:text-cyan-400">Not convinced? A different perspective can be enlightening.</p>
         <Button
             onClick={onReanalyze}
-            variant="secondary"
+            variant="primary"
         >
-            <Icon name="chat-bubble-oval-left-ellipsis" className="w-5 h-5" />
-            <span>Request a Second Opinion</span>
+            Request a Second Opinion
         </Button>
     </div>
   );

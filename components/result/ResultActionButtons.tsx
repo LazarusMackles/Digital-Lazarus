@@ -1,5 +1,7 @@
 
 
+
+
 import React from 'react';
 // FIX: Corrected import path for UI components.
 import { Button } from '../ui';
@@ -12,10 +14,11 @@ interface ResultActionButtonsProps {
 
 export const ResultActionButtons: React.FC<ResultActionButtonsProps> = React.memo(({ onNewAnalysis, onShowShareModal }) => {
     return (
-        <div className="w-full flex flex-col items-center gap-4 px-4 sm:px-0">
+        <div className="w-full flex flex-row items-center justify-center gap-6 px-4 sm:px-0">
             <Button
                 onClick={onNewAnalysis}
-                className="w-full sm:w-auto flex items-center justify-center gap-2"
+                variant="secondary"
+                className="flex items-center justify-center gap-2"
             >
                 <Icon name="arrow-path" className="w-5 h-5" />
                 <span>Start New Analysis</span>

@@ -59,7 +59,7 @@ export const ResultDisplay: React.FC = () => {
         {(!isStreaming && !isReanalyzing) && (
             <>
                 <div className="mt-8 border-t border-slate-200 dark:border-slate-700 w-full max-w-xl" />
-                <div className="mt-4 flex w-full flex-col items-center gap-4">
+                <div className="mt-8 flex w-full flex-col items-center gap-6">
                     <ChallengeVerdict 
                         onReanalyze={handleReanalyze} 
                         isSecondOpinion={isSecondOpinion || false} 
@@ -75,6 +75,7 @@ export const ResultDisplay: React.FC = () => {
       {showShareModal && (
         <ShareModal
           result={analysisResult}
+          // FIX: Corrected variable names to use `analysisEvidence` and `analysisTimestamp` from component state.
           evidence={analysisEvidence}
           timestamp={analysisTimestamp}
           analysisModeUsed={analysisModeUsed}
