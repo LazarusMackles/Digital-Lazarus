@@ -1,4 +1,3 @@
-
 import { analyzeContent, analyzeContentStream } from '../api/analyze';
 import { aggressivelyCompressImageForAnalysis } from '../utils/imageCompression';
 import { MODELS } from '../utils/constants';
@@ -41,7 +40,7 @@ const buildPrompt = (
     }
 
     const modeInstruction = analysisMode === 'deep'
-        ? `Conduct a "Deep Dive": a thorough, methodical examination. Provide a brief explanation for the verdict, tailored to whether the content appears fully generated, a composite, enhanced by AI filters/styles, or an authentic photograph. Then, identify 1-3 specific "highlights" (key indicators) that support your verdict.`
+        ? `Conduct a "Deep Dive": a thorough, methodical examination. Provide a single, concise summary statement (under 30 words) that introduces the verdict and key indicators, without repeating their content. Then, identify 1-3 specific "highlights" (key indicators) that support your verdict.`
         : `Conduct a "Quick Scan": a rapid, first-pass analysis. Identify the two most obvious artifacts supporting your verdict.`;
 
     return `${baseInstruction}\n\n**Case File:**\n${evidenceDescription}\n\n**Deductive Method:**\n${modeInstruction}`;
@@ -123,11 +122,12 @@ export const runAnalysis = async (
     
     // For deep dives (always streaming), use the streaming API call.
     if (analysisMode === 'deep' && onStreamUpdate) {
-        // Stream handler that tries to extract the 'explanation' field from partial JSON
+        let fullResponseText = '';
         const handleStream = (chunkText: string) => {
+            fullResponseText += chunkText;
             try {
                 // Find the explanation field in the potentially incomplete JSON string.
-                const match = chunkText.match(/"explanation"\s*:\s*"((?:[^"\\]|\\.)*)/);
+                const match = fullResponseText.match(/"explanation"\s*:\s*"((?:[^"\\]|\\.)*)/);
                 if (match && match[1]) {
                     // Clean up escaped characters for display
                     const explanation = match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');

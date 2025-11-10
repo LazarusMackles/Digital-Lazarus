@@ -13,29 +13,20 @@ export const useAppView = (): AppView => {
     const { state: resultState } = useResultState();
     const { state: uiState } = useUIState();
     
-    const { 
-        analysisEvidence, 
-        analysisResult 
-    } = resultState;
-    const {
-        isLoading,
-        isReanalyzing,
-        isStreaming
-    } = uiState;
+    const { analysisResult } = resultState;
+    const { isLoading } = uiState;
 
-    // Determine if we are in a state where the result view should be shown for streaming text.
-    // A re-analysis is a full loading state, not a text stream-in view.
-    const isStreamingTextView = isStreaming && analysisEvidence?.type === 'text' && !isReanalyzing;
-
-    // Show the main loader for all loading states except when streaming new text results.
-    if (isLoading && !isStreamingTextView) {
+    // The logic is now simplified: if the app is performing any analysis,
+    // show the main loader. This provides a consistent UX for all modes.
+    if (isLoading) {
         return 'LOADING';
     }
     
-    // If there's a result (including a streaming placeholder), show the result display.
+    // If there's a result, show the result display.
     if (analysisResult) {
         return 'RESULT';
     }
 
+    // Otherwise, show the input form.
     return 'INPUT';
 };

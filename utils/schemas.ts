@@ -39,7 +39,7 @@ export const deepAnalysisSchema = {
     },
     explanation: {
       type: Type.STRING,
-      description: 'A brief explanation for the verdict, tailored to whether the content appears fully generated, a composite, enhanced by AI filters/styles, or an authentic photograph.'
+      description: 'A single, concise summary statement (under 30 words) that introduces the verdict and key indicators, without repeating their content.'
     },
     highlights: {
       type: Type.ARRAY,
@@ -49,7 +49,7 @@ export const deepAnalysisSchema = {
         properties: {
           text: {
             type: Type.STRING,
-            description: 'The specific text segment or a description of the image feature (e.g., "Unnatural shadow on the left hand").'
+            description: 'The specific text segment or a description of the image feature (e.g., "Unnatural shadow on the left hand"). This must be a short, descriptive title for the indicator, NOT the raw text or evidence itself.'
           },
           reason: {
             type: Type.STRING,

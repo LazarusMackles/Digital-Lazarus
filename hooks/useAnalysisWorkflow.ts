@@ -12,6 +12,10 @@ export const useAnalysisWorkflow = () => {
     const { dispatch: uiDispatch } = useUIState();
 
     const performAnalysis = useCallback(async (isReanalysis = false) => {
+        if (isReanalysis) {
+            window.scrollTo(0, 0);
+        }
+        
         const { activeInput, textContent, fileData, analysisMode, forensicMode } = inputState;
 
         // For re-analysis, we force a deep dive.

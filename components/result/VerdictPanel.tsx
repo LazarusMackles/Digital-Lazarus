@@ -1,9 +1,5 @@
-
-
 import React, { useState, useEffect } from 'react';
-import { useResultState } from '../../context/ResultStateContext';
 import { useUIState } from '../../context/UIStateContext';
-// FIX: Changed import path from '../icons' to '../icons/index' to resolve ambiguity with an empty 'icons.tsx' file.
 import { Icon } from '../icons/index';
 import { RadialProgress } from '../RadialProgress';
 
@@ -13,12 +9,28 @@ interface VerdictPanelProps {
     explanation: string;
 }
 
+const StreamingProgressIndicator: React.FC = () => (
+    <div className="relative w-48 h-48 animate-pulse">
+        <svg height={192} width={192} className="transform -rotate-90">
+            <circle
+                className="stroke-slate-200 dark:stroke-slate-700"
+                fill="transparent"
+                strokeWidth={12}
+                r={80}
+                cx={96}
+                cy={96}
+            />
+        </svg>
+        <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center">
+            <Icon name="light-bulb" className="w-10 h-10 text-cyan-500 dark:text-cyan-400" />
+        </div>
+    </div>
+);
+
+
 export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probability, verdict, explanation }) => {
-    const { state: resultState } = useResultState();
     const { state: uiState } = useUIState();
-    const { analysisEvidence } = resultState;
     const { isStreaming } = uiState;
-    const isTextAnalysis = analysisEvidence?.type === 'text';
     const [verdictVisible, setVerdictVisible] = useState(false);
     const ANIMATION_DURATION = 1200; // ms
 
@@ -43,54 +55,37 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
         if (probability < 75) return 'text-yellow-500 dark:text-yellow-400';
         return 'text-rose-500 dark:text-rose-400';
     };
-
-    const renderStreamPreamble = () => (
-      <div className="mb-6 flex items-center justify-center gap-3 text-lg font-semibold text-cyan-600 dark:text-cyan-400">
-        <Icon name="light-bulb" className="w-6 h-6 animate-pulse" />
-        <span>Live Deduction Stream</span>
-      </div>
-    );
-    
-    const renderExplanation = () => (
-       explanation && (
-            <p className="mt-4 text-center max-w-xl text-slate-600 dark:text-slate-300 whitespace-pre-wrap">
-                {explanation}
-                {isTextAnalysis && isStreaming && (
-                    <span className="inline-block w-2 h-5 bg-cyan-500 animate-pulse ml-1" aria-hidden="true"></span>
-                )}
-            </p>
-        )
-    );
-
-    if (isTextAnalysis && isStreaming) {
-      // This view is shown only during live text streaming before the final result.
-      return (
-        <>
-          {renderStreamPreamble()}
-          <div className="text-center">
-              <h2 className="text-2xl font-bold text-slate-500 dark:text-slate-400">Deducing Verdict...</h2>
-          </div>
-          {renderExplanation()}
-        </>
-      );
-    }
     
     // This is the final result view for all analysis types.
     return (
         <>
-            <RadialProgress progress={probability} duration={ANIMATION_DURATION} />
+            {isStreaming ? 
+                <StreamingProgressIndicator /> : 
+                <RadialProgress progress={probability} duration={ANIMATION_DURATION} />
+            }
+
             <div className="h-10 mt-2 flex items-center justify-center">
                 {verdictVisible ? (
                      <h2 className={`text-3xl font-extrabold text-center ${verdictColorClass()} animate-fade-in-up`}>
                         {verdict}
                     </h2>
                 ) : (
-                    // Placeholder to prevent layout shift while waiting for animation
-                    <>&nbsp;</>
+                    // Placeholder to prevent layout shift while waiting for animation,
+                    // or show the streaming status.
+                    <h2 className="text-2xl font-bold text-slate-500 dark:text-slate-400 animate-fade-in">
+                        {isStreaming ? 'Deducing...' : <>&nbsp;</>}
+                    </h2>
                 )}
             </div>
             
-            {renderExplanation()}
+            {explanation && (
+                <p className="mt-4 text-center max-w-xl text-slate-600 dark:text-slate-300 whitespace-pre-wrap animate-fade-in">
+                    {explanation}
+                    {isStreaming && (
+                        <span className="inline-block w-2 h-5 bg-cyan-500 animate-pulse ml-1" aria-hidden="true"></span>
+                    )}
+                </p>
+            )}
         </>
     );
 });

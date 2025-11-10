@@ -27,16 +27,16 @@ export const generateShareText = (
                     // FIX: Evidence content for files is a stringified JSON array. It needs to be parsed first.
                     const files: { name: string }[] = JSON.parse(evidence.content);
                     const fileNames = files.map(f => f.name).join(', ');
-                    evidenceText = `EVIDENCE ANALYZED (FILES): ${fileNames}\n`;
+                    evidenceText = `EVIDENCE ANALYSED (FILES): ${fileNames}\n`;
                 } catch (e) {
                     // Fallback for safety if parsing fails.
-                    evidenceText = `EVIDENCE ANALYZED (FILES): [Could not parse file list]\n`;
+                    evidenceText = `EVIDENCE ANALYSED (FILES): [Could not parse file list]\n`;
                 }
                 break;
             case 'text':
                 // Truncate long text for email body clarity
                 const truncatedText = evidence.content.length > 500 ? evidence.content.substring(0, 500) + '...' : evidence.content;
-                evidenceText = `EVIDENCE ANALYZED (TEXT):\n---\n${truncatedText}\n---\n\n`;
+                evidenceText = `EVIDENCE ANALYSED (TEXT):\n---\n${truncatedText}\n---\n\n`;
                 break;
             // FIX: Removed 'url' case as it is not a valid InputType and was causing a type error.
         }

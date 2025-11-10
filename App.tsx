@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Header } from './components/Header';
 import { ResultDisplay } from './components/ResultDisplay';
@@ -57,7 +58,7 @@ const IconSprite: React.FC = React.memo(() => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
       </symbol>
       <symbol id="icon-thumbs-up" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6.633 10.5c.806 0 1.533-.422 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 3v2.154c0 .414.21.79.528 1.005 1.454.772 2.756 2.242 3.298 4.03a.75.75 0 01-.42 1.005l-.353.176c-.86.43-1.737.75-2.651.975v.008c.375.362.625.864.625 1.41a2.25 2.25 0 01-2.25 2.25H7.5A2.25 2.25 0 015.25 15V5.25A2.25 2.25 0 017.5 3h.001c.621 0 1.22.218 1.694.604a1.861 1.861 0 00.98 1.106c.343.172.695.31 1.05.409.356.1.71.196 1.064.292V10.5c-1.158-.28-2.327-.518-3.5-.687V15" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6.633 10.5c.806 0 1.533-.422 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 3v2.154c0 .414.21 .790.528 1.005 1.454.772 2.756 2.242 3.298 4.03a.75.75 0 01-.42 1.005l-.353.176c-.86.43-1.737.75-2.651.975v.008c.375.362.625.864.625 1.41a2.25 2.25 0 01-2.25 2.25H7.5A2.25 2.25 0 015.25 15V5.25A2.25 2.25 0 017.5 3h.001c.621 0 1.22.218 1.694.604a1.861 1.861 0 00.98 1.106c.343.172.695.31 1.05.409.356.1.71.196 1.064.292V10.5c-1.158-.28-2.327-.518-3.5-.687V15" />
       </symbol>
       <symbol id="icon-upload" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l-3.75 3.75M12 9.75l3.75 3.75M3 17.25V21h18v-3.75M3.75 16.5a2.25 2.25 0 01-2.25-2.25V6.75c0-1.24 1.01-2.25 2.25-2.25h16.5c1.24 0 2.25 1.01 2.25 2.25v7.5c0 1.24-1.01 2.25-2.25 2.25H3.75z" />
@@ -87,8 +88,8 @@ const AppContent: React.FC = () => {
     switch (view) {
       case 'LOADING': {
         const loaderMessage = isReanalyzing 
-          ? "Re-analysing with a critical eye ..." 
-          : "Deducing the Digital DNA ...";
+          ? "Re-analysing with a critical eye..." 
+          : "Deducing the Digital DNA...";
 
         return (
           <Card>

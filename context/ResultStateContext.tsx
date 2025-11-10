@@ -35,21 +35,10 @@ type Action =
 export const resultReducer = (state: ResultState = initialState, action: Action): ResultState => {
     switch (action.type) {
         case actions.START_ANALYSIS: {
-            const isDeepMode = action.payload.analysisMode === 'deep';
-            const shouldStream = isDeepMode;
-
             return {
-                ...state,
-                // For any streaming analysis, create a placeholder result to show the result view immediately.
-                analysisResult: shouldStream ? {
-                    probability: 0,
-                    verdict: 'Deducing...',
-                    explanation: '',
-                    isSecondOpinion: false,
-                } : null,
+                ...initialState, // Clear previous results completely
                 analysisEvidence: action.payload.evidence,
                 analysisModeUsed: action.payload.analysisMode,
-                modelUsed: null,
             };
         }
         // FIX: Corrected typo from START_REANALysis to START_REANALYSIS
@@ -63,12 +52,24 @@ export const resultReducer = (state: ResultState = initialState, action: Action)
                 },
             };
         case actions.STREAM_ANALYSIS_UPDATE:
-            if (!state.analysisResult) return state;
+            if (!state.analysisResult) {
+                 // During a stream, if there's no result object yet, create one.
+                 // This can happen if the first chunk arrives before the main result object is formed.
+                 return {
+                     ...state,
+                     analysisResult: {
+                         probability: 0,
+                         verdict: 'Deducing...',
+                         explanation: action.payload.explanation,
+                         isSecondOpinion: state.analysisResult?.isSecondOpinion || false,
+                     }
+                 }
+            }
             return {
                 ...state,
                  analysisResult: {
                     ...state.analysisResult,
-                    explanation: action.payload.explanation,
+                    explanation: state.analysisResult.explanation + action.payload.explanation,
                 },
             };
         case actions.ANALYSIS_SUCCESS:

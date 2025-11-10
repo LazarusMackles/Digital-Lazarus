@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { useResultState } from '../context/ResultStateContext';
 import { useUIState } from '../context/UIStateContext';
@@ -10,7 +9,6 @@ import { ResultActionButtons } from './result/ResultActionButtons';
 import { ShareModal } from './ShareModal';
 import { Card, HighlightsDisplay } from './ui';
 import { ChallengeVerdict } from './ChallengeVerdict';
-import { InteractiveTextDisplay } from './InteractiveTextDisplay';
 
 export const ResultDisplay: React.FC = () => {
   const { state: resultState } = useResultState();
@@ -23,6 +21,11 @@ export const ResultDisplay: React.FC = () => {
   const handleReanalyze = useCallback(() => {
     performAnalysis(true);
   }, [performAnalysis]);
+
+  const handleShowShareModal = useCallback(() => {
+    window.scrollTo(0, 0);
+    setShowShareModal(true);
+  }, []);
 
   if (!analysisResult) {
     return null; // Or some fallback UI
@@ -44,9 +47,9 @@ export const ResultDisplay: React.FC = () => {
 
         {analysisEvidence?.type === 'text' && analysisEvidence.content && (
            <div className="mt-8 w-full max-w-2xl bg-slate-100 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-               <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Evidence Analyzed:</h3>
+               <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Evidence Analysed:</h3>
                <div className="text-slate-800 dark:text-slate-200 max-h-60 overflow-y-auto pr-2">
-                    <InteractiveTextDisplay text={analysisEvidence.content} highlights={highlights || []} />
+                    <p className="whitespace-pre-wrap break-words">{analysisEvidence.content}</p>
                </div>
            </div>
         )}
@@ -62,7 +65,7 @@ export const ResultDisplay: React.FC = () => {
                         isSecondOpinion={isSecondOpinion || false} 
                     />
                     <Feedback result={analysisResult} evidence={analysisEvidence} timestamp={analysisTimestamp} analysisModeUsed={analysisModeUsed} modelUsed={modelUsed} />
-                    <ResultActionButtons onNewAnalysis={handleNewAnalysis} onShowShareModal={() => setShowShareModal(true)} />
+                    <ResultActionButtons onNewAnalysis={handleNewAnalysis} onShowShareModal={handleShowShareModal} />
                 </div>
             </>
         )}
