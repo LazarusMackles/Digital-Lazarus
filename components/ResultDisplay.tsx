@@ -58,7 +58,7 @@ export const ResultDisplay: React.FC = () => {
         {(!isStreaming && !isReanalyzing) && (
             <>
                 <div className="mt-8 border-t border-slate-200 dark:border-slate-700 w-full max-w-xl" />
-                <div className="mt-8 flex w-full flex-col items-center gap-6">
+                <div className="mt-8 flex w-full flex-col items-center gap-8">
                     <ChallengeVerdict 
                         onReanalyze={handleReanalyze} 
                         isSecondOpinion={isSecondOpinion || false} 

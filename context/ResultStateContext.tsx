@@ -45,7 +45,7 @@ export const resultReducer = (state: ResultState = initialState, action: Action)
                 analysisResult: isStreaming
                     ? {
                         probability: 0,
-                        verdict: 'Deducing...',
+                        verdict: 'Deducing ...',
                         explanation: '',
                         isSecondOpinion: false,
                     }
@@ -69,7 +69,7 @@ export const resultReducer = (state: ResultState = initialState, action: Action)
                      ...state,
                      analysisResult: {
                          probability: 0,
-                         verdict: 'Deducing...',
+                         verdict: 'Deducing ...',
                          explanation: action.payload.explanation,
                          isSecondOpinion: state.analysisResult?.isSecondOpinion || false,
                      }

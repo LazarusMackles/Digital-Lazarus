@@ -73,7 +73,7 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
                     // Placeholder to prevent layout shift while waiting for animation,
                     // or show the streaming status.
                     <h2 className="text-2xl font-bold text-slate-500 dark:text-slate-400 animate-fade-in">
-                        {isStreaming ? 'Deducing...' : <>&nbsp;</>}
+                        {isStreaming ? 'Deducing ...' : <>&nbsp;</>}
                     </h2>
                 )}
             </div>

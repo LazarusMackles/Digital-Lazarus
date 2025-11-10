@@ -87,8 +87,8 @@ const AppContent: React.FC = () => {
     switch (view) {
       case 'LOADING': {
         const loaderMessage = isReanalyzing 
-          ? "Re-analysing with a critical eye..." 
-          : "Deducing the Digital DNA...";
+          ? "Re-analysing with a critical eye ..." 
+          : "Deducing the Digital DNA ...";
 
         return (
           <Card>

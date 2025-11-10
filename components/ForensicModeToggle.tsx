@@ -11,7 +11,7 @@ interface ForensicModeToggleProps {
 export const ForensicModeToggle: React.FC<ForensicModeToggleProps> = React.memo(({ selectedMode, onModeChange }) => {
   return (
     <fieldset className="mt-6 mb-8 animate-fade-in w-full border-none p-0">
-        <legend className="text-sm font-medium text-cyan-600 dark:text-cyan-400 mb-3 text-center w-full">Select Forensic Angle</legend>
+        <legend className="text-sm font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 mb-3 text-center w-full">Select Forensic Angle</legend>
         <div className="w-full flex flex-col sm:flex-row gap-2">
             <ModeButton
                 active={selectedMode === 'standard'}

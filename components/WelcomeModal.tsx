@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Icon } from './icons/index';
 import { Button } from './ui';
@@ -39,7 +40,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = React.memo(({ onClose }
                 <li className="flex items-start gap-3">
                     <span className="text-cyan-500 font-bold mt-0.5">1.</span>
                     <div>
-                        <span className="font-semibold text-slate-800 dark:text-white">Our Goal is Clarity, Not Judgment.</span> This tool is designed to uncover the 'Digital DNA' of content, revealing whether its origins are human, AI, or a collaboration of both.
+                        <span className="font-semibold text-slate-800 dark:text-white">Our Goal is Clarity, Not Judgement.</span> This tool is designed to uncover the 'Digital DNA' of content, revealing whether its origins are human, AI, or a collaboration of both.
                     </div>
                 </li>
                 <li className="flex items-start gap-3">

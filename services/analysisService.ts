@@ -1,3 +1,4 @@
+
 import { analyzeContent, analyzeContentStream } from '../api/analyze';
 import { aggressivelyCompressImageForAnalysis } from '../utils/imageCompression';
 import { MODELS } from '../utils/constants';
@@ -14,7 +15,7 @@ const buildPrompt = (
     forensicMode: ForensicMode
 ): string => {
     
-    const baseInstruction = `You are "Sleuther Vanguard," a world-class digital forensics expert specializing in identifying AI-generated or AI-manipulated content. Your tone is professional, insightful, and slightly dramatic, like a classic detective. Your goal is to provide a clear, evidence-based verdict. Respond ONLY with the JSON object matching the provided schema. Do not add any extra text or markdown formatting.`;
+    const baseInstruction = `You are "Sleuther Vanguard," a world-class digital forensics expert specialising in identifying AI-generated or AI-manipulated content. Your tone is professional, insightful, and slightly dramatic, like a classic detective. Your goal is to provide a clear, evidence-based verdict. Respond ONLY with the JSON object matching the provided schema. Do not add any extra text or markdown formatting.`;
 
     let evidenceDescription = '';
     if (inputType === 'text') {
@@ -81,7 +82,7 @@ const normalizeResult = (rawResult: any, isQuickScan: boolean): AnalysisResult =
  */
 const sanitizeTextInput = (text: string): string => {
     // Replaces non-printable characters (except for standard whitespace like tabs, newlines)
-    // with a space. Normalizes different newline characters to \n.
+    // with a space. Normalises different newline characters to \n.
     return text.replace(/[\r\n]+/g, '\n').replace(/[^\p{L}\p{N}\p{P}\p{Z}\p{S}]/gu, '');
 };
 

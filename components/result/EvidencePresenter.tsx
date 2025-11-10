@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import type { AnalysisEvidence } from '../../types';
 import { SleuthNote, EvidenceImage, ImageLightbox } from '../ui';
@@ -44,11 +42,11 @@ export const EvidencePresenter: React.FC<EvidencePresenterProps> = ({ evidence }
                                 The primary piece of evidence is displayed first, with any additional files presented as supporting context. Click an image to enlarge.
                             </SleuthNote>
                             {files.length === 1 ? (
-                                <div className="mt-4 w-full max-w-xs">
+                                <div className="mt-6 w-full max-w-xs">
                                     <EvidenceItem file={files[0]} onImageClick={setLightboxImage} />
                                 </div>
                             ) : (
-                                <div className="mt-4 w-full max-w-2xl grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                <div className="mt-6 w-full max-w-2xl grid grid-cols-2 sm:grid-cols-4 gap-4">
                                     {files.map((file, index) => (
                                         <EvidenceItem key={`${file.name}-${index}`} file={file} onImageClick={setLightboxImage} />
                                     ))}
