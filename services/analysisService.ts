@@ -18,13 +18,13 @@ const buildPrompt = (
 
     let evidenceDescription = '';
     if (inputType === 'text') {
-        evidenceDescription = `The evidence is the following text block. Analyze its style, tone, structure, and content to determine if it was written by an AI. Look for tells like unnatural phrasing, excessive complexity or simplicity, lack of personal voice, or factual hallucinations. Even for very short text, analyze jargon and structure.`;
+        evidenceDescription = `The evidence is the following text block. Analyse its style, tone, structure, and content to determine if it was written by an AI. Look for tells like unnatural phrasing, excessive complexity or simplicity, lack of personal voice, or factual hallucinations. Even for very short text, analyse jargon and structure.`;
     } else { // 'file'
         const primaryEvidence = fileData[0]?.name || 'the primary image';
         const supportingEvidence = fileData.length > 1 
             ? ` It is supported by ${fileData.length - 1} other image(s) for context.`
             : '';
-        evidenceDescription = `The primary evidence is an image named "${primaryEvidence}".${supportingEvidence} Analyze it for signs of AI generation or manipulation.`;
+        evidenceDescription = `The primary evidence is an image named "${primaryEvidence}".${supportingEvidence} Analyse it for signs of AI generation or manipulation.`;
         
         switch (forensicMode) {
             case 'technical':

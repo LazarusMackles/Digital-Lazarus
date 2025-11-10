@@ -1,10 +1,8 @@
 
+
 import React, { useState } from 'react';
 import type { AnalysisEvidence } from '../../types';
-import { EvidenceImage } from '../EvidenceImage';
-import { ImageLightbox } from '../ImageLightbox';
-import { SleuthNote } from '../ui';
-import { InteractiveTextDisplay } from '../InteractiveTextDisplay';
+import { SleuthNote, EvidenceImage, ImageLightbox } from '../ui';
 import { useResultState } from '../../context/ResultStateContext';
 
 interface EvidencePresenterProps {
@@ -33,7 +31,7 @@ export const EvidencePresenter: React.FC<EvidencePresenterProps> = ({ evidence }
     const renderContent = () => {
         switch (evidence.type) {
             case 'text':
-                 // Text is now rendered directly in ResultDisplay via InteractiveTextDisplay
+                 // Text is now rendered directly in ResultDisplay
                 return null;
             case 'file':
                 try {

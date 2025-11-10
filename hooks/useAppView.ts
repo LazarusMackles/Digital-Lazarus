@@ -16,13 +16,13 @@ export const useAppView = (): AppView => {
     const { analysisResult } = resultState;
     const { isLoading } = uiState;
 
-    // The logic is now simplified: if the app is performing any analysis,
-    // show the main loader. This provides a consistent UX for all modes.
+    // If the app is in a loading state, always show the main loader.
+    // This takes precedence over showing a partial or placeholder result.
     if (isLoading) {
         return 'LOADING';
     }
     
-    // If there's a result, show the result display.
+    // If there's a result and we are not loading, show the result display.
     if (analysisResult) {
         return 'RESULT';
     }

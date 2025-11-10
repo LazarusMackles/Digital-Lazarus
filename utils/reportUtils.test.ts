@@ -17,7 +17,7 @@ describe('generateShareText', () => {
     it('should generate a standard report for text evidence', () => {
         const mockEvidence: AnalysisEvidence = {
             type: 'text',
-            content: 'This is the text that was analyzed.'
+            content: 'This is the text that was analysed.'
         };
         // FIX: Provided all 6 arguments to satisfy the function's signature.
         const report = generateShareText(mockResult, mockEvidence, mockTimestamp, false, 'deep', 'gemini-2.5-pro');
@@ -25,7 +25,7 @@ describe('generateShareText', () => {
         expect(report).toContain('--- FORENSIC REPORT ---');
         expect(report).toContain('Analysis by: GenAI Sleuther Vanguard');
         expect(report).toContain(`Date of Analysis: ${mockTimestamp}`);
-        expect(report).toContain('EVIDENCE ANALYZED (TEXT):');
+        expect(report).toContain('EVIDENCE ANALYSED (TEXT):');
         expect(report).toContain(mockEvidence.content);
         expect(report).toContain('VERDICT: Likely AI-Enhanced');
         expect(report).toContain('AI PROBABILITY: 88%');
@@ -58,7 +58,7 @@ describe('generateShareText', () => {
         };
         // FIX: Provided all 6 arguments to satisfy the function's signature.
         const report = generateShareText(mockResult, mockEvidence, mockTimestamp, false, 'deep', 'gemini-2.5-pro');
-        expect(report).toContain('EVIDENCE ANALYZED (FILES): cat.png, dog.jpg');
+        expect(report).toContain('EVIDENCE ANALYSED (FILES): cat.png, dog.jpg');
     });
 
     // FIX: Removed test case for deprecated 'url' evidence type which was causing a type error.
@@ -67,7 +67,7 @@ describe('generateShareText', () => {
         // FIX: Provided all 6 arguments to satisfy the function's signature.
         const report = generateShareText(mockResult, null, null, false, null, null);
         expect(report).not.toContain('Date of Analysis:');
-        expect(report).not.toContain('EVIDENCE ANALYZED');
+        expect(report).not.toContain('EVIDENCE ANALYSED');
     });
     
     it('should handle results with no highlights', () => {

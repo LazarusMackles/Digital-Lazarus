@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { Icon } from './icons/index';
-import type { AnalysisResult, AnalysisEvidence, AnalysisMode } from '../types';
-import { generateShareText } from '../utils/reportUtils';
-import { FEEDBACK_EMAIL } from '../utils/constants';
+import { Icon } from '../icons/index';
+import type { AnalysisResult, AnalysisEvidence, AnalysisMode } from '../../types';
+import { generateShareText } from '../../utils/reportUtils';
+import { FEEDBACK_EMAIL } from '../../utils/constants';
 
 interface FeedbackProps {
   result: AnalysisResult;

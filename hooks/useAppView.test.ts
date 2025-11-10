@@ -36,31 +36,14 @@ describe('useAppView', () => {
         expect(view).toBe('INPUT');
     });
 
-    it('should return LOADING for a standard (non-streaming text) loading state', () => {
+    it('should return LOADING for a standard loading state', () => {
         mockUseResultState({});
-        // FIX: Moved isLoading to the correct UI state mock.
         mockUseUIState({ isLoading: true });
         const view = renderHook(useAppView);
         expect(view).toBe('LOADING');
     });
-
-    it('should return LOADING for a re-analysis, even if it is a streaming text view', () => {
-        // FIX: Separated state properties into their respective context mocks.
-        mockUseResultState({
-            analysisEvidence: { type: 'text', content: 'abc' },
-            analysisResult: { probability: 0, verdict: '...', explanation: '' }
-        });
-        mockUseUIState({
-            isLoading: true,
-            isReanalyzing: true,
-            isStreaming: true,
-        });
-        const view = renderHook(useAppView);
-        // The hook prioritizes the main loading view for re-analysis.
-        expect(view).toBe('LOADING');
-    });
-
-    it('should return RESULT when an analysisResult is present and the app is not in a main loading state', () => {
+    
+    it('should return RESULT when an analysisResult is present and the app is not loading', () => {
         mockUseResultState({
             analysisResult: { probability: 90, verdict: 'AI', explanation: '...' }
         });
@@ -69,8 +52,7 @@ describe('useAppView', () => {
         expect(view).toBe('RESULT');
     });
 
-    it('should return RESULT for a deep-dive streaming text view', () => {
-        // FIX: Separated state properties into their respective context mocks.
+    it('should return LOADING for a deep-dive streaming text view (initial analysis)', () => {
          mockUseResultState({
             analysisEvidence: { type: 'text', content: 'abc' },
             analysisResult: { probability: 0, verdict: '...', explanation: '' } // The placeholder result exists.
@@ -78,15 +60,13 @@ describe('useAppView', () => {
         mockUseUIState({
             isLoading: true,
             isStreaming: true,
-            isReanalyzing: false,
         });
         const view = renderHook(useAppView);
-        // The hook logic correctly identifies this as a streaming text view and shows the result panel, not the main loader.
-        expect(view).toBe('RESULT');
+        // The hook should show the main loader, not the result panel.
+        expect(view).toBe('LOADING');
     });
 
     it('should return LOADING for a deep-dive streaming file view', () => {
-        // FIX: Separated state properties into their respective context mocks.
          mockUseResultState({
             analysisEvidence: { type: 'file', content: '...' },
             analysisResult: { probability: 0, verdict: '...', explanation: '' }

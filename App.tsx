@@ -3,7 +3,6 @@
 import React from 'react';
 import { Header } from './components/Header';
 import { ResultDisplay } from './components/ResultDisplay';
-import { Loader } from './components/Loader';
 import { WelcomeModal } from './components/WelcomeModal';
 import { InputForm } from './components/InputForm';
 import { InputStateProvider } from './context/InputStateContext';
@@ -11,7 +10,7 @@ import { ResultStateProvider, useResultState } from './context/ResultStateContex
 import { UIStateProvider, useUIState } from './context/UIStateContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import * as actions from './context/actions';
-import { Card } from './components/ui';
+import { Card, Loader } from './components/ui';
 import { useAppView } from './hooks/useAppView';
 
 const IconSprite: React.FC = React.memo(() => (

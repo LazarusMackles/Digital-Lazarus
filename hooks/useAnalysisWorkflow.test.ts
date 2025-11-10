@@ -12,6 +12,7 @@ vi.mock('../services/analysisService', () => ({
 // Mock the context hooks
 const mockInputDispatch = vi.fn();
 const mockResultDispatch = vi.fn();
+const mockUiDispatch = vi.fn();
 
 vi.mock('../context/InputStateContext', () => ({
   useInputState: () => ({
@@ -28,15 +29,21 @@ vi.mock('../context/InputStateContext', () => ({
 
 vi.mock('../context/ResultStateContext', () => ({
   useResultState: () => ({
-    // We don't need the state for this test, just the dispatch
     state: {},
     dispatch: mockResultDispatch,
   }),
 }));
 
+vi.mock('../context/UIStateContext', () => ({
+  useUIState: () => ({
+    state: {},
+    dispatch: mockUiDispatch,
+  }),
+}));
+
 
 // This is a minimal React-like environment to test hooks without a full library
-const renderHook = <T>(hook: () => T): T => {
+const renderHook = <T,>(hook: () => T): T => {
     return hook();
 };
 
@@ -49,8 +56,11 @@ describe('useAnalysisWorkflow', () => {
 
     describe('performAnalysis', () => {
         it('should dispatch start and success actions on a successful analysis', async () => {
-            const mockResult = { probability: 90, verdict: 'AI', explanation: 'It is AI.' };
-            (analysisService.runAnalysis as any).mockResolvedValue(mockResult);
+            const mockApiResult = { 
+                result: { probability: 90, verdict: 'AI', explanation: 'It is AI.' },
+                modelName: 'gemini-2.5-flash' 
+            };
+            (analysisService.runAnalysis as any).mockResolvedValue(mockApiResult);
 
             const { performAnalysis } = renderHook(useAnalysisWorkflow);
             await performAnalysis();
@@ -66,13 +76,17 @@ describe('useAnalysisWorkflow', () => {
 
             // Check that success was dispatched correctly
             expect(mockResultDispatch).toHaveBeenCalledWith({
-                // FIX: Corrected action type to ANALYSIS_SUCCESS.
                 type: actions.ANALYSIS_SUCCESS,
                 payload: {
-                    result: mockResult,
+                    result: mockApiResult.result,
+                    modelName: mockApiResult.modelName,
                     isSecondOpinion: false
                 }
             });
+
+             // Check that loading flags were set correctly
+            expect(mockUiDispatch).toHaveBeenCalledWith({ type: actions.SET_LOADING, payload: true });
+            expect(mockUiDispatch).toHaveBeenCalledWith({ type: actions.SET_LOADING, payload: false });
         });
 
         it('should dispatch start and error actions on a failed analysis', async () => {
@@ -85,15 +99,15 @@ describe('useAnalysisWorkflow', () => {
             // Check that start was still dispatched
             expect(mockResultDispatch).toHaveBeenCalledWith(expect.objectContaining({ type: actions.START_ANALYSIS }));
 
-            // Check that error was dispatched
-            expect(mockResultDispatch).toHaveBeenCalledWith({
-                type: actions.ANALYSIS_ERROR,
+            // Check that error was dispatched to the UI context
+            expect(mockUiDispatch).toHaveBeenCalledWith({
+                type: actions.SET_ERROR,
                 payload: 'API Failed'
             });
         });
 
         it('should dispatch START_REANALYSIS when isReanalysis is true', async () => {
-            (analysisService.runAnalysis as any).mockResolvedValue({});
+            (analysisService.runAnalysis as any).mockResolvedValue({ result: {}, modelName: 'test-model' });
             
             const { performAnalysis } = renderHook(useAnalysisWorkflow);
             await performAnalysis(true); // Call with reanalysis flag
@@ -101,6 +115,7 @@ describe('useAnalysisWorkflow', () => {
             expect(mockResultDispatch).toHaveBeenCalledWith({
                 type: actions.START_REANALYSIS
             });
+            expect(mockUiDispatch).toHaveBeenCalledWith({ type: actions.SET_REANALYZING, payload: true });
         });
     });
 
@@ -120,7 +135,7 @@ describe('useAnalysisWorkflow', () => {
             handleClearInputs();
 
             expect(mockInputDispatch).toHaveBeenCalledWith({ type: actions.CLEAR_INPUTS });
-            expect(mockResultDispatch).toHaveBeenCalledWith({ type: actions.CLEAR_ERROR });
+            expect(mockUiDispatch).toHaveBeenCalledWith({ type: actions.CLEAR_ERROR });
         });
     });
 });

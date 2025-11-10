@@ -35,10 +35,21 @@ type Action =
 export const resultReducer = (state: ResultState = initialState, action: Action): ResultState => {
     switch (action.type) {
         case actions.START_ANALYSIS: {
+            const isStreaming = action.payload.analysisMode === 'deep';
             return {
                 ...initialState, // Clear previous results completely
                 analysisEvidence: action.payload.evidence,
                 analysisModeUsed: action.payload.analysisMode,
+                // If it's a streaming analysis, create a placeholder result immediately.
+                // This ensures the UI can switch to the streaming view without a race condition.
+                analysisResult: isStreaming
+                    ? {
+                        probability: 0,
+                        verdict: 'Deducing...',
+                        explanation: '',
+                        isSecondOpinion: false,
+                    }
+                    : null,
             };
         }
         // FIX: Corrected typo from START_REANALysis to START_REANALYSIS
@@ -53,8 +64,7 @@ export const resultReducer = (state: ResultState = initialState, action: Action)
             };
         case actions.STREAM_ANALYSIS_UPDATE:
             if (!state.analysisResult) {
-                 // During a stream, if there's no result object yet, create one.
-                 // This can happen if the first chunk arrives before the main result object is formed.
+                 // This case is now a fallback, as START_ANALYSIS should create the placeholder.
                  return {
                      ...state,
                      analysisResult: {
@@ -69,7 +79,9 @@ export const resultReducer = (state: ResultState = initialState, action: Action)
                 ...state,
                  analysisResult: {
                     ...state.analysisResult,
-                    explanation: state.analysisResult.explanation + action.payload.explanation,
+                    // FIX: The streaming service sends the *entire* explanation found so far.
+                    // We should replace the state, not append to it, to avoid duplication.
+                    explanation: action.payload.explanation,
                 },
             };
         case actions.ANALYSIS_SUCCESS:

@@ -1,12 +1,11 @@
 import React, { useCallback, useState, useRef } from 'react';
 import { Icon } from './icons/index';
 import { compressAndEncodeFile } from '../utils/imageCompression';
-import { EvidenceImage } from './EvidenceImage';
 import { useInputState } from '../context/InputStateContext';
 import { useResultState } from '../context/ResultStateContext';
 import * as actions from '../context/actions';
 import { MAX_FILES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, ACCEPTED_IMAGE_TYPES, ACCEPTED_IMAGE_TYPES_STRING } from '../utils/constants';
-import { Button } from './ui';
+import { Button, EvidenceImage } from './ui';
 import { cn } from '../utils/cn';
 
 export const FileUploadDisplay: React.FC = () => {

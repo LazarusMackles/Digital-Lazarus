@@ -4,10 +4,9 @@ import { useUIState } from '../context/UIStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
 import { VerdictPanel } from './result/VerdictPanel';
 import { EvidencePresenter } from './result/EvidencePresenter';
-import { Feedback } from './Feedback';
 import { ResultActionButtons } from './result/ResultActionButtons';
 import { ShareModal } from './ShareModal';
-import { Card, HighlightsDisplay } from './ui';
+import { Card, HighlightsDisplay, Feedback } from './ui';
 import { ChallengeVerdict } from './ChallengeVerdict';
 
 export const ResultDisplay: React.FC = () => {
