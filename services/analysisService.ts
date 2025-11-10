@@ -2,6 +2,7 @@
 import { analyzeContent, analyzeContentStream } from '../api/analyze';
 import { aggressivelyCompressImageForAnalysis } from '../utils/imageCompression';
 import { MODELS } from '../utils/constants';
+import { sanitizeTextInput } from '../utils/textUtils';
 import type { AnalysisMode, ForensicMode, AnalysisResult, InputType } from '../types';
 
 /**
@@ -72,18 +73,6 @@ const normalizeResult = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         explanation: rawResult.explanation,
         highlights: rawResult.highlights || [],
     };
-};
-
-/**
- * Cleans input text to remove non-standard characters and formatting
- * that can interfere with AI analysis.
- * @param text The raw input text.
- * @returns The sanitized text.
- */
-const sanitizeTextInput = (text: string): string => {
-    // Replaces non-printable characters (except for standard whitespace like tabs, newlines)
-    // with a space. Normalises different newline characters to \n.
-    return text.replace(/[\r\n]+/g, '\n').replace(/[^\p{L}\p{N}\p{P}\p{Z}\p{S}]/gu, '');
 };
 
 

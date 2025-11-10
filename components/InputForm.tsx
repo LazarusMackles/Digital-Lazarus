@@ -1,22 +1,18 @@
 
 
 import React, { useCallback, useMemo } from 'react';
-import { InputTabs } from './InputTabs';
-import { FileUploadDisplay } from './FileUploadDisplay';
-import { ModeSelector } from './ModeSelector';
-import { HowItWorks } from './HowItWorks';
 import { useInputState } from '../context/InputStateContext';
 import { useUIState } from '../context/UIStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
 import { useApiKey } from '../hooks/useApiKey';
 import * as actions from '../context/actions';
 // FIX: Corrected import path for UI components.
-import { Card, Button } from './ui';
+import { Card, Button, InputTabs, ModeSelector, HowItWorks, ForensicModeToggle } from './ui';
 import { Icon } from './icons/index';
 import { TextInputPanel } from './TextInputPanel';
 import { isInputReadyForAnalysis } from '../utils/validation';
-import { ForensicModeToggle } from './ForensicModeToggle';
 import type { AnalysisMode, ForensicMode } from '../types';
+import { FileUploadDisplay } from './FileUploadDisplay';
 
 // The global AIStudio interface declaration is now managed within the useApiKey hook.
 

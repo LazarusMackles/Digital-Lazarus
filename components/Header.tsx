@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ThemeToggle } from './ThemeToggle';
+import { ThemeToggle } from './ui';
 
 export const Header: React.FC = React.memo(() => {
   return (

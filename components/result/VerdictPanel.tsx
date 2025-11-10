@@ -1,8 +1,9 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useUIState } from '../../context/UIStateContext';
 import { Icon } from '../icons/index';
-import { RadialProgress } from '../RadialProgress';
+import { RadialProgress } from '../ui';
 
 interface VerdictPanelProps {
     probability: number;

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { AnalysisMode, InputType } from '../../types';
 
