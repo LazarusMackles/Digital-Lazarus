@@ -135,7 +135,7 @@ const App: React.FC = () => {
     <InputStateProvider>
       <UIStateProvider>
         <ResultStateProvider>
-          {/* FIX: The error here was caused by an incorrect definition of the ErrorBoundary component. With that fixed, this code works as intended. */}
+          {/* FIX: The ErrorBoundary component must be implemented as a class to correctly handle errors. This resolves the error about the missing 'children' prop that occurred when it was previously misconfigured. */}
           <ErrorBoundary>
             <AppContent />
           </ErrorBoundary>

@@ -9,8 +9,11 @@ interface State {
   hasError: boolean;
 }
 
-// FIX: To function as an error boundary, this class must extend React.Component.
-// This provides access to `this.state`, `this.props`, and component lifecycle methods, resolving the errors.
+// FIX: The errors indicate that the ErrorBoundary was not a valid class component.
+// React Error Boundaries must be class components to use lifecycle methods like
+// `getDerivedStateFromError` and `componentDidCatch`. This implementation converts
+// the component to a proper class that extends `React.Component`, which resolves
+// the errors related to accessing `this.state` and `this.props`.
 export class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);

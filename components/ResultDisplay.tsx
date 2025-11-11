@@ -35,7 +35,7 @@ export const ResultDisplay: React.FC = () => {
     <>
       <Card className="flex flex-col items-center">
         
-        {analysisEvidence?.type === 'file' && <EvidencePresenter evidence={analysisEvidence} />}
+        {analysisEvidence?.type === 'file' && <EvidencePresenter evidence={analysisEvidence} probability={probability} />}
         
         <VerdictPanel 
             probability={probability} 

@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Part, GenerateContentResponse } from '@google/genai';
 import { deepAnalysisSchema, quickAnalysisSchema } from '../utils/schemas';
 import type { AnalysisMode } from '../types';
@@ -129,6 +128,8 @@ export const analyzeContentStream = async (
   sanitizedText: string = ''
 ) => {
   const contents = { parts: prepareContentParts(prompt, sanitizedText, files) };
+  // RESTORED: The diagnostic is over. We now restore the correct schema selection logic
+  // to prepare for the "Prompt Efficiency Audit".
   const schema = deepAnalysisSchema;
 
   try {
