@@ -9,12 +9,9 @@ interface State {
   hasError: boolean;
 }
 
-// FIX: An Error Boundary must be a class component. This provides access to `this.state` and `this.props` and allows it to function correctly within the React component lifecycle, resolving the type errors.
+// FIX: Switched to using a class property for state initialization. This is a more modern approach for class components and can avoid potential issues with 'this' context, addressing the errors related to `this.state` and `this.props` being undefined.
 export class ErrorBoundary extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false };
-  }
+  state: State = { hasError: false };
 
   static getDerivedStateFromError(_: Error): State {
     // Update state so the next render will show the fallback UI.

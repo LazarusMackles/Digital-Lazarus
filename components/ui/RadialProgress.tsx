@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { VERDICT_COLORS } from '../../utils/constants';
 
@@ -21,7 +20,7 @@ export const RadialProgress: React.FC<RadialProgressProps> = ({ progress, durati
 
     const getColor = (p: number) => {
         if (p < 40) return VERDICT_COLORS.HUMAN;
-        if (p < 75) return VERDICT_COLORS.MIXED;
+        if (p < 80) return VERDICT_COLORS.MIXED;
         return VERDICT_COLORS.AI;
     };
     

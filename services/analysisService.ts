@@ -39,7 +39,7 @@ const buildPrompt = (
                 evidenceDescription += `\nFORENSIC ANGLE: Your analysis MUST be strictly technical. Report ONLY on pixel-level artifacts: compression anomalies, impossible lighting, unnatural textures, anatomical errors (hands, eyes), and digital synthesis patterns. IGNORE all conceptual or narrative elements.`;
                 break;
             case 'conceptual':
-                evidenceDescription += `\nFORENSIC ANGLE: Focus your analysis strictly on conceptual elements. Report on the scene's narrative, context, and plausibility. Consider anachronisms and emotional tone. You should reference major technical flaws ONLY if they directly impact the conceptual plausibility of the scene.`;
+                evidenceDescription += `\nFORENSIC ANGLE: Focus on conceptual elements. Your primary goal is to determine if an AI has manipulated a real photo. Even if the scene is conceptually plausible, you must still hunt for subtle signs of AI stylization or enhancement. Reference technical details like unnatural skin textures, anachronistic lighting, or overly perfect 'vintage' effects to support your conceptual conclusion.`;
                 break;
             default: // 'standard'
                 evidenceDescription += `\nFORENSIC ANGLE: Conduct a balanced 'Standard Analysis'. Your goal is to find any AI involvement. You MUST examine BOTH technical artifacts (unnatural textures, lighting flaws, anatomy) AND conceptual clues (anachronisms, plausibility, styling). Synthesize ALL findings into a single, decisive verdict.`;
