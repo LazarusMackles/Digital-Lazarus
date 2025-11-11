@@ -1,6 +1,8 @@
-import { useCallback, useState } from 'react';
+
+import { useCallback } from 'react';
 import { useInputState } from '../context/InputStateContext';
 import { useResultState } from '../context/ResultStateContext';
+import { useUIState } from '../context/UIStateContext';
 import * as actions from '../context/actions';
 import { runAnalysis } from '../services/analysisService';
 import type { AnalysisEvidence } from '../types';
@@ -8,25 +10,17 @@ import type { AnalysisEvidence } from '../types';
 export const useAnalysisWorkflow = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
     const { dispatch: resultDispatch } = useResultState();
-    
-    const [isLoading, setIsLoading] = useState(false);
-    const [isStreaming, setIsStreaming] = useState(false);
-    const [isReanalyzing, setIsReanalyzing] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const { dispatch: uiDispatch } = useUIState();
 
     const performAnalysis = useCallback(async (isReanalysis = false) => {
         const { activeInput, textContent, fileData, analysisMode, forensicMode } = inputState;
 
-        // For re-analysis, we force a deep dive.
         const currentAnalysisMode = isReanalysis ? 'deep' : analysisMode;
 
-        // Prepare evidence payload
         let evidence: AnalysisEvidence;
         if (activeInput === 'text') {
             evidence = { type: 'text', content: textContent };
         } else {
-            // For file evidence, we stringify the file data array.
-            // This is how we pass it to the result state for display.
             const fileContent = JSON.stringify(fileData.map(f => ({
                 name: f.name,
                 imageBase64: f.imageBase64,
@@ -34,22 +28,19 @@ export const useAnalysisWorkflow = () => {
             evidence = { type: 'file', content: fileContent };
         }
         
-        // Set local state instead of dispatching to UI context
-        setIsLoading(true);
-        setError(null);
+        uiDispatch({ type: actions.SET_LOADING, payload: true });
 
         if (isReanalysis) {
-            setIsReanalyzing(true);
-            setIsStreaming(true); // Re-analysis always streams
+            uiDispatch({ type: actions.SET_REANALYZING, payload: true });
+            uiDispatch({ type: actions.SET_STREAMING, payload: true });
             resultDispatch({ type: actions.START_REANALYSIS });
         } else {
             const shouldStream = currentAnalysisMode === 'deep';
-            setIsStreaming(shouldStream);
+            uiDispatch({ type: actions.SET_STREAMING, payload: shouldStream });
             resultDispatch({ type: actions.START_ANALYSIS, payload: { evidence, analysisMode: currentAnalysisMode } });
         }
 
         try {
-            // Handler for streaming updates
             const onStreamUpdate = (partialExplanation: string) => {
                 resultDispatch({ 
                     type: actions.STREAM_ANALYSIS_UPDATE, 
@@ -63,7 +54,7 @@ export const useAnalysisWorkflow = () => {
                 fileData.map(f => ({ name: f.name, imageBase64: f.imageBase64 as string })),
                 currentAnalysisMode,
                 forensicMode,
-                onStreamUpdate // Pass the handler
+                onStreamUpdate
             );
             
             resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result, modelName, isSecondOpinion: isReanalysis } });
@@ -71,27 +62,27 @@ export const useAnalysisWorkflow = () => {
         } catch (error) {
             console.error("Analysis workflow error:", error);
             const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-            setError(errorMessage);
+            uiDispatch({ type: actions.SET_ERROR, payload: errorMessage });
         } finally {
-            // Reset all local transient state flags
-            setIsLoading(false);
-            setIsStreaming(false);
-            setIsReanalyzing(false);
+            uiDispatch({ type: actions.SET_LOADING, payload: false });
+            uiDispatch({ type: actions.SET_STREAMING, payload: false });
+            uiDispatch({ type: actions.SET_REANALYZING, payload: false });
         }
 
-    }, [inputState, resultDispatch]);
+    }, [inputState, resultDispatch, uiDispatch]);
 
     const handleNewAnalysis = useCallback(() => {
         resultDispatch({ type: actions.NEW_ANALYSIS });
         inputDispatch({ type: actions.CLEAR_INPUTS });
+        uiDispatch({ type: actions.CLEAR_ERROR });
         document.documentElement.scrollTo(0, 0);
-    }, [resultDispatch, inputDispatch]);
+    }, [resultDispatch, inputDispatch, uiDispatch]);
     
     const handleClearInputs = useCallback(() => {
         inputDispatch({ type: actions.CLEAR_INPUTS });
-        // Error clearing is now the component's responsibility
+        uiDispatch({ type: actions.CLEAR_ERROR });
         document.documentElement.scrollTo(0, 0);
-    }, [inputDispatch]);
+    }, [inputDispatch, uiDispatch]);
 
-    return { performAnalysis, handleNewAnalysis, handleClearInputs, isLoading, isStreaming, isReanalyzing, error };
+    return { performAnalysis, handleNewAnalysis, handleClearInputs };
 };

@@ -115,12 +115,11 @@ export const runAnalysis = async (
     
     // For deep dives (always streaming), use the streaming API call.
     if (analysisMode === 'deep' && onStreamUpdate) {
-        let fullResponseText = '';
-        const handleStream = (chunkText: string) => {
-            fullResponseText += chunkText;
+        // The `handleStream` callback receives the full, updated JSON string in each chunk from the API.
+        const handleStream = (fullJsonChunk: string) => {
             try {
                 // Find the explanation field in the potentially incomplete JSON string.
-                const match = fullResponseText.match(/"explanation"\s*:\s*"((?:[^"\\]|\\.)*)/);
+                const match = fullJsonChunk.match(/"explanation"\s*:\s*"((?:[^"\\]|\\.)*)/);
                 if (match && match[1]) {
                     // Clean up escaped characters for display
                     const explanation = match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');

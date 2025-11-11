@@ -147,8 +147,10 @@ export const analyzeContentStream = async (
 
     let fullResponseText = '';
     for await (const chunk of responseStream) {
-        const chunkText = chunk.text;
-        fullResponseText += chunkText;
+        // FIX: The streaming response for JSON returns the full text so far in each chunk.
+        // Appending the chunks (`+=`) was causing exponential string growth and hanging the app.
+        // This now correctly replaces the text with the latest, most complete chunk.
+        fullResponseText = chunk.text;
         // The stream provides partial JSON, so we just pass the text up.
         // The service layer will handle parsing it at the end.
         onStreamUpdate(fullResponseText);

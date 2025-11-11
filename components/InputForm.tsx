@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo, useEffect } from 'react';
+
+import React, { useCallback, useMemo } from 'react';
 import { useInputState } from '../context/InputStateContext';
 import { useUIState } from '../context/UIStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
@@ -17,7 +18,7 @@ import { FileUploadDisplay } from './FileUploadDisplay';
 export const InputForm: React.FC = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
     const { state: uiState, dispatch: uiDispatch } = useUIState();
-    const { performAnalysis, handleClearInputs, isLoading, isStreaming, isReanalyzing, error: analysisError } = useAnalysisWorkflow();
+    const { performAnalysis, handleClearInputs } = useAnalysisWorkflow();
     const { hasApiKey, isChecking: isCheckingApiKey, selectApiKey } = useApiKey();
 
     const {
@@ -28,16 +29,6 @@ export const InputForm: React.FC = () => {
         forensicMode,
     } = inputState;
     const { error } = uiState;
-
-    // This effect syncs the local state from the workflow hook to the global UI context.
-    useEffect(() => {
-        uiDispatch({ type: actions.SET_LOADING, payload: isLoading });
-        uiDispatch({ type: actions.SET_STREAMING, payload: isStreaming });
-        uiDispatch({ type: actions.SET_REANALYZING, payload: isReanalyzing });
-        if (analysisError) {
-            uiDispatch({ type: actions.SET_ERROR, payload: analysisError });
-        }
-    }, [isLoading, isStreaming, isReanalyzing, analysisError, uiDispatch]);
 
     const isInputValid = useMemo(() => {
         return isInputReadyForAnalysis(activeInput, textContent, fileData);
@@ -72,8 +63,7 @@ export const InputForm: React.FC = () => {
 
     const onClearClick = useCallback(() => {
         handleClearInputs();
-        uiDispatch({ type: actions.CLEAR_ERROR });
-    }, [handleClearInputs, uiDispatch]);
+    }, [handleClearInputs]);
 
     const renderInput = () => {
         switch (activeInput) {
