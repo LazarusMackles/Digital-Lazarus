@@ -28,7 +28,7 @@ export const initialState: InputState = {
     textContent: '',
     fileData: [],
     activeInput: 'file',
-    analysisMode: 'quick',
+    analysisMode: 'quick', // Default to quick for files
     forensicMode: 'standard',
 };
 
@@ -51,7 +51,12 @@ export const inputReducer = (state: InputState = initialState, action: Action): 
         case actions.SET_FILE_DATA:
             return { ...state, fileData: action.payload, textContent: '' };
         case actions.SET_ACTIVE_INPUT:
-            return { ...state, activeInput: action.payload };
+            return {
+                ...state,
+                activeInput: action.payload,
+                // Default to 'quick' for both tabs to give the user the initial choice.
+                analysisMode: 'quick',
+            };
         case actions.SET_ANALYSIS_MODE:
             return { ...state, analysisMode: action.payload };
         case actions.SET_FORENSIC_MODE:
@@ -62,6 +67,7 @@ export const inputReducer = (state: InputState = initialState, action: Action): 
                 textContent: '',
                 fileData: [],
                 activeInput: 'file', // Reset to the new default
+                analysisMode: 'quick', // Match default mode for file input
             };
         case actions.LOAD_SCENARIO:
             const { inputType, analysisMode, payload } = action.payload;

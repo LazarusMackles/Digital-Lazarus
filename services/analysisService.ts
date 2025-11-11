@@ -14,29 +14,35 @@ const buildPrompt = (
     analysisMode: AnalysisMode,
     forensicMode: ForensicMode
 ): string => {
-    const baseInstruction = `You are "Sleuther Vanguard," a world-class digital forensics expert specialising in identifying AI-generated or AI-manipulated content. Your tone is professional, insightful, and slightly dramatic, like a classic detective. Your goal is to provide a clear, evidence-based verdict. Respond ONLY with the JSON object matching the provided schema. Do not add any extra text or markdown formatting.`;
+    // New, more direct base instruction.
+    const baseInstruction = `You are a direct-to-point forensic analysis tool. Your ONLY purpose is to detect AI involvement in evidence. You MUST respond ONLY with a JSON object that strictly adheres to the provided schema. Do not add any extra text, markdown, or explanations outside of the JSON structure.`;
 
     let evidenceDescription = '';
     if (inputType === 'text') {
-        evidenceDescription = `The evidence is the following text block. Analyse its style, tone, structure, and content to determine if it was written by an AI. Look for tells like unnatural phrasing, excessive complexity or simplicity, lack of personal voice, or factual hallucinations. Even for very short text, analyse jargon and structure.`;
+        // Sharpened text prompt.
+        evidenceDescription = `The evidence is a text block. Analyze it for AI authorship. Focus on style, tone, structure, and content. Identify tells like unnatural phrasing, excessive complexity/simplicity, lack of personal voice, or factual hallucinations.`;
     } else { // 'file'
         const primaryEvidence = fileData[0]?.name || 'the primary image';
-        
+
+        // Core directive to prioritize enhancement detection.
+        const coreImageDirective = `CRITICAL DIRECTIVE: Assume all images may be AI-enhanced or manipulated. Your primary task is to find evidence of digital alteration. This takes precedence over determining if the underlying photograph is real. Search specifically for artifacts of stylistic filters (e.g., '50s photo effect'), unnatural skin smoothing, anachronistic lighting, inconsistent film grain, or digital brush strokes.`;
+
         if (fileData.length > 1) {
-             evidenceDescription = `CRITICAL INSTRUCTION: Your primary task is to forensically analyse the FIRST image provided (named "${primaryEvidence}"). The subsequent image(s) are supporting context. Your goal is to determine the story and relationship between these images. For example, is the second image an AI-restored version of the first? Is one a deepfake of the other? Your final verdict and explanation MUST focus on the primary image while using the others as comparative evidence. A verdict like "Human Photo with AI Restoration" is expected if applicable.`;
+             evidenceDescription = `Your primary task is to forensically analyse the FIRST image ("${primaryEvidence}"). The subsequent images are for supporting context. Use them for comparison to identify alterations, restorations, or manipulations. Your final verdict must focus on the primary image.\n${coreImageDirective}`;
         } else {
-             evidenceDescription = `The evidence is a single image named "${primaryEvidence}". Analyse it for signs of AI generation or manipulation. IMPORTANT: Be mindful of artifacts common to vintage or old photographs (e.g., film grain, scratches, dust, color fading, soft focus). Distinguish these from true digital synthesis artifacts.`;
+             evidenceDescription = `The evidence is one image ("${primaryEvidence}").\n${coreImageDirective}`;
         }
-        
+
+        // Sharpened forensic angle prompts.
         switch (forensicMode) {
             case 'technical':
-                evidenceDescription += ` Focus your analysis STRICTLY on technical artifacts: pixel inconsistencies, impossible lighting, unnatural textures, anatomical errors (especially hands/eyes), and signs of digital synthesis. Ignore the conceptual elements.`;
+                evidenceDescription += `\nFORENSIC ANGLE: Your analysis MUST be strictly technical. Report ONLY on pixel-level artifacts: compression anomalies, impossible lighting, unnatural textures, anatomical errors (hands, eyes), and digital synthesis patterns. IGNORE all conceptual or narrative elements.`;
                 break;
             case 'conceptual':
-                evidenceDescription += ` Focus your analysis STRICTLY on conceptual elements: the story, context, and plausibility of the scene. Ignore minor technical artifacts unless they are narratively significant.`;
+                evidenceDescription += `\nFORENSIC ANGLE: Your analysis MUST be strictly conceptual. Report ONLY on the narrative and context: plausibility of the scene, anachronisms in style or objects, and emotional coherence. IGNORE minor technical artifacts.`;
                 break;
             default: // 'standard'
-                evidenceDescription += ` Conduct a balanced analysis, considering both technical artifacts (pixels, lighting, anatomy) and conceptual elements (story, context, plausibility).`;
+                evidenceDescription += `\nFORENSIC ANGLE: Conduct a structured, two-part analysis. Step 1: Perform a technical analysis for digital artifacts. Step 2: Use the technical findings to inform a conceptual analysis of the scene's plausibility. Synthesize both into your final verdict.`;
                 break;
         }
     }
@@ -45,8 +51,9 @@ const buildPrompt = (
         ? `Conduct a "Deep Dive": a thorough, methodical examination. Provide a single, concise summary statement (under 30 words) that introduces the verdict and key indicators, without repeating their content. Then, identify 1-3 specific "highlights" (key indicators) that support your verdict.`
         : `Conduct a "Quick Scan": a rapid, first-pass analysis. Identify the two most obvious artifacts supporting your verdict.`;
 
-    return `${baseInstruction}\n\n**Case File:**\n${evidenceDescription}\n\n**Deductive Method:**\n${modeInstruction}`;
+    return `${baseInstruction}\n\n**Forensic Checklist:**\n${evidenceDescription}\n\n**Output Format Directive:**\n${modeInstruction}`;
 };
+
 
 /**
  * Derives a consistent probability score based on the text verdict from the AI.
@@ -58,27 +65,35 @@ const buildPrompt = (
 const harmonizeProbability = (verdict: string, originalScore: number): number => {
     const lowerCaseVerdict = verdict.toLowerCase();
     
-    // Check for negative/human verdicts
-    if (lowerCaseVerdict.includes('not ai') || lowerCaseVerdict.includes('human') || lowerCaseVerdict.includes('authentic') || lowerCaseVerdict.includes('photograph')) {
-        // Return a low but non-zero score for authenticity.
-        return Math.floor(Math.random() * 8) + 2; // Random score between 2 and 9
+    // For nuanced verdicts indicating a mix of human and AI, trust the model's score directly.
+    // This is the key change to handle AI-enhanced images correctly.
+    if (
+        lowerCaseVerdict.includes('mixed') || 
+        lowerCaseVerdict.includes('composite') || 
+        lowerCaseVerdict.includes('enhanced') || 
+        lowerCaseVerdict.includes('restoration') || 
+        lowerCaseVerdict.includes('assisted') ||
+        lowerCaseVerdict.includes('stylistic filter')
+    ) {
+        // Return the model's score, but cap it to prevent confusion with "fully AI".
+        return Math.min(Math.round(originalScore), 85);
     }
 
-    // Check for mixed/uncertain verdicts
-    if (lowerCaseVerdict.includes('mixed') || lowerCaseVerdict.includes('composite') || lowerCaseVerdict.includes('enhanced') || lowerCaseVerdict.includes('restoration')) {
-        // Return a score in the middle range.
-        return Math.floor(Math.random() * 16) + 50; // Random score between 50 and 65
+    // For clear "Human" verdicts, gently guide the score to the low end.
+    if (lowerCaseVerdict.includes('human-crafted') || lowerCaseVerdict.includes('appears authentic') || lowerCaseVerdict.includes('genuine photograph')) {
+        // If the model is confident (low score), keep it low. If it's less confident, reflect that.
+        return Math.max(Math.min(Math.round(originalScore), 30), 1); // Ensure it's not 0
     }
 
-    // Check for positive/AI verdicts
-    if (lowerCaseVerdict.includes('ai')) {
-         // Return a high score.
-        return Math.floor(Math.random() * 8) + 91; // Random score between 91 and 98
+    // For clear "AI-Generated" verdicts, gently guide the score to the high end.
+    if (lowerCaseVerdict.includes('fully ai-generated') || lowerCaseVerdict.includes('digital fabrication')) {
+         // If the model is confident (high score), keep it high.
+        return Math.min(Math.max(Math.round(originalScore), 85), 100);
     }
 
-    // Fallback: If no keywords match, trust the original score.
-    // This is a safety net for unexpected verdict strings.
-    return originalScore;
+    // Fallback: If no specific keywords match, just return the rounded original score.
+    // This is a safety net for unexpected verdict strings from the model.
+    return Math.round(originalScore);
 };
 
 
@@ -137,8 +152,12 @@ export const runAnalysis = async (
     if (inputType === 'text') {
         modelName = analysisMode === 'deep' ? MODELS.PRO : MODELS.FLASH;
     } else { // 'file'
-        modelName = analysisMode === 'deep' ? MODELS.PRO : MODELS.QUICK_IMAGE;
+        // FIX: For image analysis, always use the more powerful PRO model to ensure accuracy,
+        // even for a 'Quick Scan'. The difference is in the prompt and schema, not the model.
+        modelName = MODELS.PRO;
         
+        // The PRO model benefits from aggressive compression to speed up analysis.
+        // This will now apply to both 'Quick' and 'Deep' image analyses.
         filesForApi = await Promise.all(
             fileData.map(async (file) => ({
                 ...file,
@@ -148,6 +167,7 @@ export const runAnalysis = async (
     }
 
     const isQuickScan = analysisMode === 'quick';
+    // Text is the only thing that streams for 'deep' mode.
     const shouldStream = analysisMode === 'deep' && inputType === 'text';
     
     if (shouldStream && onStreamUpdate) {

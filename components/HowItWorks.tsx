@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Icon } from './icons/index';
 
@@ -22,11 +23,11 @@ export const HowItWorks: React.FC = React.memo(() => {
             </button>
             <div
                 id="how-it-works-content"
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96' : 'max-h-0'}`}
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[40rem]' : 'max-h-0'}`}
             >
                 <div className="p-4 pt-2 text-sm text-slate-600 dark:text-slate-300">
                     <ul className="list-none space-y-3">
-                        <li><strong className="text-slate-700 dark:text-slate-100">1. Submit Your Evidence:</strong> Paste text or upload files. For multiple images, first upload is the <strong className="text-cyan-600 dark:text-cyan-400">Primary Evidence</strong>, with other uploads serving as supporting clues for the Primary.</li>
+                        <li><strong className="text-slate-700 dark:text-slate-100">1. Submit Your Evidence:</strong> Paste text or upload files. For multiple images, first upload is the <strong className="text-cyan-600 dark:text-cyan-400">Primary Evidence</strong>, with other uploads serving as <strong className="text-cyan-600 dark:text-cyan-400">Supporting Clues</strong> for the Primary.</li>
                         <li><strong className="text-slate-700 dark:text-slate-100">2. Guide the Investigation:</strong> For images, choose a forensic angle: balanced <strong className="text-cyan-600 dark:text-cyan-400">Standard</strong>, pixel-focused <strong className="text-cyan-600 dark:text-cyan-400">Technical</strong>, or story-focused <strong className="text-cyan-600 dark:text-cyan-400">Conceptual</strong>.</li>
                         <li><strong className="text-slate-700 dark:text-slate-100">3. Set the Pace:</strong> Choose <strong className="text-cyan-600 dark:text-cyan-400">Quick Scan</strong> for speed or <strong className="text-cyan-600 dark:text-cyan-400">Deep Dive</strong> for a more thorough examination.</li>
                         <li><strong className="text-slate-700 dark:text-slate-100">4. Review the Findings:</strong> I'll return a <strong className="text-cyan-600 dark:text-cyan-400">Probability Score</strong> and a <strong className="text-cyan-600 dark:text-cyan-400">Detailed Verdict</strong>. My analysis is a professional opinion, not the undisputed truth.</li>

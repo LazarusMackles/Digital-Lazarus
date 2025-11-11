@@ -1,4 +1,3 @@
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { runAnalysis } from './analysisService';
 import * as api from '../api/analyze';
@@ -36,7 +35,7 @@ describe('analysisService: runAnalysis', () => {
         );
     });
 
-    it('should use QUICK_IMAGE model for quick file analysis and compress image', async () => {
+    it('should use PRO model for quick file analysis and compress image', async () => {
         (api.analyzeContent as any).mockResolvedValue({ confidence_score: 50, quick_verdict: 'OK', artifact_1: 'a1', artifact_2: 'a2' });
         const fileData = [{ name: 'test.jpg', imageBase64: 'base64' }];
 
@@ -47,27 +46,27 @@ describe('analysisService: runAnalysis', () => {
             expect.any(String),
             [{...fileData[0], imageBase64: 'base64-compressed'}],
             'quick',
-            MODELS.QUICK_IMAGE,
+            MODELS.PRO, // Should now use PRO model
             '' // sanitizedText
         );
     });
 
-    it('should use PRO model for deep file analysis AND compress the image', async () => {
-        (api.analyzeContentStream as any).mockResolvedValue({ probability: 90, verdict: 'AI', explanation: 'Deep analysis' });
+    it('should use PRO model for deep file analysis and call analyzeContent (not stream)', async () => {
+        (api.analyzeContent as any).mockResolvedValue({ probability: 90, verdict: 'AI', explanation: 'Deep analysis' });
         const fileData = [{ name: 'test.jpg', imageBase64: 'base64' }];
-        const streamHandler = vi.fn();
 
-        await runAnalysis('file', '', fileData, 'deep', 'technical', streamHandler);
+        await runAnalysis('file', '', fileData, 'deep', 'technical');
         
-        // DEFINITIVE FIX: The test now correctly asserts that compression IS called for deep dives.
         expect(imageCompression.aggressivelyCompressImageForAnalysis).toHaveBeenCalledWith('base64');
-        expect(api.analyzeContentStream).toHaveBeenCalledWith(
+        expect(api.analyzeContent).toHaveBeenCalledWith(
             expect.stringContaining('Focus your analysis STRICTLY on technical artifacts'),
-            [{ ...fileData[0], imageBase64: 'base64-compressed' }], // It should use the compressed data
-            MODELS.PRO, // It should use the PRO model for deep dives
-            expect.any(Function),
+            [{ ...fileData[0], imageBase64: 'base64-compressed' }], // compressed data
+            'deep',
+            MODELS.PRO,
             '' // sanitizedText
         );
+        // Assert that streaming is NOT used for files
+        expect(api.analyzeContentStream).not.toHaveBeenCalled();
     });
 
     it('should call analyzeContentStream for deep analysis', async () => {

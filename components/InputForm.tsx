@@ -7,7 +7,7 @@ import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
 import { useApiKey } from '../hooks/useApiKey';
 import * as actions from '../context/actions';
 // FIX: Corrected import path for UI components.
-import { Card, Button, InputTabs, ModeSelector, HowItWorks, ForensicModeToggle } from './ui';
+import { Card, Button, InputTabs, ModeSelector, HowItWorks, ForensicModeToggle, SleuthNote } from './ui';
 import { Icon } from './icons/index';
 import { TextInputPanel } from './TextInputPanel';
 import { isInputReadyForAnalysis } from '../utils/validation';

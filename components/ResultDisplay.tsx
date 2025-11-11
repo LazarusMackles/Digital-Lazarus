@@ -60,7 +60,8 @@ export const ResultDisplay: React.FC = () => {
                 <div className="mt-8 flex w-full flex-col items-center gap-8">
                     <ChallengeVerdict 
                         onReanalyze={handleReanalyze} 
-                        isSecondOpinion={isSecondOpinion || false} 
+                        isSecondOpinion={isSecondOpinion || false}
+                        analysisModeUsed={analysisModeUsed} 
                     />
                     <Feedback result={analysisResult} evidence={analysisEvidence} timestamp={analysisTimestamp} analysisModeUsed={analysisModeUsed} modelUsed={modelUsed} />
                     <ResultActionButtons onNewAnalysis={handleNewAnalysis} onShowShareModal={handleShowShareModal} />
