@@ -46,8 +46,8 @@ describe('analysisService: runAnalysis', () => {
             expect.any(String),
             [{...fileData[0], imageBase64: 'base64-compressed'}],
             'quick',
-            MODELS.PRO, // Should now use PRO model
-            '' // sanitizedText
+            MODELS.PRO,
+            ''
         );
     });
 
@@ -59,13 +59,12 @@ describe('analysisService: runAnalysis', () => {
         
         expect(imageCompression.aggressivelyCompressImageForAnalysis).toHaveBeenCalledWith('base64');
         expect(api.analyzeContent).toHaveBeenCalledWith(
-            expect.stringContaining('Focus your analysis STRICTLY on technical artifacts'),
-            [{ ...fileData[0], imageBase64: 'base64-compressed' }], // compressed data
+            expect.stringContaining('Technical analysis ONLY'),
+            [{ ...fileData[0], imageBase64: 'base64-compressed' }],
             'deep',
             MODELS.PRO,
-            '' // sanitizedText
+            ''
         );
-        // Assert that streaming is NOT used for files
         expect(api.analyzeContentStream).not.toHaveBeenCalled();
     });
 
@@ -79,7 +78,7 @@ describe('analysisService: runAnalysis', () => {
         expect(api.analyzeContent).not.toHaveBeenCalled();
     });
     
-    it('should correctly normalize quick scan results', async () => {
+    it('should correctly normalize quick scan results by passing through the probability', async () => {
         const mockApiResponse = {
             confidence_score: 75,
             quick_verdict: 'Likely AI',
@@ -90,13 +89,13 @@ describe('analysisService: runAnalysis', () => {
 
         const { result } = await runAnalysis('text', 'quick text', [], 'quick', 'standard');
 
-        // The probability is harmonized based on the verdict
         expect(result.verdict).toBe('Likely AI');
-        expect(result.probability).toBeGreaterThanOrEqual(91);
+        // Test that the score is passed through directly without harmonization.
+        expect(result.probability).toBe(75);
         expect(result.explanation).toContain("My initial scan suggests");
     });
 
-    it('should correctly normalize deep scan results', async () => {
+    it('should correctly normalize deep scan results by passing through the probability', async () => {
         const mockApiResponse = {
             probability: 88,
             verdict: 'AI-Generated',
@@ -107,9 +106,9 @@ describe('analysisService: runAnalysis', () => {
 
         const { result } = await runAnalysis('text', 'deep text', [], 'deep', 'standard', vi.fn());
 
-        // The probability is harmonized based on the verdict
         expect(result.verdict).toBe('AI-Generated');
-        expect(result.probability).toBeGreaterThanOrEqual(91);
+        // Test that the score is passed through directly without harmonization.
+        expect(result.probability).toBe(88);
         expect(result.explanation).toBe(mockApiResponse.explanation);
     });
 });
