@@ -33,16 +33,16 @@ const buildPrompt = (
              evidenceDescription = `The evidence is one image ("${primaryEvidence}").\n${coreImageDirective}`;
         }
 
-        // Sharpened forensic angle prompts.
+        // Final, hardened forensic angle prompts.
         switch (forensicMode) {
             case 'technical':
                 evidenceDescription += `\nFORENSIC ANGLE: Your analysis MUST be strictly technical. Report ONLY on pixel-level artifacts: compression anomalies, impossible lighting, unnatural textures, anatomical errors (hands, eyes), and digital synthesis patterns. IGNORE all conceptual or narrative elements.`;
                 break;
             case 'conceptual':
-                evidenceDescription += `\nFORENSIC ANGLE: Your analysis MUST be strictly conceptual. Report ONLY on the narrative and context: plausibility of the scene, anachronisms in style or objects, and emotional coherence. IGNORE minor technical artifacts.`;
+                evidenceDescription += `\nFORENSIC ANGLE: Focus your analysis strictly on conceptual elements. Report on the scene's narrative, context, and plausibility. Consider anachronisms and emotional tone. You should reference major technical flaws ONLY if they directly impact the conceptual plausibility of the scene.`;
                 break;
             default: // 'standard'
-                evidenceDescription += `\nFORENSIC ANGLE: Conduct a structured, two-part analysis. Step 1: Perform a technical analysis for digital artifacts. Step 2: Use the technical findings to inform a conceptual analysis of the scene's plausibility. Synthesize both into your final verdict.`;
+                evidenceDescription += `\nFORENSIC ANGLE: Conduct a balanced 'Standard Analysis'. Your goal is to find any AI involvement. You MUST examine BOTH technical artifacts (unnatural textures, lighting flaws, anatomy) AND conceptual clues (anachronisms, plausibility, styling). Synthesize ALL findings into a single, decisive verdict.`;
                 break;
         }
     }
