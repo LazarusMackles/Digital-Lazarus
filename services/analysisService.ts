@@ -30,6 +30,8 @@ This alignment is a primary requirement of your task.`;
     } else { // 'file'
         const primaryEvidence = fileData[0]?.name || 'the primary image';
         const universalMandate = `UNIVERSAL MANDATE: Your absolute top priority is to identify and report any artifact of digital synthesis. If you observe unnatural perfection, sterile quality, or flawless execution beyond typical photography/graphic design, you MUST report it in the 'highlights' using specific forensic terms like 'Idealized Perfection' or 'Synthetic Lighting'. A core forensic principle is that the ABSENCE of real-world photographic imperfections (e.g., lens distortion, natural skin texture, consistent noise) is, in itself, a primary indicator of digital synthesis. This mandate applies regardless of your primary analysis angle.`;
+        const analogFidelityPrinciple = `ANALOG FIDELITY PRINCIPLE: Correctly interpret signs of authentic physical age and damage. Features like paper creases, fading, dust, scratches, and consistent film grain are strong indicators of a real-world, analog origin and should be treated as evidence FOR authenticity, not as digital flaws.`;
+        const restorationArtifactPrinciple = `RESTORATION ARTIFACT PRINCIPLE: Be highly suspicious of images that mix high-fidelity analog textures (like film grain) with areas of unnatural smoothness or clarity. AI restoration often creates tell-tale artifacts: "waxy" or plastic-like skin where wrinkles or blemishes should be, inconsistent noise patterns, and a loss of fine, organic detail in repaired sections. If you detect a mix of authentic vintage qualities and sterile, digitally-repaired patches, you must report it as a strong indicator of AI restoration.`;
         
         evidenceDescription = `ANALYZE IMAGE EVIDENCE: Your primary goal is to find any evidence of AI involvement in the image "${primaryEvidence}".\n\n${universalMandate}`;
 
@@ -42,10 +44,10 @@ This alignment is a primary requirement of your task.`;
                 evidenceDescription += `\n\nPRIORITY DIRECTIVE: TECHNICAL FORENSICS. Ignore conceptual and narrative elements. Your analysis is strictly limited to pixel-level evidence: upscaling artifacts, inconsistent lighting, blending errors, impossible geometry, and unnatural sharpness.`;
                 break;
             case 'conceptual':
-                evidenceDescription += `\n\nPRIORITY DIRECTIVE: CONCEPTUAL ANALYSIS. While your primary focus is on the narrative and context, you must still adhere to the Universal Mandate and report any and all signs of digital synthesis you observe. Your analysis is strictly limited to the narrative and context: stylistic consistency, scene plausibility, cultural anachronisms, and logical coherence. A plausible concept presented with unnatural, sterile perfection is a strong indicator of AI-assisted design.`;
+                evidenceDescription += `\n\nPRIORITY DIRECTIVE: CONCEPTUAL ANALYSIS. While your primary focus is on the narrative and context, you must still adhere to the Universal Mandate and report any and all signs of digital synthesis you observe. Your analysis is strictly limited to the narrative and context: stylistic consistency, scene plausibility, cultural anachronisms, and logical coherence. A plausible concept presented with unnatural, sterile perfection is a strong indicator of AI-assisted design.\n${analogFidelityPrinciple}\n${restorationArtifactPrinciple}`;
                 break;
             default: // 'standard'
-                evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. Your primary mission is to find evidence of AI. Start with the assumption that the image could be synthetic. Your default hypothesis should be 'AI-generated' unless the photographic evidence is overwhelmingly and flawlessly authentic (e.g., contains clear, natural imperfections like lens flare, motion blur, or authentic film grain). A flawlessly executed portrait within a graphic design context is a primary indicator of AI synthesis. You must still synthesize findings from two domains:\n1.  **Technical:** Identify pixel-level artifacts and signs of digital synthesis.\n2.  **Conceptual:** Identify narrative and contextual clues.\nCRITICAL JUDGEMENT: Technical evidence of digital synthesis (like 'Idealized Perfection' or 'Synthetic Lighting') MUST be treated as primary clues, even if the conceptual elements (like a real person or brand) appear authentic. Your final verdict must prioritize forensic evidence over a plausible story.`;
+                evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. Your primary mission is to find evidence of AI. Start with the assumption that the image could be synthetic. Your default hypothesis should be 'AI-generated' unless the photographic evidence is overwhelmingly and flawlessly authentic (e.g., contains clear, natural imperfections like lens flare, motion blur, or authentic film grain). A flawlessly executed portrait within a graphic design context is a primary indicator of AI synthesis. You must still synthesize findings from two domains:\n1.  **Technical:** Identify pixel-level artifacts and signs of digital synthesis.\n2.  **Conceptual:** Identify narrative and contextual clues.\n${analogFidelityPrinciple}\n${restorationArtifactPrinciple}\nCRITICAL JUDGEMENT: Technical evidence of digital synthesis (like 'Idealized Perfection' or 'Synthetic Lighting') MUST be treated as primary clues, even if the conceptual elements (like a real person or brand) appear authentic. Your final verdict must prioritize forensic evidence over a plausible story.`;
                 break;
         }
     }
@@ -165,7 +167,9 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         'natural lighting', 'organic detail', 'plausible anatomy', 'consistent grain', 'lens distortion', 
         'chromatic aberration', 'authentic photographic', 'human-crafted', 'human', 'authentic', 'photograph', 
         'real person', 'natural skin', 'human design', 'real-world', 'professional studio lighting', 
-        'authentic subject', 'identifiable person', 'verifiable public figure', 'fine skin texture'
+        'authentic subject', 'identifiable person', 'verifiable public figure', 'fine skin texture',
+        'crease', 'fading', 'discoloration', 'physical damage', 'dust', 'scratches', 'analog', 'film grain',
+        'paper texture', 'emulsion damage'
     ]);
 
     let syntheticScore = 0;
@@ -204,6 +208,17 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         };
     }
     
+    // --- RESTORATION DETECTION PROTOCOL ---
+    const restorationKeywords = /restored|repaired|inpainted|denoised|colorized|cleaned|digitally repaired|artifact removal/i;
+    if (restorationKeywords.test(combinedProse)) {
+        return {
+            verdict: "Likely AI-Restored",
+            probability: 70, // A specific score indicating significant modification
+            explanation,
+            highlights,
+        };
+    }
+
     // --- FALLBACK LOGIC ---
     const compositeKeywords = /composite|inserted figures|pasted onto|crude cutouts|digital cutouts|figure integration/i;
     if (compositeKeywords.test(combinedProse) && !isGraphicDesign) { 
