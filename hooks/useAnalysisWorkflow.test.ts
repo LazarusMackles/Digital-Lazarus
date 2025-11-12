@@ -120,12 +120,13 @@ describe('useAnalysisWorkflow', () => {
     });
 
     describe('handleNewAnalysis', () => {
-        it('should dispatch NEW_ANALYSIS and CLEAR_INPUTS', () => {
+        it('should dispatch NEW_ANALYSIS and CLEAR_ERROR but not CLEAR_INPUTS', () => {
             const { handleNewAnalysis } = renderHook(useAnalysisWorkflow);
             handleNewAnalysis();
 
             expect(mockResultDispatch).toHaveBeenCalledWith({ type: actions.NEW_ANALYSIS });
-            expect(mockInputDispatch).toHaveBeenCalledWith({ type: actions.CLEAR_INPUTS });
+            expect(mockUiDispatch).toHaveBeenCalledWith({ type: actions.CLEAR_ERROR });
+            expect(mockInputDispatch).not.toHaveBeenCalledWith({ type: actions.CLEAR_INPUTS });
         });
     });
 
