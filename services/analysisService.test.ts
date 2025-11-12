@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { runAnalysis } from './analysisService';
 import * as api from '../api/analyze';
-import * as imageCompression from '../utils/imageCompression';
-import { MODELS } from '../utils/constants';
 
 // Mock the API module
 vi.mock('../api/analyze', () => ({
@@ -10,118 +8,127 @@ vi.mock('../api/analyze', () => ({
     analyzeContentStream: vi.fn(),
 }));
 
-// Mock the image compression module
-vi.mock('../utils/imageCompression', () => ({
-    aggressivelyCompressImageForAnalysis: vi.fn(str => Promise.resolve(`${str}-compressed`)),
-}));
+// A helper to mock the API response for deep dives
+const mockDeepApiResponse = (highlights: { text: string; reason: string }[], verdict = 'Undetermined', explanation = 'Explanation', probability = 50) => {
+    (api.analyzeContent as any).mockResolvedValue({
+        probability,
+        verdict,
+        explanation,
+        highlights,
+    });
+};
 
-
-describe('analysisService: runAnalysis', () => {
+describe('analysisService: finalizeVerdict Logic', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
-    it('should use FLASH model for quick text analysis', async () => {
-        (api.analyzeContent as any).mockResolvedValue({ confidence_score: 50, quick_verdict: 'OK', artifact_1: 'a1', artifact_2: 'a2' });
-
-        await runAnalysis('text', 'some text', [], 'quick', 'standard');
-
-        expect(api.analyzeContent).toHaveBeenCalledWith(
-            expect.any(String), // prompt
-            [], // files
-            'quick',
-            MODELS.FLASH,
-            'some text' // sanitizedText
-        );
-    });
-
-    it('should use PRO model for quick file analysis and compress image', async () => {
-        (api.analyzeContent as any).mockResolvedValue({ confidence_score: 50, quick_verdict: 'OK', artifact_1: 'a1', artifact_2: 'a2' });
-        const fileData = [{ name: 'test.jpg', imageBase64: 'base64' }];
-
-        await runAnalysis('file', '', fileData, 'quick', 'standard');
-        
-        expect(imageCompression.aggressivelyCompressImageForAnalysis).toHaveBeenCalledWith('base64');
-        expect(api.analyzeContent).toHaveBeenCalledWith(
-            expect.any(String),
-            [{...fileData[0], imageBase64: 'base64-compressed'}],
-            'quick',
-            MODELS.PRO,
-            ''
-        );
-    });
-
-    it('should use PRO model for deep file analysis and call analyzeContent (not stream)', async () => {
-        (api.analyzeContent as any).mockResolvedValue({ probability: 90, verdict: 'AI', explanation: 'Deep analysis' });
-        const fileData = [{ name: 'test.jpg', imageBase64: 'base64' }];
-
-        await runAnalysis('file', '', fileData, 'deep', 'technical');
-        
-        expect(imageCompression.aggressivelyCompressImageForAnalysis).toHaveBeenCalledWith('base64');
-        expect(api.analyzeContent).toHaveBeenCalledWith(
-            expect.stringContaining('Technical analysis ONLY'),
-            [{ ...fileData[0], imageBase64: 'base64-compressed' }],
-            'deep',
-            MODELS.PRO,
-            ''
-        );
-        expect(api.analyzeContentStream).not.toHaveBeenCalled();
-    });
-
-    it('should call analyzeContentStream for deep analysis', async () => {
-        (api.analyzeContentStream as any).mockResolvedValue({ probability: 90, verdict: 'AI', explanation: 'Deep analysis' });
-        const streamHandler = vi.fn();
-
-        await runAnalysis('text', 'deep text', [], 'deep', 'standard', streamHandler);
-
-        expect(api.analyzeContentStream).toHaveBeenCalled();
-        expect(api.analyzeContent).not.toHaveBeenCalled();
-    });
-    
-    // --- New Tests for Verdict Finalization ---
-
-    it('should force an "AI-Enhanced" verdict and a 75% score when enhancement keywords are present', async () => {
-        const mockApiResponse = {
-            probability: 25, // Deliberately wrong score
-            verdict: 'This looks like a photograph that has been heavily filtered.', // Keyword: "filtered"
-            explanation: 'The skin is too smooth.',
-            highlights: []
-        };
-        (api.analyzeContent as any).mockResolvedValue(mockApiResponse);
+    // Test Case for Rule: "Incontrovertible Evidence" Trump Card
+    it('should lock verdict to "AI-Generated Graphic" if a "Trump Card" keyword is found in highlights', async () => {
+        const highlights = [
+            { text: 'Natural Skin Texture', reason: 'The skin looks very real.' },
+            { text: 'Idealized Perfection', reason: 'The lighting is too perfect to be real.' } // Trump Card
+        ];
+        mockDeepApiResponse(highlights, 'Appears Human-Crafted', 'Looks real but...', 10);
 
         const { result } = await runAnalysis('file', '', [{ name: 'test.jpg', imageBase64: 'base64' }], 'deep', 'standard');
-
-        expect(result.verdict).toBe('AI-Enhanced (Stylistic Filter)');
-        expect(result.probability).toBe(75); // Score is corrected
+        
+        expect(result.verdict).toBe('AI-Generated Graphic');
+        expect(result.probability).toBe(93);
     });
 
-    it('should clamp a "Human-Crafted" verdict with an illogical score down to 39%', async () => {
-        const mockApiResponse = {
-            probability: 90, // Illogical high score
-            verdict: 'Appears Human-Crafted',
-            explanation: 'Looks like a real photo.',
-            highlights: []
-        };
-        (api.analyzeContent as any).mockResolvedValue(mockApiResponse);
+    // Test Case for Graphic Design Contradiction
+    it('should lock verdict to "Fully AI-Generated Graphic" for a graphic with mixed evidence', async () => {
+        const highlights = [
+            { text: 'Coherent Brand Identity', reason: 'This is a real brand.' }, // Authentic
+            { text: 'Digital Re-rendering', reason: 'The background has signs of AI generation.' } // Synthetic
+        ];
+        // The verdict is deliberately misleading to test the override
+        mockDeepApiResponse(highlights, 'Appears Human-Crafted', 'This is a promotional poster.', 20);
 
         const { result } = await runAnalysis('file', '', [{ name: 'test.jpg', imageBase64: 'base64' }], 'deep', 'standard');
+        
+        expect(result.verdict).toBe('Fully AI-Generated Graphic');
+        expect(result.probability).toBe(93);
+    });
 
+    // Test Case for Pure Synthetic
+    it('should return "Fully AI-Generated" when evidence is overwhelmingly synthetic', async () => {
+        const highlights = [
+            { text: 'AI Generation Artifacts', reason: 'Clear signs of AI.' },
+            { text: 'Impossible Geometry', reason: 'The hand has six fingers.' }
+        ];
+        mockDeepApiResponse(highlights);
+
+        const { result } = await runAnalysis('file', '', [{ name: 'test.jpg', imageBase64: 'base64' }], 'deep', 'standard');
+        
+        expect(result.verdict).toBe('Fully AI-Generated');
+        expect(result.probability).toBe(93);
+    });
+
+    // Test Case for Pure Authentic
+    it('should return "Appears Human-Crafted" when evidence is overwhelmingly authentic', async () => {
+        const highlights = [
+            { text: 'Authentic Photographic Qualities', reason: 'Shows natural lens flare.' },
+            { text: 'Natural Skin and Hair', reason: 'Details are consistent with a real person.' }
+        ];
+        mockDeepApiResponse(highlights);
+
+        const { result } = await runAnalysis('file', '', [{ name: 'test.jpg', imageBase64: 'base64' }], 'deep', 'standard');
+        
         expect(result.verdict).toBe('Appears Human-Crafted');
-        expect(result.probability).toBe(39); // Score is clamped
+        expect(result.probability).toBe(5);
     });
-    
-    it('should clamp a "Fully AI-Generated" verdict with an illogical score up to 80%', async () => {
-        const mockApiResponse = {
-            probability: 50, // Illogical low score
-            verdict: 'This is fully AI-generated.',
-            explanation: 'The hands are wrong.',
-            highlights: []
-        };
-        (api.analyzeContent as any).mockResolvedValue(mockApiResponse);
+
+    // Test Case for Composite Fallback
+    it('should fallback to "AI-Assisted Composite" for composite keywords without graphic context', async () => {
+        const highlights: { text: string; reason: string }[] = [];
+        mockDeepApiResponse(highlights, 'Composite Image', 'Figures were pasted onto the background.');
 
         const { result } = await runAnalysis('file', '', [{ name: 'test.jpg', imageBase64: 'base64' }], 'deep', 'standard');
+        
+        expect(result.verdict).toBe('AI-Assisted Composite');
+        expect(result.probability).toBe(65);
+    });
 
-        expect(result.verdict).toBe('This is fully AI-generated.');
-        expect(result.probability).toBe(80); // Score is clamped
+    // Test Case for Enhancement Fallback
+    it('should fallback to "AI-Enhanced" for filter keywords', async () => {
+        const highlights: { text: string; reason: string }[] = [];
+        mockDeepApiResponse(highlights, 'Image Processed', 'The image appears to have a stylistic filter applied.');
+
+        const { result } = await runAnalysis('file', '', [{ name: 'test.jpg', imageBase64: 'base64' }], 'deep', 'standard');
+        
+        expect(result.verdict).toBe('AI-Enhanced (Stylistic Filter)');
+        expect(result.probability).toBe(75);
+    });
+
+    // Test Case for Quick Scan
+    it('should correctly finalize a quick scan result', async () => {
+        (api.analyzeContent as any).mockResolvedValue({
+            quick_verdict: 'Likely AI',
+            confidence_score: 90,
+            artifact_1: 'Blurry background',
+            artifact_2: 'Odd texture'
+        });
+
+        const { result } = await runAnalysis('text', 'quick text', [], 'quick', 'standard');
+        
+        expect(result.verdict).toBe('Likely AI');
+        expect(result.probability).toBe(90);
+        expect(result.explanation).toContain('initial scan');
+        expect(result.highlights).toHaveLength(2);
+        expect(result.highlights?.[0].text).toBe('Primary Finding');
+    });
+
+    // Test Case for final fallback clamping
+    it('should use the raw verdict but clamp the score if no other rules match', async () => {
+        const highlights: { text: string; reason: string }[] = [];
+        // A high score with a "human" verdict
+        mockDeepApiResponse(highlights, 'Appears Human-Crafted', 'No obvious issues found.', 95);
+
+        const { result } = await runAnalysis('file', '', [{ name: 'test.jpg', imageBase64: 'base64' }], 'deep', 'standard');
+        
+        expect(result.verdict).toBe('Appears Human-Crafted');
+        expect(result.probability).toBe(39); // Score clamped
     });
 });

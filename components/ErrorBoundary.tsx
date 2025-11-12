@@ -1,11 +1,7 @@
-
-
 import React, { ErrorInfo, ReactNode } from 'react';
 import { ErrorFallback } from './ui';
 
 interface Props {
-  // FIX: Made children optional to resolve the type error in App.tsx. An ErrorBoundary
-  // without children is valid, even if not useful.
   children?: ReactNode;
 }
 
@@ -14,23 +10,21 @@ interface State {
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Use class field syntax to initialize state. This resolves the errors where
-  // TypeScript could not find the 'state' and 'props' properties on the component instance.
+  // FIX: Replaced the constructor with a class property for state initialization.
+  // This resolves TypeScript errors related to accessing `this.state` and `this.props`,
+  // providing a more modern and concise way to define component state.
   state: State = { hasError: false };
 
   static getDerivedStateFromError(_: Error): State {
-    // Update state so the next render will show the fallback UI.
     return { hasError: true };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // You can also log the error to an error reporting service
     console.error("Uncaught error:", error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
-      // You can render any custom fallback UI
       return <ErrorFallback />;
     }
 
