@@ -18,6 +18,13 @@ export class ErrorBoundary extends React.Component<Props, State> {
   // and is a modern, standard approach that resolves this type of configuration issue.
   state: State = { hasError: false };
 
+  // FIX: Added an explicit constructor to ensure the type system correctly recognizes
+  // that `this.props` is initialized by the parent `React.Component` constructor. This
+  // resolves the "Property 'props' does not exist" error.
+  constructor(props: Props) {
+    super(props);
+  }
+
   static getDerivedStateFromError(_: Error): State {
     // Update state so the next render will show the fallback UI.
     return { hasError: true };

@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { useInputState } from '../context/InputStateContext';
 import { useResultState } from '../context/ResultStateContext';
@@ -73,10 +72,11 @@ export const useAnalysisWorkflow = () => {
 
     const handleNewAnalysis = useCallback(() => {
         resultDispatch({ type: actions.NEW_ANALYSIS });
-        inputDispatch({ type: actions.CLEAR_INPUTS });
+        // The line below is removed to preserve user inputs (text and files) for iterative analysis.
+        // inputDispatch({ type: actions.CLEAR_INPUTS });
         uiDispatch({ type: actions.CLEAR_ERROR });
         window.scrollTo(0, 0);
-    }, [resultDispatch, inputDispatch, uiDispatch]);
+    }, [resultDispatch, uiDispatch]);
     
     const handleClearInputs = useCallback(() => {
         inputDispatch({ type: actions.CLEAR_INPUTS });
