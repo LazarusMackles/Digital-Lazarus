@@ -38,7 +38,7 @@ describe('analysisService: finalizeVerdict Logic', () => {
     });
 
     // Test Case for Graphic Design Contradiction
-    it('should lock verdict to "Fully AI-Generated Graphic" for a graphic with mixed evidence', async () => {
+    it('should lock verdict to "AI-Generated Graphic" for a graphic with mixed evidence', async () => {
         const highlights = [
             { text: 'Coherent Brand Identity', reason: 'This is a real brand.' }, // Authentic
             { text: 'Digital Re-rendering', reason: 'The background has signs of AI generation.' } // Synthetic
@@ -48,7 +48,7 @@ describe('analysisService: finalizeVerdict Logic', () => {
 
         const { result } = await runAnalysis('file', '', [{ name: 'test.jpg', imageBase64: 'base64' }], 'deep', 'standard');
         
-        expect(result.verdict).toBe('Fully AI-Generated Graphic');
+        expect(result.verdict).toBe('AI-Generated Graphic');
         expect(result.probability).toBe(93);
     });
 

@@ -28,25 +28,26 @@ This alignment is a primary requirement of your task.`;
         evidenceDescription = `ANALYZE TEXT EVIDENCE: Scrutinize the provided text for AI authorship. Focus on style, tone, structure, and content to identify tells like unnatural phrasing, excessive complexity, lack of personal voice, or factual errors.`;
     } else { // 'file'
         const primaryEvidence = fileData[0]?.name || 'the primary image';
-        const coreImageDirective = `Your primary goal is to find any evidence of AI involvement in the provided image(s).`;
+        const universalMandate = `UNIVERSAL MANDATE: Your absolute top priority is to identify and report any artifact of digital synthesis. If you observe unnatural perfection, sterile quality, or flawless execution beyond typical photography/graphic design, you MUST report it in the 'highlights' using specific forensic terms like 'Idealized Perfection' or 'Synthetic Lighting'. A core forensic principle is that the ABSENCE of real-world photographic imperfections (e.g., lens distortion, natural skin texture, consistent noise) is, in itself, a primary indicator of digital synthesis. This mandate applies regardless of your primary analysis angle.`;
         
+        evidenceDescription = `ANALYZE IMAGE EVIDENCE: Your primary goal is to find any evidence of AI involvement in the image "${primaryEvidence}".\n\n${universalMandate}`;
+
         if (fileData.length > 1) {
-             evidenceDescription = `The primary evidence is the FIRST image ("${primaryEvidence}"). Subsequent images are for supporting context. Your final verdict must focus on the primary image.\n${coreImageDirective}`;
-        } else {
-            evidenceDescription = `The primary evidence is the image "${primaryEvidence}".\n${coreImageDirective}`;
+            evidenceDescription += `\nSubsequent images are for supporting context only. Your final verdict must focus on the primary image.`;
         }
         
-        const mandatoryEvidenceDirective = `\n\nMANDATORY: Even if the image contains authentic elements (real people, brands), you MUST still report any and all signs of synthetic creation in your 'highlights'. Signs of synthesis like 'Idealized Perfection' or 'Synthetic Lighting' are primary forensic clues and must not be omitted from the evidence list.`;
-
         switch (forensicMode) {
             case 'technical':
-                evidenceDescription += `\n\nPRIORITY DIRECTIVE: TECHNICAL FORENSICS. Your analysis must be limited to pixel-level evidence. IGNORE the narrative or conceptual elements. You are required to report on: (1) Upscaling & Compression Artifacts, (2) Inconsistent Noise & Grain, (3) Blending & Edge Errors, (4) Impossible Geometry (especially in hands, text, and reflections). CRITICAL JUDGEMENT: High-quality AI re-rendering can produce technically flawless images. The ABSENCE of authentic photographic imperfections (e.g., natural lens distortion, true film grain, subtle chromatic aberration) IS ITSELF the primary technical artifact. You MUST report this 'idealized perfection' as a key technical indicator.`;
+                evidenceDescription += `\n\nPRIORITY DIRECTIVE: TECHNICAL FORENSICS. Ignore conceptual and narrative elements. Your analysis is strictly limited to pixel-level evidence: upscaling artifacts, inconsistent lighting, blending errors, impossible geometry, and unnatural sharpness.`;
                 break;
             case 'conceptual':
-                 evidenceDescription += `\n\nPRIORITY DIRECTIVE: CONCEPTUAL ANALYSIS. Your analysis must be limited to the context and narrative of the image. IGNORE pixel-level artifacts. You are required to report on: (1) Stylistic & Lighting Consistency, (2) Scene Plausibility & Physics, (3) Cultural or Contextual Anomalies, (4) Narrative Coherence between elements. Pay special attention to signs of era or style mimicry (e.g., a "1950s photo"). Evaluate how authentically the style is replicated, looking for subtle anachronisms in clothing, objects, or photographic quality that a genuine item would not possess.` + mandatoryEvidenceDirective;
+                evidenceDescription += `\n\nPRIORITY DIRECTIVE: CONCEPTUAL ANALYSIS. Ignore pixel-level artifacts. Your analysis is strictly limited to the narrative and context: stylistic consistency, scene plausibility, cultural anachronisms, and logical coherence. A plausible concept presented with unnatural, sterile perfection is a strong indicator of AI-assisted design.`;
                 break;
             default: // 'standard'
-                evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. You must provide a balanced verdict by synthesizing findings from two domains. First, identify key **technical artifacts** (e.g., pixel errors, impossible lighting). Second, identify key **conceptual clues** (e.g., anachronisms, narrative issues). Your final explanation must integrate both to form a single, cohesive conclusion. CRITICAL JUDGEMENT HIERARCHY: Conceptual plausibility is paramount. Anachronisms, idealized perfection, and stylistic inconsistencies MUST take precedence over flawless technical execution in your final verdict. If the scene feels artificial, it IS artificial, regardless of pixel quality.` + mandatoryEvidenceDirective;
+                evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. You must synthesize findings from two domains.
+1.  **Technical:** Identify pixel-level artifacts and signs of digital synthesis.
+2.  **Conceptual:** Identify narrative and contextual clues.
+CRITICAL JUDGEMENT: Technical evidence of digital synthesis (like 'Idealized Perfection' or 'Synthetic Lighting') MUST be treated as primary clues, even if the conceptual elements (like a real person or brand) appear authentic. Your final verdict must prioritize forensic evidence over a plausible story.`;
                 break;
         }
     }
@@ -96,21 +97,22 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
     
     const highlights = rawResult.highlights || [];
     const explanation = rawResult.explanation || "The model did not provide a detailed explanation.";
-    const combinedProse = `${rawResult.verdict} ${explanation} ${highlights.map(h => h.text + ' ' + h.reason).join(' ')}`.toLowerCase();
+    let verdict = rawResult.verdict || "Analysis Inconclusive";
+    let probability = Math.round(rawResult.probability || 50);
+
+    const combinedProse = `${verdict} ${explanation} ${highlights.map(h => h.text + ' ' + h.reason).join(' ')}`.toLowerCase();
 
     // --- "INCONTROVERTIBLE EVIDENCE" MANDATE (THE "TRUMP CARD" RULE) ---
     const TRUMP_CARD_KEYWORDS = new Set([
         'idealized perfection', 'synthetic lighting', 'anachronistic', 'impossible geometry', 
         'concealed hands', 'waxy texture', 'hyper-real', 'unnaturally smooth', 'seamless compositing',
-        'flawless edge', 'ai-assisted masking'
+        'flawless edge', 'ai-assisted masking', 'unnatural perfection', 'sterile quality', 'hyper-sharp edges'
     ]);
 
     for (const highlight of highlights) {
         const evidenceText = `${highlight.text} ${highlight.reason}`.toLowerCase();
         for (const keyword of TRUMP_CARD_KEYWORDS) {
             if (evidenceText.includes(keyword)) {
-                // A single piece of incontrovertible evidence ("smoking gun") is found.
-                // The verdict is immediately and irrevocably locked.
                 return {
                     verdict: "AI-Generated Graphic",
                     probability: 93,
@@ -121,23 +123,46 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         }
     }
     
-    // --- If no trump card is found, proceed to the "EVIDENCE-FIRST" TALLY PROTOCOL ---
-    const SYNTHETIC_KEYWORDS = new Set([
-        'fully generated', 're-creation', 'digital re-rendering', 'ai generation', 'synthetic origin'
-    ]);
-    
-    const AUTHENTIC_KEYWORDS = new Set([
-        'natural lighting', 'organic detail', 'plausible anatomy', 'consistent grain', 
-        'lens distortion', 'chromatic aberration', 'authentic photographic', 
-        'coherent brand identity', 'human-crafted', 'human', 'authentic', 
-        'photograph', 'real person', 'natural skin', 'human design', 'real-world',
-        'professional studio lighting', 'authentic subject', 'identifiable person'
-    ]);
-
     const GRAPHIC_DESIGN_KEYWORDS = new Set([
         'text overlay', 'branding', 'poster', 'logo', 'graphic design', 
         'promotional graphic', 'typography', 'advertisement', 'layout', 'brand identity',
-        'coherent text', 'cohesive branding', 'graphic elements', 'text and logos'
+        'coherent text', 'cohesive branding', 'graphic elements', 'text and logos', 'professional composite', 'graphic overlays'
+    ]);
+    // FIX: The `some` method does not exist on `Set`. Convert the Set to an array before iterating.
+    const isGraphicDesign = [...GRAPHIC_DESIGN_KEYWORDS].some(k => combinedProse.includes(k));
+
+    // --- "UNIVERSAL MANDATE" ENFORCEMENT (THE "CONTRADICTION DETECTOR") ---
+    const SUSPICIOUSLY_PERFECT_KEYWORDS = new Set([
+        'naturalistic textural detail', 'coherent studio lighting', 'consistent photographic lighting',
+        'authentic asymmetry and texture', 'conventional photographic quality', 'naturalistic aging', 'authentic photographic detail'
+    ]);
+
+    if (isGraphicDesign) {
+        for (const highlight of highlights) {
+            const evidenceText = `${highlight.text} ${highlight.reason}`.toLowerCase();
+            // FIX: The `some` method does not exist on `Set`. Convert the Set to an array before iterating.
+            if ([...SUSPICIOUSLY_PERFECT_KEYWORDS].some(k => evidenceText.includes(k))) {
+                // CONTRADICTION FOUND: AI is describing a synthetic graphic using language reserved for authentic photos.
+                return {
+                    verdict: "AI-Generated Graphic",
+                    probability: 93,
+                    explanation,
+                    highlights,
+                };
+            }
+        }
+    }
+
+    // --- "EVIDENCE-FIRST" TALLY PROTOCOL ---
+    const SYNTHETIC_KEYWORDS = new Set([
+        'ai-generated', 'fully generated', 're-creation', 'digital re-rendering', 'ai generation', 'synthetic origin', 'synthetic creation',
+        'synthetic lighting and detail', 'idealized perfection in portrait'
+    ]);
+    const AUTHENTIC_KEYWORDS = new Set([
+        'natural lighting', 'organic detail', 'plausible anatomy', 'consistent grain', 'lens distortion', 
+        'chromatic aberration', 'authentic photographic', 'human-crafted', 'human', 'authentic', 'photograph', 
+        'real person', 'natural skin', 'human design', 'real-world', 'professional studio lighting', 
+        'authentic subject', 'identifiable person', 'verifiable public figure', 'fine skin texture'
     ]);
 
     let syntheticScore = 0;
@@ -149,17 +174,9 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         for (const keyword of AUTHENTIC_KEYWORDS) if (evidenceText.includes(keyword)) authenticScore++;
     }
 
-    let isGraphicDesign = false;
-    for (const keyword of GRAPHIC_DESIGN_KEYWORDS) {
-        if (combinedProse.includes(keyword)) {
-            isGraphicDesign = true;
-            break;
-        }
-    }
-
-    if (syntheticScore > authenticScore && isGraphicDesign) {
+    if (isGraphicDesign && syntheticScore > 0) {
         return {
-            verdict: "Fully AI-Generated Graphic",
+            verdict: "AI-Generated Graphic",
             probability: 93,
             explanation,
             highlights,
@@ -205,8 +222,7 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         };
     }
 
-    let probability = Math.round(rawResult.probability || 50);
-    let verdict = rawResult.verdict || "Analysis Inconclusive";
+    // --- Final Probability Clamping as last resort ---
     if (/human|not ai/i.test(verdict)) {
         probability = Math.min(probability, 39);
     } else if (/ai/i.test(verdict)) {
