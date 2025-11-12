@@ -1,20 +1,28 @@
 
-
-import React, { useCallback, useMemo, useEffect } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useInputState } from '../context/InputStateContext';
 import { useUIState } from '../context/UIStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
 import { useApiKey } from '../hooks/useApiKey';
 import * as actions from '../context/actions';
-// FIX: Corrected import path for UI components.
-import { Card, Button, InputTabs, ModeSelector, HowItWorks, ForensicModeToggle } from './ui';
+import { Card, Button, InputTabs, HowItWorks, OptionGroup } from './ui';
 import { Icon } from './icons/index';
 import { TextInputPanel } from './TextInputPanel';
 import { isInputReadyForAnalysis } from '../utils/validation';
 import type { AnalysisMode, ForensicMode } from '../types';
 import { FileUploadDisplay } from './FileUploadDisplay';
 
-// The global AIStudio interface declaration is now managed within the useApiKey hook.
+const DEDUCTIVE_METHOD_OPTIONS = [
+    { value: 'quick', title: 'Quick Scan', description: 'A fast, brilliant first-pass. Excellent for most cases.' },
+    { value: 'deep', title: 'Deep Dive', description: 'A more profound, methodical examination. Takes longer but is more thorough.' },
+] as const;
+
+const FORENSIC_ANGLE_OPTIONS = [
+    { value: 'standard', title: 'Standard Analysis', description: 'A balanced look at technical and conceptual clues.' },
+    { value: 'technical', title: 'Technical Forensics', description: 'Focuses only on pixels, lighting, and synthesis artifacts.' },
+    { value: 'conceptual', title: 'Conceptual Analysis', description: 'Focuses only on the story, context, and plausibility.' },
+] as const;
+
 
 export const InputForm: React.FC = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
@@ -31,13 +39,6 @@ export const InputForm: React.FC = () => {
     } = inputState;
     const { error } = uiState;
 
-    useEffect(() => {
-        // Enforce 'Deep Dive' for image analysis
-        if (activeInput === 'file') {
-            inputDispatch({ type: actions.SET_ANALYSIS_MODE, payload: 'deep' });
-        }
-    }, [activeInput, inputDispatch]);
-
     const isInputValid = useMemo(() => {
         return isInputReadyForAnalysis(activeInput, textContent, fileData);
     }, [activeInput, textContent, fileData]);
@@ -52,13 +53,12 @@ export const InputForm: React.FC = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Clear previous API key errors when a new submission is attempted
         if (error?.includes('API key')) {
             uiDispatch({ type: actions.CLEAR_ERROR });
         }
         
         if (isInputValid && hasApiKey) {
-            window.scrollTo(0, 0); // Ensure view scrolls to top before analysis begins.
+            window.scrollTo(0, 0); 
             performAnalysis();
         } else if (!hasApiKey) {
              uiDispatch({ type: actions.SET_ERROR, payload: 'Please select an API key to begin the analysis.' });
@@ -95,11 +95,23 @@ export const InputForm: React.FC = () => {
                         {renderInput()}
                         
                         {activeInput === 'file' && (
-                          <ForensicModeToggle selectedMode={forensicMode} onModeChange={handleForensicModeChange} />
+                          <OptionGroup
+                              legend="Select Forensic Angle"
+                              options={FORENSIC_ANGLE_OPTIONS}
+                              selectedValue={forensicMode}
+                              onValueChange={handleForensicModeChange}
+                              size="sm"
+                          />
                         )}
 
                         {activeInput === 'text' && (
-                            <ModeSelector selectedMode={analysisMode} onModeChange={handleAnalysisModeChange} />
+                            <OptionGroup
+                                legend="Select Deductive Method"
+                                options={DEDUCTIVE_METHOD_OPTIONS}
+                                selectedValue={analysisMode}
+                                onValueChange={handleAnalysisModeChange}
+                                size="md"
+                            />
                         )}
 
                         {error && (

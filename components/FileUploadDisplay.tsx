@@ -2,7 +2,8 @@ import React, { useCallback, useState, useRef } from 'react';
 import { Icon } from './icons/index';
 import { compressAndEncodeFile } from '../utils/imageCompression';
 import { useInputState } from '../context/InputStateContext';
-import { useResultState } from '../context/ResultStateContext';
+// FIX: Swapped `useResultState` for `useUIState` as error handling is a UI concern.
+import { useUIState } from '../context/UIStateContext';
 import * as actions from '../context/actions';
 import { MAX_FILES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, ACCEPTED_IMAGE_TYPES, ACCEPTED_IMAGE_TYPES_STRING } from '../utils/constants';
 import { Button, EvidenceImage } from './ui';
@@ -10,7 +11,7 @@ import { cn } from '../utils/cn';
 
 export const FileUploadDisplay: React.FC = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
-    const { dispatch: resultDispatch } = useResultState();
+    const { dispatch: uiDispatch } = useUIState();
     const { fileData } = inputState;
 
     const [isDragActive, setIsDragActive] = useState(false);
@@ -21,7 +22,8 @@ export const FileUploadDisplay: React.FC = () => {
 
         const currentFileCount = fileData.length;
         if (currentFileCount + files.length > MAX_FILES) {
-            resultDispatch({ type: actions.ANALYSIS_ERROR, payload: `You can upload a maximum of ${MAX_FILES} images.` });
+            // FIX: Dispatched a `SET_ERROR` action to the UI context, which is the correct way to handle user-facing errors.
+            uiDispatch({ type: actions.SET_ERROR, payload: `You can upload a maximum of ${MAX_FILES} images.` });
             return;
         }
 
@@ -31,7 +33,8 @@ export const FileUploadDisplay: React.FC = () => {
             );
             
             if (acceptedFiles.length !== files.length) {
-                 resultDispatch({ type: actions.ANALYSIS_ERROR, payload: `Some files were rejected. Ensure images are PNG, JPG, WEBP, or GIF and under ${MAX_FILE_SIZE_MB}MB.` });
+                 // FIX: Dispatched a `SET_ERROR` action for file type/size validation failures.
+                 uiDispatch({ type: actions.SET_ERROR, payload: `Some files were rejected. Ensure images are PNG, JPG, WEBP, or GIF and under ${MAX_FILE_SIZE_MB}MB.` });
             }
             
             if (acceptedFiles.length === 0) return;
@@ -48,9 +51,11 @@ export const FileUploadDisplay: React.FC = () => {
 
         } catch (error) {
             console.error("Error processing files:", error);
-            resultDispatch({ type: actions.ANALYSIS_ERROR, payload: 'Failed to process one or more images.' });
+            // FIX: Dispatched a generic `SET_ERROR` for failures during file processing.
+            uiDispatch({ type: actions.SET_ERROR, payload: 'Failed to process one or more images.' });
         }
-    }, [inputDispatch, resultDispatch, fileData]);
+    // FIX: Updated dependency array to use `uiDispatch`.
+    }, [inputDispatch, uiDispatch, fileData]);
     
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         processFiles(event.target.files);

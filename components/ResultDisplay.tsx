@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { useResultState } from '../context/ResultStateContext';
 import { useUIState } from '../context/UIStateContext';
@@ -5,8 +6,7 @@ import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
 import { VerdictPanel } from './result/VerdictPanel';
 import { EvidencePresenter } from './result/EvidencePresenter';
 import { ShareModal } from './ShareModal';
-import { Card, HighlightsDisplay, Feedback, ResultActionButtons } from './ui';
-import { ChallengeVerdict } from './ChallengeVerdict';
+import { Card, HighlightsDisplay, Feedback, ResultActionButtons, ChallengeVerdict } from './ui';
 
 export const ResultDisplay: React.FC = () => {
   const { state: resultState } = useResultState();
@@ -74,7 +74,6 @@ export const ResultDisplay: React.FC = () => {
       {showShareModal && (
         <ShareModal
           result={analysisResult}
-          // FIX: Corrected variable names to use `analysisEvidence` and `analysisTimestamp` from component state.
           evidence={analysisEvidence}
           timestamp={analysisTimestamp}
           analysisModeUsed={analysisModeUsed}
