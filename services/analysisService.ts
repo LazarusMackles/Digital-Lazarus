@@ -97,6 +97,27 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
     const explanation = rawResult.explanation || "The model did not provide a detailed explanation.";
     const highlights = rawResult.highlights || [];
     
+    const combinedProse = `${verdict} ${explanation} ${highlights.map(h => h.text + ' ' + h.reason).join(' ')}`.toLowerCase();
+
+    // --- NEW: GRAPHIC DESIGN PROTOCOL ---
+    // Heuristic: Check for signs of being a graphic, not just a photo.
+    const graphicDesignKeywords = /branding|text overlay|logo|graphic design|promotional graphic/i;
+    const isGraphicDesign = graphicDesignKeywords.test(combinedProse);
+
+    if (isGraphicDesign) {
+        // If it's a graphic, look for AI tells specific to this context.
+        const graphicAITells = /synthetic lighting|idealized perfection|anachronistic|ai generation/i;
+        if (graphicAITells.test(combinedProse)) {
+            // This is the new, high-priority verdict for this specific case.
+            return {
+                verdict: "AI-Generated Graphic",
+                probability: 93,
+                explanation,
+                highlights,
+            };
+        }
+    }
+    
     // --- THE JUDGE PROTOCOL: EVIDENCE IS PARAMOUNT ---
     // Scan the hard evidence (highlights) first for conclusive AI tells.
     const conclusiveEvidenceKeywords = /idealized perfection|concealed hands|anachronistic|unnaturally smooth|hyper-real|impossible geometry/i;
@@ -113,12 +134,9 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         }
     }
     
-    // Create a single string to check for keywords across all relevant fields.
-    const combinedProse = `${verdict} ${explanation} ${highlights.map(h => h.text + ' ' + h.reason).join(' ')}`.toLowerCase();
-
     // --- COMPOSITE VERDICT PROTOCOL ---
     const compositeKeywords = /composite|inserted figures|pasted onto|crude cutouts|digital cutouts|figure integration/i;
-    if (compositeKeywords.test(combinedProse)) {
+    if (compositeKeywords.test(combinedProse) && !isGraphicDesign) {
         return {
             verdict: "AI-Assisted Composite",
             probability: 65, // A fixed, consistent score for composites.
@@ -187,7 +205,8 @@ export const runAnalysis = async (
     if (inputType === 'text') {
         modelName = analysisMode === 'deep' ? MODELS.PRO : MODELS.FLASH;
     } else { // 'file'
-        // Per the Image Forensics Protocol, all image analysis is a 'Deep Dive' using the PRO model.
+        // Per the Image Forensics Protocol, all image analysis is a 'Deep Dive'.
+        // We now enforce this at the service layer for robustness.
         analysisMode = 'deep';
         modelName = MODELS.PRO;
         
