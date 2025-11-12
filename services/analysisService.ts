@@ -113,8 +113,19 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         }
     }
     
-    // Create a single string to check for keywords across all relevant fields if no conclusive evidence was found.
-    const combinedProse = `${verdict} ${explanation}`.toLowerCase();
+    // Create a single string to check for keywords across all relevant fields.
+    const combinedProse = `${verdict} ${explanation} ${highlights.map(h => h.text + ' ' + h.reason).join(' ')}`.toLowerCase();
+
+    // --- COMPOSITE VERDICT PROTOCOL ---
+    const compositeKeywords = /composite|inserted figures|pasted onto|crude cutouts|digital cutouts|figure integration/i;
+    if (compositeKeywords.test(combinedProse)) {
+        return {
+            verdict: "AI-Assisted Composite",
+            probability: 65, // A fixed, consistent score for composites.
+            explanation,
+            highlights,
+        };
+    }
 
     // --- VERDICT HIERARCHY (Prose-based, fallback only) ---
 
