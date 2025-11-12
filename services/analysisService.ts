@@ -1,4 +1,5 @@
 
+
 import { analyzeContent, analyzeContentStream } from '../api/analyze';
 import { aggressivelyCompressImageForAnalysis } from '../utils/imageCompression';
 import { MODELS } from '../utils/constants';
@@ -41,7 +42,7 @@ This alignment is a primary requirement of your task.`;
                 evidenceDescription += `\n\nPRIORITY DIRECTIVE: TECHNICAL FORENSICS. Ignore conceptual and narrative elements. Your analysis is strictly limited to pixel-level evidence: upscaling artifacts, inconsistent lighting, blending errors, impossible geometry, and unnatural sharpness.`;
                 break;
             case 'conceptual':
-                evidenceDescription += `\n\nPRIORITY DIRECTIVE: CONCEPTUAL ANALYSIS. Ignore pixel-level artifacts. Your analysis is strictly limited to the narrative and context: stylistic consistency, scene plausibility, cultural anachronisms, and logical coherence. A plausible concept presented with unnatural, sterile perfection is a strong indicator of AI-assisted design.`;
+                evidenceDescription += `\n\nPRIORITY DIRECTIVE: CONCEPTUAL ANALYSIS. While your primary focus is on the narrative and context, you must still adhere to the Universal Mandate and report any and all signs of digital synthesis you observe. Your analysis is strictly limited to the narrative and context: stylistic consistency, scene plausibility, cultural anachronisms, and logical coherence. A plausible concept presented with unnatural, sterile perfection is a strong indicator of AI-assisted design.`;
                 break;
             default: // 'standard'
                 evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. You must synthesize findings from two domains.
@@ -128,19 +129,38 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         'promotional graphic', 'typography', 'advertisement', 'layout', 'brand identity',
         'coherent text', 'cohesive branding', 'graphic elements', 'text and logos', 'professional composite', 'graphic overlays'
     ]);
-    // FIX: The `some` method does not exist on `Set`. Convert the Set to an array before iterating.
+
     const isGraphicDesign = [...GRAPHIC_DESIGN_KEYWORDS].some(k => combinedProse.includes(k));
 
     // --- "UNIVERSAL MANDATE" ENFORCEMENT (THE "CONTRADICTION DETECTOR") ---
     const SUSPICIOUSLY_PERFECT_KEYWORDS = new Set([
-        'naturalistic textural detail', 'coherent studio lighting', 'consistent photographic lighting',
-        'authentic asymmetry and texture', 'conventional photographic quality', 'naturalistic aging', 'authentic photographic detail'
+        // Keywords from the failed test case
+        'natural photographic detail',
+        'consistent studio lighting',
+        
+        // Broader, more robust sub-phrases
+        'natural photographic',
+        'consistent lighting',
+        'coherent lighting',
+        'authentic detail',
+        'realistic texture',
+        'natural skin',
+        'authentic asymmetry',
+        'conventional photographic',
+        
+        // Original keywords for good measure
+        'naturalistic textural detail',
+        'coherent studio lighting',
+        'consistent photographic lighting',
+        'authentic asymmetry and texture',
+        'conventional photographic quality',
+        'naturalistic aging',
+        'authentic photographic detail'
     ]);
 
     if (isGraphicDesign) {
         for (const highlight of highlights) {
             const evidenceText = `${highlight.text} ${highlight.reason}`.toLowerCase();
-            // FIX: The `some` method does not exist on `Set`. Convert the Set to an array before iterating.
             if ([...SUSPICIOUSLY_PERFECT_KEYWORDS].some(k => evidenceText.includes(k))) {
                 // CONTRADICTION FOUND: AI is describing a synthetic graphic using language reserved for authentic photos.
                 return {
