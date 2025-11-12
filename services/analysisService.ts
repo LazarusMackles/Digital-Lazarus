@@ -39,13 +39,13 @@ This alignment is a primary requirement of your task.`;
         // This block injects hyper-specific instructions based on the user's selected forensic angle.
         switch (forensicMode) {
             case 'technical':
-                evidenceDescription += `\n\nPRIORITY DIRECTIVE: TECHNICAL FORENSICS. Your analysis must be limited to pixel-level evidence. IGNORE the narrative or conceptual elements. You are required to report on: (1) Upscaling & Compression Artifacts, (2) Inconsistent Noise & Grain, (3) Blending & Edge Errors, (4) Impossible Geometry (especially in hands, text, and reflections). Additionally, consider "unnatural perfection" as a key artifact. Scrutinize textures (skin, fabric, surfaces) for an overly smooth, uniform, or flawless appearance that lacks the subtle imperfections of a real-world photograph.`;
+                evidenceDescription += `\n\nPRIORITY DIRECTIVE: TECHNICAL FORENSICS. Your analysis must be limited to pixel-level evidence. IGNORE the narrative or conceptual elements. You are required to report on: (1) Upscaling & Compression Artifacts, (2) Inconsistent Noise & Grain, (3) Blending & Edge Errors, (4) Impossible Geometry (especially in hands, text, and reflections). CRITICAL JUDGEMENT: High-quality AI re-rendering can produce technically flawless images. The ABSENCE of authentic photographic imperfections (e.g., natural lens distortion, true film grain, subtle chromatic aberration) IS ITSELF the primary technical artifact. You MUST report this 'idealized perfection' as a key technical indicator.`;
                 break;
             case 'conceptual':
-                 evidenceDescription += `\n\nPRIORITY DIRECTIVE: CONCEPTUAL ANALYSIS. Your analysis must be limited to the context and narrative of the image. IGNORE pixel-level artifacts. You are required to report on: (1) Stylistic & Lighting Consistency, (2) Scene Plausibility & Physics, (3) Cultural or Contextual Anomalies, (4) Narrative Coherence between elements. Pay special attention to signs of era or style mimicry (e.g., a "1950s photo"). Evaluate how authentically the style is replicated, looking for subtle anachronisms in clothing, objects, or photographic quality that a genuine item would not possess.`;
+                 evidenceDescription += `\n\nPRIORITY DIRECTIVE: CONCEPTUAL ANALYSIS. Your analysis must be limited to the context and narrative of the image. IGNORE pixel-level artifacts. You are required to report on: (1) Stylistic & Lighting Consistency, (2) Scene Plausibility & Physics, (3) Cultural or Contextual Anomalies, (4) Narrative Coherence between elements. Pay special attention to signs of era or style mimicry (e.g., a "1950s photo"). Evaluate how authentically the style is replicated, looking for subtle anachronisms in clothing, objects, or photographic quality that a genuine item would not possess. If you conclude the image is a total re-creation, use phrases like 'fully AI-generated recreation' or 'idealized rendering' to ensure the final verdict is accurate.`;
                 break;
             default: // 'standard'
-                evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. You must provide a balanced verdict by synthesizing findings from two domains. First, identify key **technical artifacts** (e.g., pixel errors, impossible lighting). Second, identify key **conceptual clues** (e.g., anachronisms, narrative issues). Your final explanation must integrate both to form a single, cohesive conclusion. CRITICAL JUDGEMENT RULE: If technical evidence appears flawless but conceptual elements seem implausible or stylistically artificial, you MUST give greater weight to the conceptual evidence in your final verdict.`;
+                evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. You must provide a balanced verdict by synthesizing findings from two domains. First, identify key **technical artifacts** (e.g., pixel errors, impossible lighting). Second, identify key **conceptual clues** (e.g., anachronisms, narrative issues). Your final explanation must integrate both to form a single, cohesive conclusion. CRITICAL JUDGEMENT RULE: If technical evidence appears flawless but conceptual elements seem implausible or stylistically artificial, you MUST give greater weight to the conceptual evidence in your final verdict. If you conclude the image is a total re-creation, use phrases like 'fully AI-generated recreation' or 'idealized rendering' to ensure the final verdict is accurate.`;
                 break;
         }
     }
@@ -90,31 +90,50 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         };
     }
     
-    // Deep scan finalization logic
+    // Deep scan finalization logic with hierarchy
     let verdict = rawResult.verdict || "Analysis Inconclusive";
     let probability = Math.round(rawResult.probability || 0);
     const explanation = rawResult.explanation || "The model did not provide a detailed explanation.";
     const highlights = rawResult.highlights || [];
+    
+    // Create a single string to check for keywords across all relevant fields.
+    const combinedText = `${verdict} ${explanation} ${highlights.map(h => `${h.text} ${h.reason}`).join(' ')}`.toLowerCase();
 
-    // Rule #1: Keyword Override. If any enhancement keyword is found, standardize the verdict.
-    const enhancementKeywords = /enhanced|filter|stylistic|altered|processed|manipulated|styled/i;
-    if (enhancementKeywords.test(verdict) || enhancementKeywords.test(explanation)) {
-        verdict = "AI-Enhanced (Stylistic Filter)";
+    // --- VERDICT HIERARCHY ---
+
+    // 1. Highest Priority: Check for definitive 'Fully AI-Generated' indicators.
+    const fullyGeneratedKeywords = /fully.?generated|re.?creation|anachronistic|idealized perfection|synthetically created|re.?rendering/i;
+    if (fullyGeneratedKeywords.test(combinedText)) {
+        verdict = "Fully AI-Generated";
+        // If the model flags it as fully generated, the score should be high.
+        if (probability < 80) {
+            probability = 90; // Assign a strong, confident score.
+        }
+        // Return early to prevent lower-priority rules from interfering.
+        return { probability, verdict, explanation, highlights };
     }
 
-    // Rule #2: The Score Corrector. If the final verdict is AI-Enhanced, the score MUST be 75.
-    if (verdict === "AI-Enhanced (Stylistic Filter)") {
-        probability = 75;
-    } else {
-        // Rule #3: The Sanity Check. For other verdicts, clamp the score to the correct range.
-        const humanKeywords = /human|authentic|photograph/i;
-        const aiKeywords = /generated|synthetic|created by ai/i;
+    // 2. Middle Priority: Check for 'Enhancement' or 'Filter' indicators.
+    const enhancementKeywords = /enhanced|filter|stylistic|altered|processed|manipulated|styled/i;
+    if (enhancementKeywords.test(combinedText)) {
+        verdict = "AI-Enhanced (Stylistic Filter)";
+        probability = 75; // Force the score to a consistent value for this verdict.
+        // Return early.
+        return { probability, verdict, explanation, highlights };
+    }
 
-        if (humanKeywords.test(verdict) && probability > 39) {
-            probability = 39; // Clamp to the max "Human" score.
-        } else if (aiKeywords.test(verdict) && probability < 80) {
-            probability = 80; // Clamp to the min "Fully AI" score.
-        }
+    // 3. Fallback Score Clamping (General Sanity Check for remaining cases)
+    const humanKeywords = /human-crafted|human|authentic|photograph/i;
+    
+    if (humanKeywords.test(verdict) && probability > 39) {
+        probability = 39;
+    } else if (/(composite|mixed)/i.test(verdict) && (probability < 40 || probability > 79)) {
+        probability = 60; // Clamp composite to a safe middle ground.
+    }
+    
+    // Final catch-all for any verdict containing 'AI' but with a low score.
+    if (/ai/i.test(verdict) && probability < 40) {
+        probability = 40;
     }
 
     return {
