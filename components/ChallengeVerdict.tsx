@@ -14,7 +14,7 @@ export const ChallengeVerdict: React.FC<ChallengeVerdictProps> = React.memo(({ o
   if (isSecondOpinion) {
     return (
         <SleuthNote>
-            This is my second opinion, based on a more thorough 'Deep Dive' analysis. Cross-referencing multiple forensic angles can often reveal new insights.
+            This is my second opinion, based on 'Deep Dive' analysis. Cross-referencing multiple forensic angles can often reveal new insights.
         </SleuthNote>
     );
   }

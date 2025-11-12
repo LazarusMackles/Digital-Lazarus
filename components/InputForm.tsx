@@ -1,13 +1,13 @@
 
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { useInputState } from '../context/InputStateContext';
 import { useUIState } from '../context/UIStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
 import { useApiKey } from '../hooks/useApiKey';
 import * as actions from '../context/actions';
 // FIX: Corrected import path for UI components.
-import { Card, Button, InputTabs, ModeSelector, HowItWorks, ForensicModeToggle, SleuthNote } from './ui';
+import { Card, Button, InputTabs, ModeSelector, HowItWorks, ForensicModeToggle } from './ui';
 import { Icon } from './icons/index';
 import { TextInputPanel } from './TextInputPanel';
 import { isInputReadyForAnalysis } from '../utils/validation';
@@ -30,6 +30,13 @@ export const InputForm: React.FC = () => {
         forensicMode,
     } = inputState;
     const { error } = uiState;
+
+    useEffect(() => {
+        // Enforce 'Deep Dive' for image analysis
+        if (activeInput === 'file') {
+            inputDispatch({ type: actions.SET_ANALYSIS_MODE, payload: 'deep' });
+        }
+    }, [activeInput, inputDispatch]);
 
     const isInputValid = useMemo(() => {
         return isInputReadyForAnalysis(activeInput, textContent, fileData);
@@ -90,8 +97,10 @@ export const InputForm: React.FC = () => {
                         {activeInput === 'file' && (
                           <ForensicModeToggle selectedMode={forensicMode} onModeChange={handleForensicModeChange} />
                         )}
-                        
-                        <ModeSelector selectedMode={analysisMode} onModeChange={handleAnalysisModeChange} />
+
+                        {activeInput === 'text' && (
+                            <ModeSelector selectedMode={analysisMode} onModeChange={handleAnalysisModeChange} />
+                        )}
 
                         {error && (
                             <div className="mt-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-400/50 dark:border-red-500/50 text-red-700 dark:text-red-300 rounded-lg text-sm text-center">

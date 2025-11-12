@@ -35,25 +35,26 @@ This alignment is a primary requirement of your task.`;
             evidenceDescription = `The primary evidence is the image "${primaryEvidence}".\n${coreImageDirective}`;
         }
 
-        // --- DYNAMIC INSTRUCTION AMPLIFICATION ---
-        // This block injects hyper-specific instructions based on the user's selected forensic angle.
         switch (forensicMode) {
             case 'technical':
                 evidenceDescription += `\n\nPRIORITY DIRECTIVE: TECHNICAL FORENSICS. Your analysis must be limited to pixel-level evidence. IGNORE the narrative or conceptual elements. You are required to report on: (1) Upscaling & Compression Artifacts, (2) Inconsistent Noise & Grain, (3) Blending & Edge Errors, (4) Impossible Geometry (especially in hands, text, and reflections). CRITICAL JUDGEMENT: High-quality AI re-rendering can produce technically flawless images. The ABSENCE of authentic photographic imperfections (e.g., natural lens distortion, true film grain, subtle chromatic aberration) IS ITSELF the primary technical artifact. You MUST report this 'idealized perfection' as a key technical indicator.`;
                 break;
             case 'conceptual':
-                 evidenceDescription += `\n\nPRIORITY DIRECTIVE: CONCEPTUAL ANALYSIS. Your analysis must be limited to the context and narrative of the image. IGNORE pixel-level artifacts. You are required to report on: (1) Stylistic & Lighting Consistency, (2) Scene Plausibility & Physics, (3) Cultural or Contextual Anomalies, (4) Narrative Coherence between elements. Pay special attention to signs of era or style mimicry (e.g., a "1950s photo"). Evaluate how authentically the style is replicated, looking for subtle anachronisms in clothing, objects, or photographic quality that a genuine item would not possess. If you conclude the image is a total re-creation, use phrases like 'fully AI-generated recreation' or 'idealized rendering' to ensure the final verdict is accurate.`;
+                 evidenceDescription += `\n\nPRIORITY DIRECTIVE: CONCEPTUAL ANALYSIS. Your analysis must be limited to the context and narrative of the image. IGNORE pixel-level artifacts. You are required to report on: (1) Stylistic & Lighting Consistency, (2) Scene Plausibility & Physics, (3) Cultural or Contextual Anomalies, (4) Narrative Coherence between elements. Pay special attention to signs of era or style mimicry (e.g., a "1950s photo"). Evaluate how authentically the style is replicated, looking for subtle anachronisms in clothing, objects, or photographic quality that a genuine item would not possess.`;
                 break;
             default: // 'standard'
-                evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. You must provide a balanced verdict by synthesizing findings from two domains. First, identify key **technical artifacts** (e.g., pixel errors, impossible lighting). Second, identify key **conceptual clues** (e.g., anachronisms, narrative issues). Your final explanation must integrate both to form a single, cohesive conclusion. CRITICAL JUDGEMENT RULE: If technical evidence appears flawless but conceptual elements seem implausible or stylistically artificial, you MUST give greater weight to the conceptual evidence in your final verdict. If you conclude the image is a total re-creation, use phrases like 'fully AI-generated recreation' or 'idealized rendering' to ensure the final verdict is accurate.`;
+                evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. You must provide a balanced verdict by synthesizing findings from two domains. First, identify key **technical artifacts** (e.g., pixel errors, impossible lighting). Second, identify key **conceptual clues** (e.g., anachronisms, narrative issues). Your final explanation must integrate both to form a single, cohesive conclusion. CRITICAL JUDGEMENT HIERARCHY: Conceptual plausibility is paramount. Anachronisms, idealized perfection, and stylistic inconsistencies MUST take precedence over flawless technical execution in your final verdict. If the scene feels artificial, it IS artificial, regardless of pixel quality.`;
                 break;
         }
     }
 
-    const modeInstruction = analysisMode === 'deep'
-        ? `OUTPUT FORMAT: Conduct a "Deep Dive". Provide a concise explanation and 1-3 specific "highlights" (key indicators).`
-        : `OUTPUT FORMAT: Conduct a "Quick Scan". Identify the two most obvious artifacts.`;
-
+    let modeInstruction = '';
+    if (analysisMode === 'deep') {
+        modeInstruction = `OUTPUT FORMAT: Conduct a "Deep Dive". Provide a concise explanation and 1-3 specific "highlights" (key indicators). In your 'highlights', you MUST use specific forensic terms like 'Idealized Perfection', 'Anachronistic Photographic Quality', or 'Concealed Hands' when applicable. This is essential for the final report.`;
+    } else {
+        modeInstruction = `OUTPUT FORMAT: Conduct a "Quick Scan". Identify the two most obvious artifacts.`;
+    }
+    
     return `${baseInstruction}\n\n${criticalRule}\n\n${evidenceDescription}\n\n${modeInstruction}`;
 };
 
@@ -96,29 +97,40 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
     const explanation = rawResult.explanation || "The model did not provide a detailed explanation.";
     const highlights = rawResult.highlights || [];
     
-    // Create a single string to check for keywords across all relevant fields.
-    const combinedText = `${verdict} ${explanation} ${highlights.map(h => `${h.text} ${h.reason}`).join(' ')}`.toLowerCase();
-
-    // --- VERDICT HIERARCHY ---
-
-    // 1. Highest Priority: Check for definitive 'Fully AI-Generated' indicators.
-    const fullyGeneratedKeywords = /fully.?generated|re.?creation|anachronistic|idealized perfection|synthetically created|re.?rendering/i;
-    if (fullyGeneratedKeywords.test(combinedText)) {
-        verdict = "Fully AI-Generated";
-        // If the model flags it as fully generated, the score should be high.
-        if (probability < 80) {
-            probability = 90; // Assign a strong, confident score.
+    // --- THE JUDGE PROTOCOL: EVIDENCE IS PARAMOUNT ---
+    // Scan the hard evidence (highlights) first for conclusive AI tells.
+    const conclusiveEvidenceKeywords = /idealized perfection|concealed hands|anachronistic|unnaturally smooth|hyper-real|impossible geometry/i;
+    for (const highlight of highlights) {
+        const evidenceText = `${highlight.text} ${highlight.reason}`;
+        if (conclusiveEvidenceKeywords.test(evidenceText)) {
+            // If conclusive evidence is found, the verdict is final. Override everything else.
+            return {
+                verdict: "Fully AI-Generated",
+                probability: 93, // Assign a fixed, high-confidence score.
+                explanation,
+                highlights,
+            };
         }
-        // Return early to prevent lower-priority rules from interfering.
+    }
+    
+    // Create a single string to check for keywords across all relevant fields if no conclusive evidence was found.
+    const combinedProse = `${verdict} ${explanation}`.toLowerCase();
+
+    // --- VERDICT HIERARCHY (Prose-based, fallback only) ---
+
+    // 1. Highest Priority: Check for definitive 'Fully AI-Generated' indicators in prose.
+    const fullyGeneratedKeywords = /fully.?generated|re.?creation|synthetically created|re.?rendering|stylized re-creation|emulating a vintage style|period piece aesthetic|modern interpretation/i;
+    if (fullyGeneratedKeywords.test(combinedProse)) {
+        verdict = "Fully AI-Generated";
+        if (probability < 80) probability = 90;
         return { probability, verdict, explanation, highlights };
     }
 
     // 2. Middle Priority: Check for 'Enhancement' or 'Filter' indicators.
     const enhancementKeywords = /enhanced|filter|stylistic|altered|processed|manipulated|styled/i;
-    if (enhancementKeywords.test(combinedText)) {
+    if (enhancementKeywords.test(combinedProse)) {
         verdict = "AI-Enhanced (Stylistic Filter)";
-        probability = 75; // Force the score to a consistent value for this verdict.
-        // Return early.
+        probability = 75;
         return { probability, verdict, explanation, highlights };
     }
 
@@ -128,10 +140,9 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
     if (humanKeywords.test(verdict) && probability > 39) {
         probability = 39;
     } else if (/(composite|mixed)/i.test(verdict) && (probability < 40 || probability > 79)) {
-        probability = 60; // Clamp composite to a safe middle ground.
+        probability = 60;
     }
     
-    // Final catch-all for any verdict containing 'AI' but with a low score.
     if (/ai/i.test(verdict) && probability < 40) {
         probability = 40;
     }
@@ -158,7 +169,6 @@ export const runAnalysis = async (
 ): Promise<{ result: AnalysisResult; modelName: string; }> => {
     
     const sanitizedText = inputType === 'text' ? sanitizeTextInput(textContent) : '';
-    const prompt = buildPrompt(inputType, sanitizedText, fileData, analysisMode, forensicMode);
     
     let modelName: string;
     let filesForApi = fileData;
@@ -166,6 +176,8 @@ export const runAnalysis = async (
     if (inputType === 'text') {
         modelName = analysisMode === 'deep' ? MODELS.PRO : MODELS.FLASH;
     } else { // 'file'
+        // Per the Image Forensics Protocol, all image analysis is a 'Deep Dive' using the PRO model.
+        analysisMode = 'deep';
         modelName = MODELS.PRO;
         
         filesForApi = await Promise.all(
@@ -176,6 +188,7 @@ export const runAnalysis = async (
         );
     }
 
+    const prompt = buildPrompt(inputType, sanitizedText, fileData, analysisMode, forensicMode);
     const isQuickScan = analysisMode === 'quick';
     const shouldStream = analysisMode === 'deep' && inputType === 'text';
     
