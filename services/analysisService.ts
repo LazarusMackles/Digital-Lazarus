@@ -45,10 +45,7 @@ This alignment is a primary requirement of your task.`;
                 evidenceDescription += `\n\nPRIORITY DIRECTIVE: CONCEPTUAL ANALYSIS. While your primary focus is on the narrative and context, you must still adhere to the Universal Mandate and report any and all signs of digital synthesis you observe. Your analysis is strictly limited to the narrative and context: stylistic consistency, scene plausibility, cultural anachronisms, and logical coherence. A plausible concept presented with unnatural, sterile perfection is a strong indicator of AI-assisted design.`;
                 break;
             default: // 'standard'
-                evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. You must synthesize findings from two domains.
-1.  **Technical:** Identify pixel-level artifacts and signs of digital synthesis.
-2.  **Conceptual:** Identify narrative and contextual clues.
-CRITICAL JUDGEMENT: Technical evidence of digital synthesis (like 'Idealized Perfection' or 'Synthetic Lighting') MUST be treated as primary clues, even if the conceptual elements (like a real person or brand) appear authentic. Your final verdict must prioritize forensic evidence over a plausible story.`;
+                evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. Your primary mission is to find evidence of AI. Start with the assumption that the image could be synthetic. Your default hypothesis should be 'AI-generated' unless the photographic evidence is overwhelmingly and flawlessly authentic (e.g., contains clear, natural imperfections like lens flare, motion blur, or authentic film grain). A flawlessly executed portrait within a graphic design context is a primary indicator of AI synthesis. You must still synthesize findings from two domains:\n1.  **Technical:** Identify pixel-level artifacts and signs of digital synthesis.\n2.  **Conceptual:** Identify narrative and contextual clues.\nCRITICAL JUDGEMENT: Technical evidence of digital synthesis (like 'Idealized Perfection' or 'Synthetic Lighting') MUST be treated as primary clues, even if the conceptual elements (like a real person or brand) appear authentic. Your final verdict must prioritize forensic evidence over a plausible story.`;
                 break;
         }
     }
@@ -132,37 +129,23 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
 
     const isGraphicDesign = [...GRAPHIC_DESIGN_KEYWORDS].some(k => combinedProse.includes(k));
 
-    // --- "UNIVERSAL MANDATE" ENFORCEMENT (THE "CONTRADICTION DETECTOR") ---
-    const SUSPICIOUSLY_PERFECT_KEYWORDS = new Set([
-        // Keywords from the failed test case
-        'natural photographic detail',
-        'consistent studio lighting',
-        
-        // Broader, more robust sub-phrases
-        'natural photographic',
-        'consistent lighting',
-        'coherent lighting',
-        'authentic detail',
-        'realistic texture',
-        'natural skin',
-        'authentic asymmetry',
-        'conventional photographic',
-        
-        // Original keywords for good measure
-        'naturalistic textural detail',
-        'coherent studio lighting',
-        'consistent photographic lighting',
-        'authentic asymmetry and texture',
-        'conventional photographic quality',
-        'naturalistic aging',
-        'authentic photographic detail'
+    // --- "ZERO TOLERANCE" PROTOCOL (THE SEMANTIC JUDGE) ---
+    const AUTHENTICITY_ADJECTIVES = new Set([
+        'authentic', 'natural', 'realistic', 'consistent', 'coherent', 'naturalistic', 'conventional', 'detailed', 'professional'
+    ]);
+    const PHOTOGRAPHIC_NOUNS = new Set([
+        'photograph', 'portrait', 'texture', 'lighting', 'skin', 'hair', 'detail', 'aging', 'asymmetry', 'wrinkles', 'pores', 'fabric', 'stubble', 'portraiture'
     ]);
 
     if (isGraphicDesign) {
         for (const highlight of highlights) {
             const evidenceText = `${highlight.text} ${highlight.reason}`.toLowerCase();
-            if ([...SUSPICIOUSLY_PERFECT_KEYWORDS].some(k => evidenceText.includes(k))) {
+            const hasAdjective = [...AUTHENTICITY_ADJECTIVES].some(adj => evidenceText.includes(adj));
+            const hasNoun = [...PHOTOGRAPHIC_NOUNS].some(noun => evidenceText.includes(noun));
+
+            if (hasAdjective && hasNoun) {
                 // CONTRADICTION FOUND: AI is describing a synthetic graphic using language reserved for authentic photos.
+                // This is a primary indicator of a sophisticated fake.
                 return {
                     verdict: "AI-Generated Graphic",
                     probability: 93,
@@ -172,7 +155,7 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
             }
         }
     }
-
+    
     // --- "EVIDENCE-FIRST" TALLY PROTOCOL ---
     const SYNTHETIC_KEYWORDS = new Set([
         'ai-generated', 'fully generated', 're-creation', 'digital re-rendering', 'ai generation', 'synthetic origin', 'synthetic creation',
