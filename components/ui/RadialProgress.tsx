@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { VERDICT_COLORS } from '../../utils/constants';
 

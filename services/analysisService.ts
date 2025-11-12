@@ -1,3 +1,4 @@
+
 import { analyzeContent, analyzeContentStream } from '../api/analyze';
 import { aggressivelyCompressImageForAnalysis } from '../utils/imageCompression';
 import { MODELS } from '../utils/constants';
@@ -99,27 +100,28 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
     
     const combinedProse = `${verdict} ${explanation} ${highlights.map(h => h.text + ' ' + h.reason).join(' ')}`.toLowerCase();
 
-    // --- NEW: GRAPHIC DESIGN PROTOCOL ---
-    // Heuristic: Check for signs of being a graphic, not just a photo.
-    const graphicDesignKeywords = /branding|text overlay|logo|graphic design|promotional graphic/i;
+    // --- NEW: CONTRADICTION PROTOCOL ---
+    const authenticityKeywords = /authentic portrait|real person|real photo|genuine photograph|identifiable person|real individual|natural photographic|human design|standard promotional graphic|professional photograph/i;
+    const syntheticKeywords = /idealized perfection|synthetic lighting|text overlay|ai generation|fully generated|unnaturally smooth|flawless edge|hyper-real|anachronistic|re-rendering|digital re-rendering|synthetic origin|composite image/i;
+    const hasAuthenticElements = authenticityKeywords.test(combinedProse);
+    const hasSyntheticElements = syntheticKeywords.test(combinedProse);
+
+    const graphicDesignKeywords = /branding|text overlay|logo|graphic design|promotional graphic|typography|advertisement|poster|layout|promotional material|well-designed text/i;
     const isGraphicDesign = graphicDesignKeywords.test(combinedProse);
 
-    if (isGraphicDesign) {
-        // If it's a graphic, look for AI tells specific to this context.
-        const graphicAITells = /synthetic lighting|idealized perfection|anachronistic|ai generation/i;
-        if (graphicAITells.test(combinedProse)) {
-            // This is the new, high-priority verdict for this specific case.
-            return {
-                verdict: "AI-Generated Graphic",
-                probability: 93,
-                explanation,
-                highlights,
-            };
-        }
+    if (hasAuthenticElements && hasSyntheticElements && isGraphicDesign) {
+        // A contradiction within a graphic design context is a powerful indicator of a sophisticated AI hybrid.
+        // This is the highest priority rule.
+        return {
+            verdict: "AI-Generated Graphic",
+            probability: 93,
+            explanation,
+            highlights,
+        };
     }
     
     // --- THE JUDGE PROTOCOL: EVIDENCE IS PARAMOUNT ---
-    // Scan the hard evidence (highlights) first for conclusive AI tells.
+    // (This remains as a strong secondary check, especially for non-graphic images)
     const conclusiveEvidenceKeywords = /idealized perfection|concealed hands|anachronistic|unnaturally smooth|hyper-real|impossible geometry/i;
     for (const highlight of highlights) {
         const evidenceText = `${highlight.text} ${highlight.reason}`;
@@ -136,7 +138,7 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
     
     // --- COMPOSITE VERDICT PROTOCOL ---
     const compositeKeywords = /composite|inserted figures|pasted onto|crude cutouts|digital cutouts|figure integration/i;
-    if (compositeKeywords.test(combinedProse) && !isGraphicDesign) {
+    if (compositeKeywords.test(combinedProse) && !isGraphicDesign) { // Important: Don't misfire on graphics
         return {
             verdict: "AI-Assisted Composite",
             probability: 65, // A fixed, consistent score for composites.

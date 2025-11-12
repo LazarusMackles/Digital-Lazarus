@@ -1,3 +1,5 @@
+
+
 import React, { ErrorInfo, ReactNode } from 'react';
 import { ErrorFallback } from './ui';
 
@@ -12,9 +14,8 @@ interface State {
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Switched from constructor-based state initialization to a class property.
-  // This is a more modern syntax and resolves TypeScript errors where `this.state`
-  // was not being correctly recognized on the component instance.
+  // FIX: Use class field syntax to initialize state. This resolves the errors where
+  // TypeScript could not find the 'state' and 'props' properties on the component instance.
   state: State = { hasError: false };
 
   static getDerivedStateFromError(_: Error): State {

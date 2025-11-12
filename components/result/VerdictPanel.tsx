@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { useUIState } from '../../context/UIStateContext';
 import { Icon } from '../icons/index';
@@ -54,7 +53,7 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
 
     const verdictColorClass = () => {
         if (probability < 40) return 'text-teal-500 dark:text-teal-400';
-        if (probability < 75) return 'text-yellow-500 dark:text-yellow-400';
+        if (probability < 80) return 'text-yellow-500 dark:text-yellow-400';
         return 'text-rose-500 dark:text-rose-400';
     };
     

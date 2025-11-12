@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import type { AnalysisEvidence } from '../../types';
 import { SleuthNote, EvidenceImage, ImageLightbox } from '../ui';
@@ -10,7 +11,7 @@ interface EvidencePresenterProps {
 
 const getBorderColorClass = (p: number): string => {
     if (p < 40) return 'border-teal-400';
-    if (p < 75) return 'border-yellow-400';
+    if (p < 80) return 'border-yellow-400';
     return 'border-rose-500';
 };
 
