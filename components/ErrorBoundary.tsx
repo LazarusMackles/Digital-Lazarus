@@ -2,7 +2,9 @@ import React, { ErrorInfo, ReactNode } from 'react';
 import { ErrorFallback } from './ui';
 
 interface Props {
-  children: ReactNode;
+  // FIX: Made children optional to resolve the type error in App.tsx. An ErrorBoundary
+  // without children is valid, even if not useful.
+  children?: ReactNode;
 }
 
 interface State {
@@ -10,7 +12,9 @@ interface State {
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Refactored to use a constructor for state initialization. This explicitly calls `super(props)` and can resolve subtle context issues where `this.props` might be incorrectly typed as non-existent on the component instance.
+  // FIX: Added a constructor to explicitly call super(props) and initialize state.
+  // This ensures `this.props` is correctly typed and available on the component instance,
+  // resolving the error in the render method.
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false };

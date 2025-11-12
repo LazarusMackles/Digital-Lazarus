@@ -78,37 +78,50 @@ describe('analysisService: runAnalysis', () => {
         expect(api.analyzeContent).not.toHaveBeenCalled();
     });
     
-    it('should correctly normalize quick scan results by passing through the probability', async () => {
+    // --- New Tests for Verdict Finalization ---
+
+    it('should force an "AI-Enhanced" verdict and a 75% score when enhancement keywords are present', async () => {
         const mockApiResponse = {
-            confidence_score: 75,
-            quick_verdict: 'Likely AI',
-            artifact_1: 'Too perfect',
-            artifact_2: 'Unnatural symmetry'
+            probability: 25, // Deliberately wrong score
+            verdict: 'This looks like a photograph that has been heavily filtered.', // Keyword: "filtered"
+            explanation: 'The skin is too smooth.',
+            highlights: []
         };
         (api.analyzeContent as any).mockResolvedValue(mockApiResponse);
 
-        const { result } = await runAnalysis('text', 'quick text', [], 'quick', 'standard');
+        const { result } = await runAnalysis('file', '', [{ name: 'test.jpg', imageBase64: 'base64' }], 'deep', 'standard');
 
-        expect(result.verdict).toBe('Likely AI');
-        // Test that the score is passed through directly without harmonization.
-        expect(result.probability).toBe(75);
-        expect(result.explanation).toContain("My initial scan suggests");
+        expect(result.verdict).toBe('AI-Enhanced (Stylistic Filter)');
+        expect(result.probability).toBe(75); // Score is corrected
     });
 
-    it('should correctly normalize deep scan results by passing through the probability', async () => {
+    it('should clamp a "Human-Crafted" verdict with an illogical score down to 39%', async () => {
         const mockApiResponse = {
-            probability: 88,
-            verdict: 'AI-Generated',
-            explanation: 'The structure is highly complex.',
-            highlights: [{ text: 'Complex sentence', reason: 'AI trait' }]
+            probability: 90, // Illogical high score
+            verdict: 'Appears Human-Crafted',
+            explanation: 'Looks like a real photo.',
+            highlights: []
         };
-        (api.analyzeContentStream as any).mockResolvedValue(mockApiResponse);
+        (api.analyzeContent as any).mockResolvedValue(mockApiResponse);
 
-        const { result } = await runAnalysis('text', 'deep text', [], 'deep', 'standard', vi.fn());
+        const { result } = await runAnalysis('file', '', [{ name: 'test.jpg', imageBase64: 'base64' }], 'deep', 'standard');
 
-        expect(result.verdict).toBe('AI-Generated');
-        // Test that the score is passed through directly without harmonization.
-        expect(result.probability).toBe(88);
-        expect(result.explanation).toBe(mockApiResponse.explanation);
+        expect(result.verdict).toBe('Appears Human-Crafted');
+        expect(result.probability).toBe(39); // Score is clamped
+    });
+    
+    it('should clamp a "Fully AI-Generated" verdict with an illogical score up to 80%', async () => {
+        const mockApiResponse = {
+            probability: 50, // Illogical low score
+            verdict: 'This is fully AI-generated.',
+            explanation: 'The hands are wrong.',
+            highlights: []
+        };
+        (api.analyzeContent as any).mockResolvedValue(mockApiResponse);
+
+        const { result } = await runAnalysis('file', '', [{ name: 'test.jpg', imageBase64: 'base64' }], 'deep', 'standard');
+
+        expect(result.verdict).toBe('This is fully AI-generated.');
+        expect(result.probability).toBe(80); // Score is clamped
     });
 });

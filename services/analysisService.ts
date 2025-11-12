@@ -27,22 +27,25 @@ This alignment is a primary requirement of your task.`;
         evidenceDescription = `ANALYZE TEXT EVIDENCE: Scrutinize the provided text for AI authorship. Focus on style, tone, structure, and content to identify tells like unnatural phrasing, excessive complexity, lack of personal voice, or factual errors.`;
     } else { // 'file'
         const primaryEvidence = fileData[0]?.name || 'the primary image';
-        const coreImageDirective = `ANALYZE IMAGE EVIDENCE: Your goal is to find any AI involvement. Assume the image may be an AI-manipulated real photograph. Prioritize finding digital artifacts over the base photo's authenticity.`;
+        const coreImageDirective = `Your primary goal is to find any evidence of AI involvement in the provided image(s).`;
         
-        evidenceDescription = `The primary evidence is the image "${primaryEvidence}".\n${coreImageDirective}`;
         if (fileData.length > 1) {
              evidenceDescription = `The primary evidence is the FIRST image ("${primaryEvidence}"). Subsequent images are for supporting context. Your final verdict must focus on the primary image.\n${coreImageDirective}`;
+        } else {
+            evidenceDescription = `The primary evidence is the image "${primaryEvidence}".\n${coreImageDirective}`;
         }
 
+        // --- DYNAMIC INSTRUCTION AMPLIFICATION ---
+        // This block injects hyper-specific instructions based on the user's selected forensic angle.
         switch (forensicMode) {
             case 'technical':
-                evidenceDescription += `\nFORENSIC ANGLE: Technical analysis ONLY. Report on pixel-level artifacts: compression, impossible lighting, unnatural textures, anatomical errors. IGNORE conceptual elements.`;
+                evidenceDescription += `\n\nPRIORITY DIRECTIVE: TECHNICAL FORENSICS. Your analysis must be limited to pixel-level evidence. IGNORE the narrative or conceptual elements. You are required to report on: (1) Upscaling & Compression Artifacts, (2) Inconsistent Noise & Grain, (3) Blending & Edge Errors, (4) Impossible Geometry (especially in hands, text, and reflections).`;
                 break;
             case 'conceptual':
-                 evidenceDescription += `\nFORENSIC ANGLE: Conceptual analysis. Determine if an AI manipulated a real photo. Even if the scene is plausible, you MUST hunt for subtle signs of AI stylization (e.g., unnatural skin, anachronistic lighting, perfect 'vintage' effects).`;
+                 evidenceDescription += `\n\nPRIORITY DIRECTIVE: CONCEPTUAL ANALYSIS. Your analysis must be limited to the context and narrative of the image. IGNORE pixel-level artifacts. You are required to report on: (1) Stylistic & Lighting Consistency, (2) Scene Plausibility & Physics, (3) Cultural or Contextual Anomalies, (4) Narrative Coherence between elements.`;
                 break;
             default: // 'standard'
-                evidenceDescription += `\nFORENSIC ANGLE: Standard analysis. Synthesize BOTH technical artifacts AND conceptual clues into a single, decisive verdict.`;
+                evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. You must provide a balanced verdict by synthesizing findings from two domains. First, identify key **technical artifacts** (e.g., pixel errors, impossible lighting). Second, identify key **conceptual clues** (e.g., anachronisms, narrative issues). Your final explanation must integrate both to form a single, cohesive conclusion.`;
                 break;
         }
     }
@@ -56,37 +59,69 @@ This alignment is a primary requirement of your task.`;
 
 
 /**
- * Normalizes the raw API response into the consistent AnalysisResult format.
+ * The definitive, client-side logic layer that takes a raw, potentially inconsistent AI report
+ * and finalizes it into a consistent, logical, and reliable AnalysisResult.
+ * This is the new "brain" of the Sleuther.
+ * @param rawResult The raw JSON object from the Gemini model.
+ * @param isQuickScan A flag indicating if the analysis was a quick scan.
+ * @returns A finalized, reliable AnalysisResult object.
  */
-const normalizeResult = (rawResult: any, isQuickScan: boolean): AnalysisResult => {
+const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult => {
     if (isQuickScan) {
-        const artifact1 = rawResult.artifact_1 || 'No primary finding was provided.';
-        const artifact2 = rawResult.artifact_2 || 'No secondary finding was provided.';
+        // Quick scan finalization is simpler but still benefits from score clamping.
         const verdict = rawResult.quick_verdict || "Undetermined";
-        // DEPRECATED HARMONIZATION: Trust the model's score directly, as per the new command-based prompt.
-        const probability = Math.round(rawResult.confidence_score || 0);
+        let probability = Math.round(rawResult.confidence_score || 0);
+
+        // Apply sanity check clamping.
+        if (/human|not ai/i.test(verdict) && probability > 39) {
+            probability = 39;
+        } else if (/ai/i.test(verdict) && probability < 40) {
+            probability = 40;
+        }
 
         return {
             probability,
             verdict,
             explanation: `My initial scan suggests the verdict based on the following key indicators. For a more detailed analysis, a 'Deep Dive' is recommended.`,
             highlights: [
-                { text: 'Primary Finding', reason: artifact1 },
-                { text: 'Secondary Finding', reason: artifact2 }
+                { text: 'Primary Finding', reason: rawResult.artifact_1 || 'No primary finding was provided.' },
+                { text: 'Secondary Finding', reason: rawResult.artifact_2 || 'No secondary finding was provided.' }
             ],
         };
     }
     
-    // Deep scan result
-    const verdict = rawResult.verdict || "Analysis Inconclusive";
-    // DEPRECATED HARMONIZATION: Trust the model's score directly.
-    const probability = Math.round(rawResult.probability || 0);
+    // Deep scan finalization logic
+    let verdict = rawResult.verdict || "Analysis Inconclusive";
+    let probability = Math.round(rawResult.probability || 0);
+    const explanation = rawResult.explanation || "The model did not provide a detailed explanation.";
+    const highlights = rawResult.highlights || [];
+
+    // Rule #1: Keyword Override. If any enhancement keyword is found, standardize the verdict.
+    const enhancementKeywords = /enhanced|filter|stylistic|altered|processed|manipulated|styled/i;
+    if (enhancementKeywords.test(verdict) || enhancementKeywords.test(explanation)) {
+        verdict = "AI-Enhanced (Stylistic Filter)";
+    }
+
+    // Rule #2: The Score Corrector. If the final verdict is AI-Enhanced, the score MUST be 75.
+    if (verdict === "AI-Enhanced (Stylistic Filter)") {
+        probability = 75;
+    } else {
+        // Rule #3: The Sanity Check. For other verdicts, clamp the score to the correct range.
+        const humanKeywords = /human|authentic|photograph/i;
+        const aiKeywords = /generated|synthetic|created by ai/i;
+
+        if (humanKeywords.test(verdict) && probability > 39) {
+            probability = 39; // Clamp to the max "Human" score.
+        } else if (aiKeywords.test(verdict) && probability < 80) {
+            probability = 80; // Clamp to the min "Fully AI" score.
+        }
+    }
 
     return {
         probability,
         verdict,
-        explanation: rawResult.explanation,
-        highlights: rawResult.highlights || [],
+        explanation,
+        highlights,
     };
 };
 
@@ -138,9 +173,9 @@ export const runAnalysis = async (
             }
         };
         const rawResult = await analyzeContentStream(prompt, filesForApi, modelName, handleStream, sanitizedText);
-        return { result: normalizeResult(rawResult, false), modelName };
+        return { result: finalizeVerdict(rawResult, false), modelName };
     }
 
     const rawResult = await analyzeContent(prompt, filesForApi, analysisMode, modelName, sanitizedText);
-    return { result: normalizeResult(rawResult, isQuickScan), modelName };
+    return { result: finalizeVerdict(rawResult, isQuickScan), modelName };
 };
