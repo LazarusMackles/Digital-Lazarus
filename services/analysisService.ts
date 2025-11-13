@@ -1,4 +1,5 @@
 
+
 import { analyzeContent, analyzeContentStream } from '../api/analyze';
 import { MODELS } from '../utils/constants';
 import { sanitizeTextInput } from '../utils/textUtils';
@@ -33,8 +34,9 @@ This alignment is a primary requirement of your task.`;
         const analogFidelityPrinciple = `ANALOG FIDELITY PRINCIPLE: Correctly interpret signs of authentic physical age and damage. Features like paper creases, fading, dust, scratches, and consistent film grain are strong indicators of a real-world, analog origin and should be treated as evidence FOR authenticity, not as digital flaws.`;
         const restorationArtifactPrinciple = `RESTORATION ARTIFACT PRINCIPLE: Be highly suspicious of images that mix high-fidelity analog textures (like film grain) with areas of unnatural smoothness or clarity. AI restoration often creates tell-tale artifacts: "waxy" or plastic-like skin where wrinkles or blemishes should be, inconsistent noise patterns, and a loss of fine, organic detail in repaired sections. If you detect a mix of authentic vintage qualities and sterile, digitally-repaired patches, you must report it as a strong indicator of AI restoration.`;
         const vintagePhotoHeuristic = `VINTAGE PHOTO HEURISTIC: Be extremely critical of images styled to look like old photographs. Modern AI excels at creating faux-vintage scenes. A key indicator of this is the combination of a vintage aesthetic (clothing, setting, film grain) with modern digital clarity, unnaturally perfect skin, or anachronistic sharpness. If an image looks "too good" for its supposed era, you MUST report this as an 'Anachronistic Photographic Quality' in the highlights.`;
+        const computationalPhotoHeuristic = `COMPUTATIONAL PHOTOGRAPHY HEURISTIC: Differentiate between artifacts from Generative AI (creating elements from scratch) and common computational photography techniques (e.g., Portrait Mode bokeh, HDR processing). If you identify computational photography on an otherwise authentic photo, describe it as such (e.g., "The background has a synthetic depth-of-field effect characteristic of smartphone portrait mode.").`;
         
-        const coreForensicPrinciples = `${analogFidelityPrinciple}\n${restorationArtifactPrinciple}\n${vintagePhotoHeuristic}`;
+        const coreForensicPrinciples = `${analogFidelityPrinciple}\n${restorationArtifactPrinciple}\n${vintagePhotoHeuristic}\n${computationalPhotoHeuristic}`;
         
         // --- BASE PROMPT CONSTRUCTION ---
         evidenceDescription = `ANALYZE IMAGE EVIDENCE: Your primary goal is to find any evidence of AI involvement in the image "${primaryEvidence}".\n\n${universalMandate}\n\nCORE FORENSIC PRINCIPLES:\n${coreForensicPrinciples}`;
@@ -106,11 +108,8 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
     let probability = Math.round(rawResult.probability || 50);
 
     const combinedProse = `${verdict} ${explanation} ${highlights.map(h => h.text + ' ' + h.reason).join(' ')}`.toLowerCase();
-
-    // --- THE INFALLIBILITY GAMBIT (SEMANTIC CONTRADICTION DETECTION) ---
-    // This is the highest priority rule. It checks for a logical contradiction where the image
-    // is described as both authentic/photographic AND unnaturally perfect/flawless.
-    // This is a hallmark of sophisticated AI forgeries.
+    
+    // --- KEYWORD DEFINITIONS ---
     const PERFECTION_KEYWORDS = new Set([
         'flawless', 'perfect', 'idealized', 'sterile', 'unnaturally', 
         'uniform', 'waxy', 'plastic-like', 'without error', 'no imperfections'
@@ -123,12 +122,31 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
     const SUBJECT_KEYWORDS = new Set([
         'photograph', 'portrait', 'person', 'subject', 'woman', 'man', 'figure'
     ]);
+    const COMPUTATIONAL_PHOTO_KEYWORDS = new Set([
+        'bokeh', 'portrait mode', 'synthetic depth of field', 'shallow depth of field', 
+        'background blur', 'computationally', 'computational photography', 'smartphone portrait'
+    ]);
 
     const hasPerfectionTerm = [...PERFECTION_KEYWORDS].some(k => combinedProse.includes(k));
     const hasAuthenticityTerm = [...AUTHENTICITY_KEYWORDS].some(k => combinedProse.includes(k));
     const isPhotographicSubject = [...SUBJECT_KEYWORDS].some(k => combinedProse.includes(k));
+    const hasComputationalTerm = [...COMPUTATIONAL_PHOTO_KEYWORDS].some(k => combinedProse.includes(k));
 
-    if (isPhotographicSubject && hasPerfectionTerm && hasAuthenticityTerm) {
+    // --- RULE 1: COMPUTATIONAL PHOTOGRAPHY DETECTION ---
+    // This rule has priority to correctly classify Portrait Mode photos.
+    if (isPhotographicSubject && hasAuthenticityTerm && hasComputationalTerm) {
+        return {
+            verdict: "Human Enhanced Photograph",
+            probability: 15, // Low probability, as the core photo is real.
+            explanation: "This appears to be an authentic photograph enhanced by computational techniques, such as an artificial background blur (Portrait Mode), common in modern smartphone photography.",
+            highlights,
+        };
+    }
+
+    // --- RULE 2: THE INFALLIBILITY GAMBIT (SEMANTIC CONTRADICTION DETECTION) ---
+    // Checks for a contradiction where an image is described as both authentic AND unnaturally perfect.
+    // MODIFIED: This gambit is now bypassed if a computational term is found, as that's a valid, explainable contradiction.
+    if (isPhotographicSubject && hasPerfectionTerm && hasAuthenticityTerm && !hasComputationalTerm) {
         return {
             verdict: "AI-Generated Graphic",
             probability: 93,
@@ -137,7 +155,7 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         };
     }
 
-    // --- "INCONTROVERTIBLE EVIDENCE" MANDATE (THE "TRUMP CARD" RULE) ---
+    // --- RULE 3: "INCONTROVERTIBLE EVIDENCE" MANDATE (THE "TRUMP CARD" RULE) ---
     const TRUMP_CARD_KEYWORDS = new Set([
         'idealized perfection', 'synthetic lighting', 'anachronistic', 'impossible geometry', 
         'concealed hands', 'waxy texture', 'hyper-real', 'unnaturally smooth', 'seamless compositing',
@@ -158,7 +176,7 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         }
     }
     
-    // --- "EVIDENCE-FIRST" TALLY PROTOCOL ---
+    // --- RULE 4: "EVIDENCE-FIRST" TALLY PROTOCOL ---
     const SYNTHETIC_KEYWORDS = new Set([
         'ai-generated', 'fully generated', 're-creation', 'digital re-rendering', 'ai generation', 'synthetic origin', 'synthetic creation',
         'synthetic lighting and detail', 'idealized perfection in portrait'
@@ -199,7 +217,7 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         };
     }
     
-    // --- RESTORATION DETECTION PROTOCOL ---
+    // --- FALLBACK RULES ---
     const restorationKeywords = /restored|repaired|inpainted|denoised|colorized|cleaned|digitally repaired|artifact removal/i;
     if (restorationKeywords.test(combinedProse)) {
         return {
@@ -210,7 +228,6 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         };
     }
 
-    // --- FALLBACK LOGIC ---
     const compositeKeywords = /composite|inserted figures|pasted onto|crude cutouts|digital cutouts|figure integration/i;
     if (compositeKeywords.test(combinedProse)) { 
         return {
