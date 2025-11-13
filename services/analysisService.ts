@@ -1,5 +1,7 @@
 
 
+
+
 import { analyzeContent, analyzeContentStream } from '../api/analyze';
 import { MODELS } from '../utils/constants';
 import { sanitizeTextInput } from '../utils/textUtils';
@@ -31,12 +33,13 @@ This alignment is a primary requirement of your task.`;
         
         // --- CORE FORENSIC HEURISTICS ---
         const universalMandate = `UNIVERSAL MANDATE: Your absolute top priority is to identify and report any artifact of digital synthesis. If you observe unnatural perfection, sterile quality, or flawless execution beyond typical photography/graphic design, you MUST report it in the 'highlights' using specific forensic terms like 'Idealized Perfection' or 'Synthetic Lighting'. A core forensic principle is that the ABSENCE of real-world photographic imperfections (e.g., lens distortion, natural skin texture, consistent noise) is, in itself, a primary indicator of digital synthesis. This mandate applies regardless of your primary analysis angle.`;
+        const crowdCoherenceProtocol = `CROWD COHERENCE PROTOCOL: When analyzing images with numerous subjects at varying distances (e.g., crowds), you MUST establish the foreground subjects as the 'ground truth' for detail and structure. You MUST differentiate between natural photographic depth-of-field (background blur) and true synthetic failure (malformed foreground details). If foreground elements are coherent and legible (e.g., uniform insignia), you MUST assume that less focused but structurally similar background elements are also authentic. This protocol OVERRIDES any low-level analysis that flags background blur or visual density as a primary synthesis artifact when a coherent foreground is present.`;
         const analogFidelityPrinciple = `ANALOG FIDELITY PRINCIPLE: Correctly interpret signs of authentic physical age and damage. Features like paper creases, fading, dust, scratches, and consistent film grain are strong indicators of a real-world, analog origin and should be treated as evidence FOR authenticity, not as digital flaws.`;
         const restorationArtifactPrinciple = `RESTORATION ARTIFACT PRINCIPLE: Be highly suspicious of images that mix high-fidelity analog textures (like film grain) with areas of unnatural smoothness or clarity. AI restoration often creates tell-tale artifacts: "waxy" or plastic-like skin where wrinkles or blemishes should be, inconsistent noise patterns, and a loss of fine, organic detail in repaired sections. If you detect a mix of authentic vintage qualities and sterile, digitally-repaired patches, you must report it as a strong indicator of AI restoration.`;
         const vintagePhotoHeuristic = `VINTAGE PHOTO HEURISTIC: Be extremely critical of images styled to look like old photographs. Modern AI excels at creating faux-vintage scenes. A key indicator of this is the combination of a vintage aesthetic (clothing, setting, film grain) with modern digital clarity, unnaturally perfect skin, or anachronistic sharpness. If an image looks "too good" for its supposed era, you MUST report this as an 'Anachronistic Photographic Quality' in the highlights.`;
         const computationalPhotoHeuristic = `COMPUTATIONAL PHOTOGRAPHY HEURISTIC: Differentiate between artifacts from Generative AI (creating elements from scratch) and common computational photography techniques (e.g., Portrait Mode bokeh, HDR processing). If you identify computational photography on an otherwise authentic photo, describe it as such (e.g., "The background has a synthetic depth-of-field effect characteristic of smartphone portrait mode.").`;
         
-        const coreForensicPrinciples = `${analogFidelityPrinciple}\n${restorationArtifactPrinciple}\n${vintagePhotoHeuristic}\n${computationalPhotoHeuristic}`;
+        const coreForensicPrinciples = `${crowdCoherenceProtocol}\n${analogFidelityPrinciple}\n${restorationArtifactPrinciple}\n${vintagePhotoHeuristic}\n${computationalPhotoHeuristic}`;
         
         // --- BASE PROMPT CONSTRUCTION ---
         evidenceDescription = `ANALYZE IMAGE EVIDENCE: Your primary goal is to find any evidence of AI involvement in the image "${primaryEvidence}".\n\n${universalMandate}\n\nCORE FORENSIC PRINCIPLES:\n${coreForensicPrinciples}`;
@@ -51,7 +54,8 @@ This alignment is a primary requirement of your task.`;
                 evidenceDescription += `\n\nPRIORITY DIRECTIVE: TECHNICAL FORENSICS. With the above Core Forensic Principles providing crucial context, your analysis and report must focus strictly on pixel-level evidence. Your 'highlights' should describe technical observations like upscaling artifacts, inconsistent lighting, blending errors, impossible geometry, and unnatural sharpness.`;
                 break;
             case 'conceptual':
-                evidenceDescription += `\n\nPRIORITY DIRECTIVE: CONCEPTUAL ANALYSIS. While your primary focus is on the narrative and context, you must still adhere to the Universal Mandate and Core Forensic Principles, reporting any and all signs of digital synthesis you observe. Your analysis is strictly limited to the narrative and context: stylistic consistency, scene plausibility, cultural anachronisms, and logical coherence. A plausible concept presented with unnatural, sterile perfection is a strong indicator of AI-assisted design.`;
+                const vintageDirective = `CRITICAL VINTAGE PHOTO DIRECTIVE: Your conceptual analysis must correctly interpret digital scans of analog photos. High digital clarity, sharpness, or the absence of digital noise on an image that otherwise has strong indicators of a vintage, analog origin (e.g., film grain, period-correct fashion) should be interpreted as evidence of a high-quality scan of a real photograph. It is NOT an anachronism. Do not let the quality of a modern scan cause you to doubt the authenticity of a vintage scene.`;
+                evidenceDescription += `\n\nPRIORITY DIRECTIVE: CONCEPTUAL ANALYSIS. ${vintageDirective} While your primary focus is on the narrative and context, you must still adhere to the Universal Mandate and Core Forensic Principles, reporting any and all signs of digital synthesis you observe. Your analysis is strictly limited to the narrative and context: stylistic consistency, scene plausibility, cultural anachronisms, and logical coherence. A plausible concept presented with unnatural, sterile perfection is a strong indicator of AI-assisted design.`;
                 break;
             default: // 'standard'
                 evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. This analysis is governed by the Universal Mandate and Core Forensic Principles. Your task is to find any evidence of AI, prioritizing forensic, technical evidence over conceptual plausibility. A plausible concept (e.g., a vintage photo) presented with unnatural, sterile perfection is a strong indicator of AI synthesis. The ABSENCE of real-world photographic imperfections (e.g., lens distortion, natural skin texture, consistent noise) is itself a primary clue. You MUST report these if found.`;
@@ -109,6 +113,32 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
 
     const combinedProse = `${verdict} ${explanation} ${highlights.map(h => h.text + ' ' + h.reason).join(' ')}`.toLowerCase();
     
+    // --- RULE 0: CROWD EXEMPTION PROTOCOL (TOP PRIORITY) ---
+    // This protocol specifically addresses false positives on complex crowd photos
+    // by looking for strong positive indicators of authenticity in the highlights.
+    // If found, it bypasses all other rules, including the "Infallibility Gambit".
+    const CROWD_AUTHENTICITY_KEYWORDS = new Set([
+        'coherent crowd', 
+        'coherent uniform',
+        'legible name tapes',
+        'natural focus fall-off', 
+        'photographic depth of field',
+    ]);
+
+    for (const highlight of highlights) {
+        const evidenceText = `${highlight.text} ${highlight.reason}`.toLowerCase();
+        for (const keyword of CROWD_AUTHENTICITY_KEYWORDS) {
+            if (evidenceText.includes(keyword)) {
+                return {
+                    verdict: "Human Enhanced Photograph",
+                    probability: 15,
+                    explanation: "This appears to be an authentic photograph of a complex crowd scene. Key details are coherent, and background blur is consistent with natural photographic depth-of-field. Minor digital enhancements may be present.",
+                    highlights,
+                };
+            }
+        }
+    }
+    
     // --- KEYWORD DEFINITIONS ---
     const PERFECTION_KEYWORDS = new Set([
         'flawless', 'perfect', 'idealized', 'sterile', 'unnaturally', 
@@ -126,15 +156,35 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         'bokeh', 'portrait mode', 'synthetic depth of field', 'shallow depth of field', 
         'background blur', 'computationally', 'computational photography', 'smartphone portrait'
     ]);
+    const ANALOG_KEYWORDS = new Set([
+        'film grain', 'analog', 'vintage', '1980s', '1990s', 'film print', 'scanned photo', 'paper texture',
+    ]);
 
     const hasPerfectionTerm = [...PERFECTION_KEYWORDS].some(k => combinedProse.includes(k));
     const hasAuthenticityTerm = [...AUTHENTICITY_KEYWORDS].some(k => combinedProse.includes(k));
     const isPhotographicSubject = [...SUBJECT_KEYWORDS].some(k => combinedProse.includes(k));
     const hasComputationalTerm = [...COMPUTATIONAL_PHOTO_KEYWORDS].some(k => combinedProse.includes(k));
+    const hasAnalogTerm = [...ANALOG_KEYWORDS].some(k => combinedProse.includes(k));
 
-    // --- RULE 1: COMPUTATIONAL PHOTOGRAPHY DETECTION ---
+    // --- RULE 1: ANALOG PHOTO OVERRIDE ---
+    // This rule has top priority to correctly classify scanned analog photos,
+    // making the logic resilient to model inconsistencies like misidentifying
+    // optical blur as "bokeh" or high scan quality as "unnatural clarity".
+    if (hasAnalogTerm) {
+        // Even if edited, the origin is authentic, so the AI probability is low.
+        // The user agrees this is the correct classification for a scanned, sweetened photo.
+        return {
+            verdict: "Human Enhanced Photograph",
+            probability: 15,
+            explanation: "This appears to be an authentic analog photograph that has been digitized. Its qualities are consistent with a scanned film photo that may have undergone digital enhancements like cropping or color correction.",
+            highlights,
+        };
+    }
+
+    // --- RULE 2: COMPUTATIONAL PHOTOGRAPHY DETECTION ---
     // This rule has priority to correctly classify Portrait Mode photos.
-    if (isPhotographicSubject && hasAuthenticityTerm && hasComputationalTerm) {
+    // It now explicitly IGNORES cases where strong analog terms are present, to prevent misfiring on vintage photos.
+    if (isPhotographicSubject && hasAuthenticityTerm && hasComputationalTerm && !hasAnalogTerm) {
         return {
             verdict: "Human Enhanced Photograph",
             probability: 15, // Low probability, as the core photo is real.
@@ -143,7 +193,7 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         };
     }
 
-    // --- RULE 2: THE INFALLIBILITY GAMBIT (SEMANTIC CONTRADICTION DETECTION) ---
+    // --- RULE 3: THE INFALLIBILITY GAMBIT (SEMANTIC CONTRADICTION DETECTION) ---
     // Checks for a contradiction where an image is described as both authentic AND unnaturally perfect.
     // MODIFIED: This gambit is now bypassed if a computational term is found, as that's a valid, explainable contradiction.
     if (isPhotographicSubject && hasPerfectionTerm && hasAuthenticityTerm && !hasComputationalTerm) {
@@ -155,7 +205,7 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         };
     }
 
-    // --- RULE 3: "INCONTROVERTIBLE EVIDENCE" MANDATE (THE "TRUMP CARD" RULE) ---
+    // --- RULE 4: "INCONTROVERTIBLE EVIDENCE" MANDATE (THE "TRUMP CARD" RULE) ---
     const TRUMP_CARD_KEYWORDS = new Set([
         'idealized perfection', 'synthetic lighting', 'anachronistic', 'impossible geometry', 
         'concealed hands', 'waxy texture', 'hyper-real', 'unnaturally smooth', 'seamless compositing',
@@ -176,7 +226,7 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
         }
     }
     
-    // --- RULE 4: "EVIDENCE-FIRST" TALLY PROTOCOL ---
+    // --- RULE 5: "EVIDENCE-FIRST" TALLY PROTOCOL ---
     const SYNTHETIC_KEYWORDS = new Set([
         'ai-generated', 'fully generated', 're-creation', 'digital re-rendering', 'ai generation', 'synthetic origin', 'synthetic creation',
         'synthetic lighting and detail', 'idealized perfection in portrait'
