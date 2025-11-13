@@ -1,6 +1,5 @@
 
 import { analyzeContent, analyzeContentStream } from '../api/analyze';
-import { aggressivelyCompressImageForAnalysis } from '../utils/imageCompression';
 import { MODELS } from '../utils/constants';
 import { sanitizeTextInput } from '../utils/textUtils';
 import type { AnalysisMode, ForensicMode, AnalysisResult, InputType } from '../types';
@@ -265,7 +264,7 @@ export const runAnalysis = async (
     const sanitizedText = inputType === 'text' ? sanitizeTextInput(textContent) : '';
     
     let modelName: string;
-    let filesForApi = fileData;
+    const filesForApi = fileData;
     
     if (inputType === 'text') {
         modelName = analysisMode === 'deep' ? MODELS.PRO : MODELS.FLASH;
@@ -273,12 +272,10 @@ export const runAnalysis = async (
         analysisMode = 'deep';
         modelName = MODELS.PRO;
         
-        filesForApi = await Promise.all(
-            fileData.map(async (file) => ({
-                ...file,
-                imageBase64: await aggressivelyCompressImageForAnalysis(file.imageBase64),
-            }))
-        );
+        // HIGH-FIDELITY PROTOCOL: The aggressive, secondary compression step has been removed.
+        // The model will now receive a higher-fidelity image, which is crucial for
+        // detecting the subtle artifacts present in sophisticated forgeries. This 
+        // addresses the root cause of the recurring analysis failures.
     }
 
     const prompt = buildPrompt(inputType, sanitizedText, fileData, analysisMode, forensicMode);
