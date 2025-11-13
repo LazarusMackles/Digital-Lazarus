@@ -1,5 +1,6 @@
 
 
+
 import { analyzeContent, analyzeContentStream } from '../api/analyze';
 import { aggressivelyCompressImageForAnalysis } from '../utils/imageCompression';
 import { MODELS } from '../utils/constants';
@@ -47,7 +48,11 @@ This alignment is a primary requirement of your task.`;
                 evidenceDescription += `\n\nPRIORITY DIRECTIVE: CONCEPTUAL ANALYSIS. While your primary focus is on the narrative and context, you must still adhere to the Universal Mandate and report any and all signs of digital synthesis you observe. Your analysis is strictly limited to the narrative and context: stylistic consistency, scene plausibility, cultural anachronisms, and logical coherence. A plausible concept presented with unnatural, sterile perfection is a strong indicator of AI-assisted design.\n${analogFidelityPrinciple}\n${restorationArtifactPrinciple}`;
                 break;
             default: // 'standard'
-                evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. Your primary mission is to find evidence of AI. Start with the assumption that the image could be synthetic. Your default hypothesis should be 'AI-generated' unless the photographic evidence is overwhelmingly and flawlessly authentic (e.g., contains clear, natural imperfections like lens flare, motion blur, or authentic film grain). A flawlessly executed portrait within a graphic design context is a primary indicator of AI synthesis. You must still synthesize findings from two domains:\n1.  **Technical:** Identify pixel-level artifacts and signs of digital synthesis.\n2.  **Conceptual:** Identify narrative and contextual clues.\n${analogFidelityPrinciple}\n${restorationArtifactPrinciple}\nCRITICAL JUDGEMENT: Technical evidence of digital synthesis (like 'Idealized Perfection' or 'Synthetic Lighting') MUST be treated as primary clues, even if the conceptual elements (like a real person or brand) appear authentic. Your final verdict must prioritize forensic evidence over a plausible story.`;
+                // REVISED PROMPT: This new prompt removes the ambiguous "synthesize" instruction and replaces it with
+                // an unwavering focus on the Universal Mandate. It explicitly states that a lack of real-world flaws
+                // IS primary evidence of synthesis, directly addressing the loophole that allowed the convincing
+                // vintage photo to be misidentified.
+                evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. This analysis is governed by the Universal Mandate. Your task is to find any evidence of AI, prioritizing forensic, technical evidence over conceptual plausibility. A plausible concept (e.g., a vintage photo) presented with unnatural, sterile perfection is a strong indicator of AI synthesis. The ABSENCE of real-world photographic imperfections (e.g., lens distortion, natural skin texture, consistent noise) is itself a primary clue. You MUST report these if found.\n${analogFidelityPrinciple}\n${restorationArtifactPrinciple}`;
                 break;
         }
     }
