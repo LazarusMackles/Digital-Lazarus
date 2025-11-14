@@ -28,6 +28,6 @@ export interface Scenario {
   inputType: InputType;
   payload: {
     text?: string;
-    files?: { name: string; imageBase64: string }[];
+    file?: { name: string; imageBase64: string };
   };
 }

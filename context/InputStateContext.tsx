@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, ReactNode, Dispatch } from 'react';
 import type { InputType, AnalysisAngle, Scenario } from '../types';
 import * as actions from './actions';
@@ -6,7 +5,7 @@ import * as actions from './actions';
 // State interface
 export interface InputState {
     textContent: string;
-    fileData: { name: string; imageBase64?: string | null; content?: string | null }[];
+    fileData: { name: string; imageBase64?: string | null; content?: string | null } | null;
     activeInput: InputType;
     analysisAngle: AnalysisAngle;
 }
@@ -15,7 +14,7 @@ export interface InputState {
 // FIX: Export for testing.
 export const initialState: InputState = {
     textContent: '',
-    fileData: [],
+    fileData: null,
     activeInput: 'file',
     analysisAngle: 'forensic',
 };
@@ -23,7 +22,7 @@ export const initialState: InputState = {
 // Action types
 type Action =
   | { type: typeof actions.SET_TEXT_CONTENT; payload: string }
-  | { type: typeof actions.SET_FILE_DATA; payload: { name: string; imageBase64?: string | null; content?: string | null }[] }
+  | { type: typeof actions.SET_FILE_DATA; payload: { name: string; imageBase64?: string | null; content?: string | null } | null }
   | { type: typeof actions.SET_ACTIVE_INPUT; payload: InputType }
   | { type: typeof actions.SET_ANALYSIS_ANGLE; payload: AnalysisAngle }
   | { type: typeof actions.CLEAR_INPUTS }
@@ -34,7 +33,7 @@ type Action =
 export const inputReducer = (state: InputState = initialState, action: Action): InputState => {
     switch (action.type) {
         case actions.SET_TEXT_CONTENT:
-            return { ...state, textContent: action.payload, fileData: [] };
+            return { ...state, textContent: action.payload, fileData: null };
         case actions.SET_FILE_DATA:
             return { ...state, fileData: action.payload, textContent: '' };
         case actions.SET_ACTIVE_INPUT:
@@ -48,7 +47,7 @@ export const inputReducer = (state: InputState = initialState, action: Action): 
             return {
                 ...state,
                 textContent: '',
-                fileData: [],
+                fileData: null,
                 activeInput: 'file', // Reset to the new default
                 analysisAngle: 'forensic', 
             };
@@ -58,7 +57,7 @@ export const inputReducer = (state: InputState = initialState, action: Action): 
                 ...initialState,
                 activeInput: inputType,
                 textContent: payload.text || '',
-                fileData: payload.files || [],
+                fileData: payload.file || null,
             };
         default:
             return state;

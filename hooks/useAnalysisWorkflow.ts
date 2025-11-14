@@ -18,10 +18,7 @@ export const useAnalysisWorkflow = () => {
         if (activeInput === 'text') {
             evidence = { type: 'text', content: textContent };
         } else {
-            const fileContent = JSON.stringify(fileData.map(f => ({
-                name: f.name,
-                imageBase64: f.imageBase64,
-            })));
+            const fileContent = JSON.stringify(fileData);
             evidence = { type: 'file', content: fileContent };
         }
         
@@ -49,7 +46,7 @@ export const useAnalysisWorkflow = () => {
             const { result, modelName } = await runAnalysis(
                 activeInput,
                 textContent,
-                fileData.map(f => ({ name: f.name, imageBase64: f.imageBase64 as string })),
+                fileData ? { name: fileData.name, imageBase64: fileData.imageBase64 as string } : null,
                 analysisAngle,
                 onStreamUpdate,
                 isReanalysis,

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Icon } from '../icons/index';
 
@@ -27,14 +26,14 @@ export const HowItWorks: React.FC = React.memo(() => {
             >
                 <div className="p-4 pt-2 text-sm text-slate-600 dark:text-slate-300">
                     <ul className="list-none space-y-3">
-                        <li><strong className="text-slate-700 dark:text-slate-100">1. Submit Your Evidence:</strong> Paste text or upload one or more images. For multiple images, the first is the <strong className="text-cyan-600 dark:text-cyan-400">Primary Evidence</strong>, and others serve as supporting context.</li>
-                        <li><strong className="text-slate-700 dark:text-slate-100">2. Choose Your Investigation Angle (For Images):</strong>
+                        <li><strong className="text-slate-700 dark:text-slate-100">1. Submit Your Evidence:</strong> Paste text or upload a single image to begin your investigation.</li>
+                        <li><strong className="text-slate-700 dark:text-slate-100">2. Choose Investigation Angle (Images Only):</strong>
                             <ul className="list-disc pl-5 mt-1 space-y-1">
                                 <li><strong className="text-cyan-600 dark:text-cyan-400">Forensic Analysis:</strong> A deep dive into the image's content, searching for tell-tale signs of digital synthesis like inconsistent lighting, unnatural textures, and geometric anomalies.</li>
-                                <li><strong className="text-cyan-600 dark:text-cyan-400">Provenance Dossier:</strong> A broader investigation that uses Google Search to find an image's history online, including its first appearance and any public fact-checks.</li>
+                                <li><strong className="text-cyan-600 dark:text-cyan-400">Provenance Dossier:</strong> A broader investigation that uses Google Search to find the image's history online, including its first appearance and any public fact-checks.</li>
                             </ul>
                         </li>
-                        <li><strong className="text-slate-700 dark:text-slate-100">3. Text Analysis is Automatic:</strong> For pasted text, I automatically perform my most thorough forensic analysis. There are no extra options to configure—you always get the best deduction.</li>
+                         <li><strong className="text-slate-700 dark:text-slate-100">3. Text Analysis is Automatic:</strong> For pasted text, I automatically perform my most thorough forensic analysis. There are no extra options to configure—you always get the best deduction.</li>
                         <li><strong className="text-slate-700 dark:text-slate-100">4. Review the Findings:</strong> I'll return a <strong className="text-cyan-600 dark:text-cyan-400">Probability Score</strong> and a <strong className="text-cyan-600 dark:text-cyan-400">Detailed Verdict</strong>. My analysis is a professional opinion, not the undisputed truth.</li>
                         <li><strong className="text-slate-700 dark:text-slate-100">5. Engage with the Verdict:</strong> Not convinced? You can <strong className="text-cyan-600 dark:text-cyan-400">Request a Second Opinion</strong> for a new analysis. Your <strong className="text-cyan-600 dark:text-cyan-400">Feedback</strong> is also crucial—it helps sharpen my skills for the next case!</li>
                     </ul>

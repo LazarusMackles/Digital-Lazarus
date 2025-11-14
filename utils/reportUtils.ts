@@ -22,13 +22,11 @@ export const generateShareText = (
         switch (evidence.type) {
             case 'file':
                 try {
-                    // FIX: Evidence content for files is a stringified JSON array. It needs to be parsed first.
-                    const files: { name: string }[] = JSON.parse(evidence.content);
-                    const fileNames = files.map(f => f.name).join(', ');
-                    evidenceText = `EVIDENCE ANALYSED (FILES): ${fileNames}\n`;
+                    // Content is now a stringified single file object.
+                    const file: { name: string } = JSON.parse(evidence.content);
+                    evidenceText = `EVIDENCE ANALYSED (FILE): ${file.name}\n`;
                 } catch (e) {
-                    // Fallback for safety if parsing fails.
-                    evidenceText = `EVIDENCE ANALYSED (FILES): [Could not parse file list]\n`;
+                    evidenceText = `EVIDENCE ANALYSED (FILE): [Could not parse file data]\n`;
                 }
                 break;
             case 'text':

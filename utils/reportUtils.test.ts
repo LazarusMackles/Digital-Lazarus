@@ -53,12 +53,11 @@ describe('generateShareText', () => {
     it('should generate a report for file evidence', () => {
         const mockEvidence: AnalysisEvidence = {
             type: 'file',
-            // FIX: Corrected evidence content to be a stringified JSON array as the implementation expects.
-            content: JSON.stringify([{ name: 'cat.png' }, { name: 'dog.jpg' }])
+            content: JSON.stringify({ name: 'cat.png' })
         };
         // FIX: Removed the extra 'deep' argument to match the function's 5-parameter signature.
         const report = generateShareText(mockResult, mockEvidence, mockTimestamp, false, 'gemini-2.5-pro');
-        expect(report).toContain('EVIDENCE ANALYSED (FILES): cat.png, dog.jpg');
+        expect(report).toContain('EVIDENCE ANALYSED (FILE): cat.png');
     });
 
     // FIX: Removed test case for deprecated 'url' evidence type which was causing a type error.

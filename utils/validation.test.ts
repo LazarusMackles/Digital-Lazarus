@@ -7,7 +7,8 @@ describe('isInputReadyForAnalysis', () => {
     // Test suite for 'text' input type
     describe("when activeInput is 'text'", () => {
         const activeInput: InputType = 'text';
-        const fileData: { name: string }[] = [];
+        // FIX: The function expects `fileData` to be an object or null, not an array. For text input tests, it should be null.
+        const fileData: { name: string } | null = null;
 
         it('should return true for valid text content without URLs', () => {
             const textContent = 'This is a sample text for analysis.';
@@ -36,12 +37,14 @@ describe('isInputReadyForAnalysis', () => {
         const textContent = '';
 
         it('should return true when fileData is not empty', () => {
-            const fileData = [{ name: 'image1.png' }];
+            // FIX: The `fileData` argument should be an object, not an array of objects.
+            const fileData = { name: 'image1.png' };
             expect(isInputReadyForAnalysis(activeInput, textContent, fileData)).toBe(true);
         });
 
         it('should return false when fileData is empty', () => {
-            const fileData: { name: string }[] = [];
+            // FIX: For an empty file input, `fileData` should be null, not an empty array.
+            const fileData: { name: string } | null = null;
             expect(isInputReadyForAnalysis(activeInput, textContent, fileData)).toBe(false);
         });
     });
@@ -52,7 +55,8 @@ describe('isInputReadyForAnalysis', () => {
             // Cast to any to bypass TypeScript type safety for the test
             const activeInput = 'invalid_type' as any;
             const textContent = 'some text';
-            const fileData = [{ name: 'some_file.jpg' }];
+            // FIX: The `fileData` argument should be an object, not an array of objects.
+            const fileData = { name: 'some_file.jpg' };
             expect(isInputReadyForAnalysis(activeInput, textContent, fileData)).toBe(false);
         });
     });

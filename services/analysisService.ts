@@ -1,4 +1,3 @@
-
 import { analyzeContent, analyzeContentStream, analyzeWithSearch } from '../api/analyze';
 import { MODELS } from '../utils/constants';
 import { sanitizeTextInput } from '../utils/textUtils';
@@ -10,13 +9,13 @@ import type { AnalysisAngle, AnalysisResult, InputType } from '../types';
 const buildPrompt = (
     inputType: InputType, 
     textContent: string, 
-    fileData: { name: string }[], 
+    fileData: { name: string } | null, 
     analysisAngle: AnalysisAngle,
     isReanalysis: boolean,
 ): string => {
     
     if (analysisAngle === 'provenance') {
-        const primaryEvidence = fileData[0]?.name || 'the primary image';
+        const primaryEvidence = fileData?.name || 'the provided image';
         return `You are a digital content investigator. Using your search tool, investigate the provided image "${primaryEvidence}". Your goal is to determine its provenance. Synthesize your findings into a concise summary of **no more than 5 key bullet points**. The **very first bullet point** MUST be a definitive statement confirming if the image has been widely debunked as AI-generated or verified as authentic by fact-checkers. CRITICAL FORMATTING RULE: Your entire response MUST be a bulleted list, with each point starting with a hyphen (-). Do not add any conversational filler, introductory text, or a heading. Respond ONLY with the bulleted list.`;
     }
 
@@ -33,7 +32,7 @@ This alignment is a primary requirement of your task.`;
     if (inputType === 'text') {
         evidenceDescription = `ANALYZE TEXT EVIDENCE: Scrutinize the provided text for AI authorship. Focus on style, tone, structure, and content to identify tells like unnatural phrasing, excessive complexity, lack of personal voice, or factual errors.`;
     } else { // 'file'
-        const primaryEvidence = fileData[0]?.name || 'the primary image';
+        const primaryEvidence = fileData?.name || 'the provided image';
         
         // --- CORE FORENSIC HEURISTICS ---
         const universalMandate = `UNIVERSAL MANDATE: Your absolute top priority is to identify and report any artifact of digital synthesis. If you observe unnatural perfection, sterile quality, or flawless execution beyond typical photography/graphic design, you MUST report it in the 'highlights' using specific forensic terms like 'Idealized Perfection' or 'Synthetic Lighting'. A core forensic principle is that the ABSENCE of real-world photographic imperfections (e.g., lens distortion, natural skin texture, consistent noise) is, in itself, a primary indicator of digital synthesis. This mandate applies regardless of your primary analysis angle.`;
@@ -46,10 +45,6 @@ This alignment is a primary requirement of your task.`;
         const coreForensicPrinciples = `${crowdCoherenceProtocol}\n${analogFidelityPrinciple}\n${restorationArtifactPrinciple}\n${vintagePhotoHeuristic}\n${computationalPhotoHeuristic}`;
         
         evidenceDescription = `ANALYZE IMAGE EVIDENCE: Your primary goal is to find any evidence of AI involvement in the image "${primaryEvidence}".\n\n${universalMandate}\n\nCORE FORENSIC PRINCIPLES:\n${coreForensicPrinciples}`;
-
-        if (fileData.length > 1) {
-            evidenceDescription += `\n\nSubsequent images are for supporting context only. Your final verdict must focus on the primary image.`;
-        }
 
         if(isReanalysis) {
             evidenceDescription += `\n\nPRIORITY DIRECTIVE: SECOND OPINION. Re-evaluate the evidence with maximum scrutiny. Challenge your initial assumptions and look for subtle clues you may have missed. The user is questioning your first analysis, so provide a deeper, more critical perspective.`;
@@ -307,7 +302,7 @@ const finalizeProvenanceVerdict = (response: any): AnalysisResult => {
 export const runAnalysis = async (
     inputType: InputType,
     textContent: string,
-    fileData: { name: string; imageBase64: string }[],
+    fileData: { name: string; imageBase64: string } | null,
     analysisAngle: AnalysisAngle,
     onStreamUpdate?: (partialExplanation: string) => void,
     isReanalysis: boolean = false
@@ -316,7 +311,7 @@ export const runAnalysis = async (
     const sanitizedText = inputType === 'text' ? sanitizeTextInput(textContent) : '';
     
     const modelName = MODELS.PRO;
-    const filesForApi = fileData;
+    const filesForApi = fileData ? [fileData] : [];
     
     const prompt = buildPrompt(inputType, sanitizedText, fileData, analysisAngle, isReanalysis);
     

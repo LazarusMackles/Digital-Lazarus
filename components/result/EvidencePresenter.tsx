@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import type { AnalysisEvidence, AnalysisAngle } from '../../types';
-import { SleuthNote, EvidenceImage, ImageLightbox } from '../ui';
+import { EvidenceImage, ImageLightbox } from '../ui';
 import { cn } from '../../utils/cn';
 
 interface EvidencePresenterProps {
@@ -50,28 +49,13 @@ export const EvidencePresenter: React.FC<EvidencePresenterProps> = ({ evidence, 
                 return null;
             case 'file':
                 try {
-                    const files: { name: string; imageBase64: string }[] = JSON.parse(evidence.content);
-                    if (!files.length) return null;
+                    const file: { name: string; imageBase64: string } = JSON.parse(evidence.content);
+                    if (!file) return null;
 
                     return (
-                        <>
-                            {files.length > 1 && (
-                                <SleuthNote>
-                                    The primary piece of evidence is displayed first, with any additional files presented as supporting context. Click an image to enlarge.
-                                </SleuthNote>
-                            )}
-                            {files.length === 1 ? (
-                                <div className="mt-6 w-full max-w-xs">
-                                    <EvidenceItem file={files[0]} onImageClick={setLightboxImage} borderColorClass={borderColorClass} />
-                                </div>
-                            ) : (
-                                <div className="mt-6 w-full max-w-2xl grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                    {files.map((file, index) => (
-                                        <EvidenceItem key={`${file.name}-${index}`} file={file} onImageClick={setLightboxImage} borderColorClass={borderColorClass} />
-                                    ))}
-                                </div>
-                            )}
-                        </>
+                        <div className="mt-6 w-full max-w-xs">
+                            <EvidenceItem file={file} onImageClick={setLightboxImage} borderColorClass={borderColorClass} />
+                        </div>
                     );
                 } catch (error) {
                     console.error("Failed to parse file evidence content:", error);

@@ -1,4 +1,3 @@
-
 import React, { useCallback, useMemo } from 'react';
 import { useInputState } from '../context/InputStateContext';
 import { useUIState } from '../context/UIStateContext';
@@ -56,7 +55,7 @@ export const InputForm: React.FC = () => {
         }
     };
     
-    const hasInput = textContent.trim().length > 0 || fileData.length > 0;
+    const hasInput = textContent.trim().length > 0 || fileData !== null;
 
     const onClearClick = useCallback(() => {
         handleClearInputs();
