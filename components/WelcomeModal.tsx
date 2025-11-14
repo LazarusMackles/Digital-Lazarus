@@ -52,7 +52,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = React.memo(({ onClose }
                  <li className="flex items-start gap-3">
                     <span className="text-cyan-500 font-bold mt-0.5">3.</span>
                     <div>
-                       <span className="font-semibold text-slate-800 dark:text-white">Choose Your Method.</span> You can perform a 'Forensic Analysis' on the image content or a 'Provenance Dossier' to investigate its history online. You are in control.
+                       <span className="font-semibold text-slate-800 dark:text-white">Choose Your Method (For Images).</span> For image analysis, you can perform a 'Forensic Analysis' on the content or a 'Provenance Dossier' to investigate its history online. Text analysis is always performed using my most thorough forensic method.
                     </div>
                 </li>
                 <li className="flex items-start gap-3">
