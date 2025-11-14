@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 // FIX: Export `inputReducer` and `initialState` from the context file to make them importable for testing.
 import { inputReducer, initialState } from './InputStateContext';
 import * as actions from './actions';
-import type { Scenario, InputType } from '../types';
+// FIX: Imported AnalysisAngle to use in tests.
+import type { Scenario, InputType, AnalysisAngle } from '../types';
 
 describe('inputReducer', () => {
     it('should return the initial state', () => {
@@ -25,33 +26,29 @@ describe('inputReducer', () => {
     });
 
     it('should handle SET_ACTIVE_INPUT', () => {
-        const payload = 'text';
+        const payload: InputType = 'text';
         const expectedState = { ...initialState, activeInput: payload };
         // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
         expect(inputReducer(initialState, { type: actions.SET_ACTIVE_INPUT, payload })).toEqual(expectedState);
     });
 
-    it('should handle SET_ANALYSIS_MODE', () => {
-        const payload = 'deep';
-        const expectedState = { ...initialState, analysisMode: payload };
-        // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
-        expect(inputReducer(initialState, { type: actions.SET_ANALYSIS_MODE, payload })).toEqual(expectedState);
+    // FIX: Removed test for deprecated SET_ANALYSIS_MODE action.
+
+    // FIX: Added test for the current SET_ANALYSIS_ANGLE action.
+    it('should handle SET_ANALYSIS_ANGLE', () => {
+        const payload: AnalysisAngle = 'provenance';
+        const expectedState = { ...initialState, analysisAngle: payload };
+        expect(inputReducer(initialState, { type: actions.SET_ANALYSIS_ANGLE, payload })).toEqual(expectedState);
     });
 
-    it('should handle SET_FORENSIC_MODE', () => {
-        const payload = 'technical';
-        const expectedState = { ...initialState, forensicMode: payload };
-        // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
-        expect(inputReducer(initialState, { type: actions.SET_FORENSIC_MODE, payload })).toEqual(expectedState);
-
-    });
+    // FIX: Removed test for deprecated SET_FORENSIC_MODE action.
 
     it('should handle CLEAR_INPUTS', () => {
         // FIX: Explicitly cast `activeInput` to `InputType` to prevent TypeScript from widening the type to a generic `string`, which causes a type mismatch with the reducer's state parameter.
         const currentState = {
             ...initialState,
             textContent: 'some text',
-            fileData: [{ name: 'file.jpg' }],
+            fileData: [{ name: 'file.jpg', imageBase64: 'base64' }],
             activeInput: 'text' as InputType,
         };
         const expectedState = {
@@ -70,13 +67,12 @@ describe('inputReducer', () => {
             description: '',
             icon: null,
             inputType: 'text',
-            analysisMode: 'deep',
+            // FIX: Removed obsolete 'analysisMode' property from Scenario object.
             payload: { text: 'Scenario text' }
         };
         const expectedState = {
             ...initialState,
             activeInput: 'text',
-            analysisMode: 'deep',
             textContent: 'Scenario text',
             fileData: [],
         };
@@ -91,13 +87,12 @@ describe('inputReducer', () => {
             description: '',
             icon: null,
             inputType: 'file',
-            analysisMode: 'quick',
+            // FIX: Removed obsolete 'analysisMode' property from Scenario object.
             payload: { files }
         };
         const expectedState = {
             ...initialState,
             activeInput: 'file',
-            analysisMode: 'quick',
             textContent: '',
             fileData: files,
         };

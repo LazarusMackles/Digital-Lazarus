@@ -1,11 +1,8 @@
 
-
-
-
-import { analyzeContent, analyzeContentStream } from '../api/analyze';
+import { analyzeContent, analyzeContentStream, analyzeWithSearch } from '../api/analyze';
 import { MODELS } from '../utils/constants';
 import { sanitizeTextInput } from '../utils/textUtils';
-import type { AnalysisMode, ForensicMode, AnalysisResult, InputType } from '../types';
+import type { AnalysisAngle, AnalysisResult, InputType } from '../types';
 
 /**
  * Generates a direct, command-based prompt for the Gemini model.
@@ -14,9 +11,16 @@ const buildPrompt = (
     inputType: InputType, 
     textContent: string, 
     fileData: { name: string }[], 
-    analysisMode: AnalysisMode,
-    forensicMode: ForensicMode
+    analysisAngle: AnalysisAngle,
+    isReanalysis: boolean,
 ): string => {
+    
+    if (analysisAngle === 'provenance') {
+        const primaryEvidence = fileData[0]?.name || 'the primary image';
+        return `You are a digital content investigator. Using your search tool, investigate the provided image "${primaryEvidence}". Your goal is to determine its provenance: its origin, history of circulation, and if it has been fact-checked by reliable sources. Synthesize your findings into a concise explanation. Respond ONLY with your text summary. Do not add any conversational filler.`;
+    }
+
+    // --- Forensic Analysis Prompt ---
     const baseInstruction = `You are a forensic analysis tool. Respond ONLY with a JSON object matching the provided schema. Do not add explanations outside the JSON.`;
 
     const criticalRule = `CRITICAL RULE: The 'probability' score MUST logically align with the 'verdict' text.
@@ -41,34 +45,20 @@ This alignment is a primary requirement of your task.`;
         
         const coreForensicPrinciples = `${crowdCoherenceProtocol}\n${analogFidelityPrinciple}\n${restorationArtifactPrinciple}\n${vintagePhotoHeuristic}\n${computationalPhotoHeuristic}`;
         
-        // --- BASE PROMPT CONSTRUCTION ---
         evidenceDescription = `ANALYZE IMAGE EVIDENCE: Your primary goal is to find any evidence of AI involvement in the image "${primaryEvidence}".\n\n${universalMandate}\n\nCORE FORENSIC PRINCIPLES:\n${coreForensicPrinciples}`;
 
         if (fileData.length > 1) {
             evidenceDescription += `\n\nSubsequent images are for supporting context only. Your final verdict must focus on the primary image.`;
         }
-        
-        // --- MODE-SPECIFIC DIRECTIVES ---
-        switch (forensicMode) {
-            case 'technical':
-                evidenceDescription += `\n\nPRIORITY DIRECTIVE: TECHNICAL FORENSICS. With the above Core Forensic Principles providing crucial context, your analysis and report must focus strictly on pixel-level evidence. Your 'highlights' should describe technical observations like upscaling artifacts, inconsistent lighting, blending errors, impossible geometry, and unnatural sharpness.`;
-                break;
-            case 'conceptual':
-                const vintageDirective = `CRITICAL VINTAGE PHOTO DIRECTIVE: Your conceptual analysis must correctly interpret digital scans of analog photos. High digital clarity, sharpness, or the absence of digital noise on an image that otherwise has strong indicators of a vintage, analog origin (e.g., film grain, period-correct fashion) should be interpreted as evidence of a high-quality scan of a real photograph. It is NOT an anachronism. Do not let the quality of a modern scan cause you to doubt the authenticity of a vintage scene.`;
-                evidenceDescription += `\n\nPRIORITY DIRECTIVE: CONCEPTUAL ANALYSIS. ${vintageDirective} While your primary focus is on the narrative and context, you must still adhere to the Universal Mandate and Core Forensic Principles, reporting any and all signs of digital synthesis you observe. Your analysis is strictly limited to the narrative and context: stylistic consistency, scene plausibility, cultural anachronisms, and logical coherence. A plausible concept presented with unnatural, sterile perfection is a strong indicator of AI-assisted design.`;
-                break;
-            default: // 'standard'
-                evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. This analysis is governed by the Universal Mandate and Core Forensic Principles. Your task is to find any evidence of AI, prioritizing forensic, technical evidence over conceptual plausibility. A plausible concept (e.g., a vintage photo) presented with unnatural, sterile perfection is a strong indicator of AI synthesis. The ABSENCE of real-world photographic imperfections (e.g., lens distortion, natural skin texture, consistent noise) is itself a primary clue. You MUST report these if found.`;
-                break;
+
+        if(isReanalysis) {
+            evidenceDescription += `\n\nPRIORITY DIRECTIVE: SECOND OPINION. Re-evaluate the evidence with maximum scrutiny. Challenge your initial assumptions and look for subtle clues you may have missed. The user is questioning your first analysis, so provide a deeper, more critical perspective.`;
+        } else {
+             evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. This analysis is governed by the Universal Mandate and Core Forensic Principles. Your task is to find any evidence of AI, prioritizing forensic, technical evidence over conceptual plausibility. A plausible concept (e.g., a vintage photo) presented with unnatural, sterile perfection is a strong indicator of AI synthesis. The ABSENCE of real-world photographic imperfections (e.g., lens distortion, natural skin texture, consistent noise) is itself a primary clue. You MUST report these if found.`;
         }
     }
-
-    let modeInstruction = '';
-    if (analysisMode === 'deep') {
-        modeInstruction = `OUTPUT FORMAT: Conduct a "Deep Dive". Provide a concise explanation and 1-3 specific "highlights" (key indicators). In your 'highlights', you MUST use specific forensic terms like 'Idealized Perfection', 'Anachronistic Photographic Quality', or 'Concealed Hands' when applicable. This is essential for the final report.`;
-    } else {
-        modeInstruction = `OUTPUT FORMAT: Conduct a "Quick Scan". Identify the two most obvious artifacts.`;
-    }
+    
+    const modeInstruction = `OUTPUT FORMAT: Conduct a "Deep Dive". Provide a concise explanation and 1-3 specific "highlights" (key indicators). In your 'highlights', you MUST use specific forensic terms like 'Idealized Perfection', 'Anachronistic Photographic Quality', or 'Concealed Hands' when applicable. This is essential for the final report.`;
     
     return `${baseInstruction}\n\n${criticalRule}\n\n${evidenceDescription}\n\n${modeInstruction}`;
 };
@@ -79,44 +69,18 @@ This alignment is a primary requirement of your task.`;
  * and finalizes it into a consistent, logical, and reliable AnalysisResult.
  * This is the new "brain" of the Sleuther.
  * @param rawResult The raw JSON object from the Gemini model.
- * @param isQuickScan A flag indicating if the analysis was a quick scan.
  * @returns A finalized, reliable AnalysisResult object.
  */
-const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult => {
-    if (isQuickScan) {
-        // Quick scan finalization is simpler but still benefits from score clamping.
-        const verdict = rawResult.quick_verdict || "Undetermined";
-        let probability = Math.round(rawResult.confidence_score || 0);
-
-        // Apply sanity check clamping.
-        if (/human|not ai/i.test(verdict) && probability > 39) {
-            probability = 39;
-        } else if (/ai/i.test(verdict) && probability < 40) {
-            probability = 40;
-        }
-
-        return {
-            probability,
-            verdict,
-            explanation: `My initial scan suggests the verdict based on the following key indicators. For a more detailed analysis, a 'Deep Dive' is recommended.`,
-            highlights: [
-                { text: 'Primary Finding', reason: rawResult.artifact_1 || 'No primary finding was provided.' },
-                { text: 'Secondary Finding', reason: rawResult.artifact_2 || 'No secondary finding was provided.' }
-            ],
-        };
-    }
+const finalizeForensicVerdict = (rawResult: any): AnalysisResult => {
     
     const highlights = rawResult.highlights || [];
     const explanation = rawResult.explanation || "The model did not provide a detailed explanation.";
     let verdict = rawResult.verdict || "Analysis Inconclusive";
     let probability = Math.round(rawResult.probability || 50);
 
-    const combinedProse = `${verdict} ${explanation} ${highlights.map(h => h.text + ' ' + h.reason).join(' ')}`.toLowerCase();
+    const combinedProse = `${verdict} ${explanation} ${highlights.map((h:any) => h.text + ' ' + h.reason).join(' ')}`.toLowerCase();
     
     // --- RULE 0: CROWD EXEMPTION PROTOCOL (TOP PRIORITY) ---
-    // This protocol specifically addresses false positives on complex crowd photos
-    // by looking for strong positive indicators of authenticity in the highlights.
-    // If found, it bypasses all other rules, including the "Infallibility Gambit".
     const CROWD_AUTHENTICITY_KEYWORDS = new Set([
         'coherent crowd', 
         'coherent uniform',
@@ -167,12 +131,7 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
     const hasAnalogTerm = [...ANALOG_KEYWORDS].some(k => combinedProse.includes(k));
 
     // --- RULE 1: ANALOG PHOTO OVERRIDE ---
-    // This rule has top priority to correctly classify scanned analog photos,
-    // making the logic resilient to model inconsistencies like misidentifying
-    // optical blur as "bokeh" or high scan quality as "unnatural clarity".
     if (hasAnalogTerm) {
-        // Even if edited, the origin is authentic, so the AI probability is low.
-        // The user agrees this is the correct classification for a scanned, sweetened photo.
         return {
             verdict: "Human Enhanced Photograph",
             probability: 15,
@@ -182,8 +141,6 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
     }
 
     // --- RULE 2: COMPUTATIONAL PHOTOGRAPHY DETECTION ---
-    // This rule has priority to correctly classify Portrait Mode photos.
-    // It now explicitly IGNORES cases where strong analog terms are present, to prevent misfiring on vintage photos.
     if (isPhotographicSubject && hasAuthenticityTerm && hasComputationalTerm && !hasAnalogTerm) {
         return {
             verdict: "Human Enhanced Photograph",
@@ -194,8 +151,6 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
     }
 
     // --- RULE 3: THE INFALLIBILITY GAMBIT (SEMANTIC CONTRADICTION DETECTION) ---
-    // Checks for a contradiction where an image is described as both authentic AND unnaturally perfect.
-    // MODIFIED: This gambit is now bypassed if a computational term is found, as that's a valid, explainable contradiction.
     if (isPhotographicSubject && hasPerfectionTerm && hasAuthenticityTerm && !hasComputationalTerm) {
         return {
             verdict: "AI-Generated Graphic",
@@ -315,6 +270,36 @@ const finalizeVerdict = (rawResult: any, isQuickScan: boolean): AnalysisResult =
     };
 };
 
+/**
+ * Finalizes the verdict for a provenance (search-grounded) analysis.
+ * @param response The full response object from the Gemini API.
+ * @returns A finalized AnalysisResult object.
+ */
+const finalizeProvenanceVerdict = (response: any): AnalysisResult => {
+    const explanation = response.text?.trim() || "The investigation did not return a conclusive summary.";
+    const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
+
+    let verdict = "Provenance Dossier";
+    if (groundingMetadata?.groundingChunks?.length > 0) {
+        const fullText = explanation.toLowerCase();
+        if (fullText.includes("ai-generated") || fullText.includes("fake") || fullText.includes("fabricated")) {
+            verdict = "AI-Generated (Debunked)";
+        } else if (fullText.includes("authentic") || fullText.includes("real photo")) {
+            verdict = "Authentic (Verified)";
+        }
+    } else {
+        verdict = "No Online History Found";
+    }
+
+    return {
+        probability: 0, // Probability is not relevant for this type of analysis
+        verdict,
+        explanation,
+        highlights: [],
+        groundingMetadata,
+    };
+};
+
 
 /**
  * The main analysis function that prepares data and calls the appropriate API.
@@ -323,31 +308,25 @@ export const runAnalysis = async (
     inputType: InputType,
     textContent: string,
     fileData: { name: string; imageBase64: string }[],
-    analysisMode: AnalysisMode,
-    forensicMode: ForensicMode,
-    onStreamUpdate?: (partialExplanation: string) => void
+    analysisAngle: AnalysisAngle,
+    onStreamUpdate?: (partialExplanation: string) => void,
+    isReanalysis: boolean = false
 ): Promise<{ result: AnalysisResult; modelName: string; }> => {
     
     const sanitizedText = inputType === 'text' ? sanitizeTextInput(textContent) : '';
     
-    let modelName: string;
+    const modelName = MODELS.PRO;
     const filesForApi = fileData;
     
-    if (inputType === 'text') {
-        modelName = analysisMode === 'deep' ? MODELS.PRO : MODELS.FLASH;
-    } else { // 'file'
-        analysisMode = 'deep';
-        modelName = MODELS.PRO;
-        
-        // HIGH-FIDELITY PROTOCOL: The aggressive, secondary compression step has been removed.
-        // The model will now receive a higher-fidelity image, which is crucial for
-        // detecting the subtle artifacts present in sophisticated forgeries. This 
-        // addresses the root cause of the recurring analysis failures.
+    const prompt = buildPrompt(inputType, sanitizedText, fileData, analysisAngle, isReanalysis);
+    
+    if (analysisAngle === 'provenance') {
+        const response = await analyzeWithSearch(prompt, filesForApi, modelName);
+        return { result: finalizeProvenanceVerdict(response), modelName };
     }
 
-    const prompt = buildPrompt(inputType, sanitizedText, fileData, analysisMode, forensicMode);
-    const isQuickScan = analysisMode === 'quick';
-    const shouldStream = analysisMode === 'deep' && inputType === 'text';
+    // --- Forensic Analysis Path ---
+    const shouldStream = inputType === 'text'; // Only stream text for forensic analysis
     
     if (shouldStream && onStreamUpdate) {
         const handleStream = (fullJsonChunk: string) => {
@@ -362,9 +341,9 @@ export const runAnalysis = async (
             }
         };
         const rawResult = await analyzeContentStream(prompt, filesForApi, modelName, handleStream, sanitizedText);
-        return { result: finalizeVerdict(rawResult, false), modelName };
+        return { result: finalizeForensicVerdict(rawResult), modelName };
     }
 
-    const rawResult = await analyzeContent(prompt, filesForApi, analysisMode, modelName, sanitizedText);
-    return { result: finalizeVerdict(rawResult, isQuickScan), modelName };
+    const rawResult = await analyzeContent(prompt, filesForApi, modelName, sanitizedText);
+    return { result: finalizeForensicVerdict(rawResult), modelName };
 };

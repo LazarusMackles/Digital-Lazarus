@@ -1,6 +1,5 @@
 import { GoogleGenAI, Part, GenerateContentResponse } from '@google/genai';
-import { deepAnalysisSchema, quickAnalysisSchema } from '../utils/schemas';
-import type { AnalysisMode } from '../types';
+import { deepAnalysisSchema } from '../utils/schemas';
 
 // Initialize the Google AI client.
 // The API key is automatically provided by the environment.
@@ -81,12 +80,11 @@ const prepareContentParts = (
 export const analyzeContent = async (
   prompt: string,
   files: { name: string; imageBase64: string }[],
-  analysisMode: AnalysisMode,
   modelName: string,
   sanitizedText: string = ''
 ) => {
   const contents = { parts: prepareContentParts(prompt, sanitizedText, files) };
-  const schema = analysisMode === 'deep' ? deepAnalysisSchema : quickAnalysisSchema;
+  const schema = deepAnalysisSchema;
 
   try {
     const apiCall = () => ai.models.generateContent({
@@ -98,8 +96,6 @@ export const analyzeContent = async (
       },
     });
 
-    // FIX: Explicitly provide the generic type to `withRetry` to ensure `response` is correctly typed
-    // as `GenerateContentResponse`, resolving the error on `response.text`.
     const response = await withRetry<GenerateContentResponse>(apiCall);
 
     // The response.text property contains the full text string, which should be JSON.
@@ -128,8 +124,6 @@ export const analyzeContentStream = async (
   sanitizedText: string = ''
 ) => {
   const contents = { parts: prepareContentParts(prompt, sanitizedText, files) };
-  // RESTORED: The diagnostic is over. We now restore the correct schema selection logic
-  // to prepare for the "Prompt Efficiency Audit".
   const schema = deepAnalysisSchema;
 
   try {
@@ -142,22 +136,14 @@ export const analyzeContentStream = async (
       },
     });
 
-    // FIX: Explicitly provide the generic type to `withRetry` to ensure `responseStream` is correctly
-    // typed as an async iterator, resolving the "does not have a '[Symbol.asyncIterator]'" error.
     const responseStream = await withRetry<AsyncGenerator<GenerateContentResponse>>(apiCall);
 
     let fullResponseText = '';
     for await (const chunk of responseStream) {
-        // FIX: The streaming response for JSON returns the full text so far in each chunk.
-        // Appending the chunks (`+=`) was causing exponential string growth and hanging the app.
-        // This now correctly replaces the text with the latest, most complete chunk.
         fullResponseText = chunk.text;
-        // The stream provides partial JSON, so we just pass the text up.
-        // The service layer will handle parsing it at the end.
         onStreamUpdate(fullResponseText);
     }
     
-    // Once streaming is complete, parse the full JSON.
     return JSON.parse(fullResponseText.trim());
 
   } catch (error)
@@ -172,5 +158,43 @@ export const analyzeContentStream = async (
         }
     }
     throw new Error('The streaming analysis could not be completed due to an unexpected API error.');
+  }
+};
+
+
+// Function to perform analysis using Google Search grounding
+export const analyzeWithSearch = async (
+  prompt: string,
+  files: { name: string; imageBase64: string }[],
+  modelName: string,
+) => {
+  const contents = { parts: prepareContentParts(prompt, '', files) };
+
+  try {
+    const apiCall = () => ai.models.generateContent({
+      model: modelName,
+      contents,
+      config: {
+        tools: [{googleSearch: {}}],
+      },
+    });
+
+    const response = await withRetry<GenerateContentResponse>(apiCall);
+
+    // For grounded responses, we return the whole response object
+    // as it contains both the text and the grounding metadata.
+    return response;
+    
+  } catch (error) {
+    console.error(`Error during search-grounded analysis with model ${modelName}:`, error);
+    if (error instanceof Error) {
+        if (error.message.includes('API key not valid') || error.message.includes('Requested entity was not found')) {
+            throw new Error('The API key is not valid. Please select a valid key.');
+        }
+        if (error.message.includes('429')) {
+             throw new Error('Sleuther is in high demand! The analysis could not be completed at this time. Please try again in a moment.');
+        }
+    }
+    throw new Error('The provenance analysis could not be completed due to an unexpected API error.');
   }
 };

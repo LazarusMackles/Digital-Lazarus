@@ -6,13 +6,13 @@ import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
 import { VerdictPanel } from './result/VerdictPanel';
 import { EvidencePresenter } from './result/EvidencePresenter';
 import { ShareModal } from './ShareModal';
-import { Card, HighlightsDisplay, Feedback, ResultActionButtons, ChallengeVerdict } from './ui';
+import { Card, HighlightsDisplay, Feedback, ResultActionButtons, ChallengeVerdict, ProvenanceSources } from './ui';
 
 export const ResultDisplay: React.FC = () => {
   const { state: resultState } = useResultState();
   const { state: uiState } = useUIState();
   const { handleNewAnalysis, performAnalysis } = useAnalysisWorkflow();
-  const { analysisResult, analysisEvidence, analysisTimestamp, analysisModeUsed, modelUsed } = resultState;
+  const { analysisResult, analysisEvidence, analysisTimestamp, modelUsed } = resultState;
   const { isStreaming, isReanalyzing } = uiState;
   const [showShareModal, setShowShareModal] = useState(false);
 
@@ -29,7 +29,7 @@ export const ResultDisplay: React.FC = () => {
     return null; // Or some fallback UI
   }
 
-  const { probability, verdict, explanation, highlights, isSecondOpinion } = analysisResult;
+  const { probability, verdict, explanation, highlights, groundingMetadata, isSecondOpinion } = analysisResult;
   
   return (
     <>
@@ -54,6 +54,8 @@ export const ResultDisplay: React.FC = () => {
         
         {highlights && highlights.length > 0 && <HighlightsDisplay highlights={highlights} />}
         
+        {groundingMetadata && <ProvenanceSources groundingMetadata={groundingMetadata} />}
+
         {(!isStreaming && !isReanalyzing) && (
             <>
                 <div className="mt-8 border-t border-slate-200 dark:border-slate-700 w-full max-w-xl" />
@@ -61,9 +63,8 @@ export const ResultDisplay: React.FC = () => {
                     <ChallengeVerdict 
                         onReanalyze={handleReanalyze} 
                         isSecondOpinion={isSecondOpinion || false}
-                        analysisModeUsed={analysisModeUsed} 
                     />
-                    <Feedback result={analysisResult} evidence={analysisEvidence} timestamp={analysisTimestamp} analysisModeUsed={analysisModeUsed} modelUsed={modelUsed} />
+                    <Feedback result={analysisResult} evidence={analysisEvidence} timestamp={analysisTimestamp} modelUsed={modelUsed} />
                     <ResultActionButtons onNewAnalysis={handleNewAnalysis} onShowShareModal={handleShowShareModal} />
                 </div>
             </>
@@ -76,7 +77,6 @@ export const ResultDisplay: React.FC = () => {
           result={analysisResult}
           evidence={analysisEvidence}
           timestamp={analysisTimestamp}
-          analysisModeUsed={analysisModeUsed}
           modelUsed={modelUsed}
           onClose={() => setShowShareModal(false)}
         />

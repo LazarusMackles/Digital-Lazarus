@@ -1,30 +1,5 @@
 import { Type } from "@google/genai";
 
-// Schema for a rapid, first-pass analysis, optimized for speed.
-export const quickAnalysisSchema = {
-  type: Type.OBJECT,
-  properties: {
-    quick_verdict: {
-      type: Type.STRING,
-      description: 'A concise verdict: "Likely AI" or "Not AI".'
-    },
-    confidence_score: {
-      type: Type.NUMBER,
-      description: 'A score from 0 to 100.'
-    },
-    artifact_1: {
-      type: Type.STRING,
-      description: "The most obvious anomaly (briefly explained)."
-    },
-    artifact_2: {
-        type: Type.STRING,
-        description: "The second most obvious anomaly (briefly explained)."
-    }
-  },
-  required: ['quick_verdict', 'confidence_score', 'artifact_1', 'artifact_2']
-};
-
-
 // Schema for a detailed, deep-dive analysis. Includes key indicators (highlights).
 export const deepAnalysisSchema = {
   type: Type.OBJECT,

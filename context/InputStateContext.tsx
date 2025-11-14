@@ -1,16 +1,6 @@
-// ---
-//
-// This file was changed as part of a fix for the following bug:
-//
-// 1. **Default Input Focus:** The application was defaulting to the "Text" input tab upon loading.
-//
-// The fix addresses this by:
-//
-// 1. **Updating Initial State:** The `initialState` object in this context has been modified to set `activeInput` to `'file'` and `forensicMode` to `'standard'`. This ensures that the user's first view after the welcome modal is the file upload interface with the "Standard Analysis" option pre-selected, aligning with the user's request for a more visually balanced and feature-forward default screen.
-//
-// ---
+
 import React, { createContext, useContext, useReducer, ReactNode, Dispatch } from 'react';
-import type { InputType, AnalysisMode, ForensicMode, Scenario } from '../types';
+import type { InputType, AnalysisAngle, Scenario } from '../types';
 import * as actions from './actions';
 
 // State interface
@@ -18,8 +8,7 @@ export interface InputState {
     textContent: string;
     fileData: { name: string; imageBase64?: string | null; content?: string | null }[];
     activeInput: InputType;
-    analysisMode: AnalysisMode;
-    forensicMode: ForensicMode;
+    analysisAngle: AnalysisAngle;
 }
 
 // Initial state
@@ -28,8 +17,7 @@ export const initialState: InputState = {
     textContent: '',
     fileData: [],
     activeInput: 'file',
-    analysisMode: 'quick', // Default to quick for files
-    forensicMode: 'standard',
+    analysisAngle: 'forensic',
 };
 
 // Action types
@@ -37,8 +25,7 @@ type Action =
   | { type: typeof actions.SET_TEXT_CONTENT; payload: string }
   | { type: typeof actions.SET_FILE_DATA; payload: { name: string; imageBase64?: string | null; content?: string | null }[] }
   | { type: typeof actions.SET_ACTIVE_INPUT; payload: InputType }
-  | { type: typeof actions.SET_ANALYSIS_MODE; payload: AnalysisMode }
-  | { type: typeof actions.SET_FORENSIC_MODE; payload: ForensicMode }
+  | { type: typeof actions.SET_ANALYSIS_ANGLE; payload: AnalysisAngle }
   | { type: typeof actions.CLEAR_INPUTS }
   | { type: typeof actions.LOAD_SCENARIO; payload: Scenario };
 
@@ -54,27 +41,22 @@ export const inputReducer = (state: InputState = initialState, action: Action): 
             return {
                 ...state,
                 activeInput: action.payload,
-                // Default to 'quick' for both tabs to give the user the initial choice.
-                analysisMode: 'quick',
             };
-        case actions.SET_ANALYSIS_MODE:
-            return { ...state, analysisMode: action.payload };
-        case actions.SET_FORENSIC_MODE:
-            return { ...state, forensicMode: action.payload };
+        case actions.SET_ANALYSIS_ANGLE:
+            return { ...state, analysisAngle: action.payload };
         case actions.CLEAR_INPUTS:
             return {
                 ...state,
                 textContent: '',
                 fileData: [],
                 activeInput: 'file', // Reset to the new default
-                analysisMode: 'quick', // Match default mode for file input
+                analysisAngle: 'forensic', 
             };
         case actions.LOAD_SCENARIO:
-            const { inputType, analysisMode, payload } = action.payload;
+            const { inputType, payload } = action.payload;
             return {
                 ...initialState,
                 activeInput: inputType,
-                analysisMode,
                 textContent: payload.text || '',
                 fileData: payload.files || [],
             };

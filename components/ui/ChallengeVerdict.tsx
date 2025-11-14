@@ -1,13 +1,11 @@
-
 import React from 'react';
 import { Button } from './Button';
 import { SleuthNote } from './SleuthNote';
-import type { AnalysisMode } from '../../types';
+// FIX: Removed unused and deprecated AnalysisMode import.
 
 interface ChallengeVerdictProps {
   onReanalyze: () => void;
   isSecondOpinion: boolean;
-  analysisModeUsed?: AnalysisMode | null;
 }
 
 export const ChallengeVerdict: React.FC<ChallengeVerdictProps> = React.memo(({ onReanalyze, isSecondOpinion }) => {
@@ -15,7 +13,7 @@ export const ChallengeVerdict: React.FC<ChallengeVerdictProps> = React.memo(({ o
   if (isSecondOpinion) {
     return (
         <SleuthNote>
-            This is my second opinion, based on 'Deep Dive' analysis. Cross-referencing multiple forensic angles can often reveal new insights.
+            This is my second opinion, based on a deeper analysis. Cross-referencing multiple forensic angles can often reveal new insights.
         </SleuthNote>
     );
   }

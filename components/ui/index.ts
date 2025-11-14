@@ -13,6 +13,7 @@ export * from './InputTabs';
 export * from './Loader';
 export * from './ModeButton';
 export * from './OptionGroup';
+export * from './ProvenanceSources';
 export * from './RadialProgress';
 export * from './ResultActionButtons';
 export * from './SleuthNote';

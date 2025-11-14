@@ -9,18 +9,12 @@ import { Card, Button, InputTabs, HowItWorks, OptionGroup } from './ui';
 import { Icon } from './icons/index';
 import { TextInputPanel } from './TextInputPanel';
 import { isInputReadyForAnalysis } from '../utils/validation';
-import type { AnalysisMode, ForensicMode } from '../types';
+import type { AnalysisAngle } from '../types';
 import { FileUploadDisplay } from './FileUploadDisplay';
 
-const DEDUCTIVE_METHOD_OPTIONS = [
-    { value: 'quick', title: 'Quick Scan', description: 'A fast, brilliant first-pass. Excellent for most cases.' },
-    { value: 'deep', title: 'Deep Dive', description: 'A more profound, methodical examination. Takes longer but is more thorough.' },
-] as const;
-
-const FORENSIC_ANGLE_OPTIONS = [
-    { value: 'standard', title: 'Standard Analysis', description: 'A balanced look at technical and conceptual clues.' },
-    { value: 'technical', title: 'Technical Forensics', description: 'Focuses only on pixels, lighting, and synthesis artifacts.' },
-    { value: 'conceptual', title: 'Conceptual Analysis', description: 'Focuses only on the story, context, and plausibility.' },
+const ANALYSIS_ANGLE_OPTIONS = [
+    { value: 'forensic', title: 'Forensic Analysis', description: 'Analyzes the image content for digital fingerprints and AI artifacts.' },
+    { value: 'provenance', title: 'Provenance Dossier', description: 'Investigates the image\'s history and fact-checks across the web. (Slower)' },
 ] as const;
 
 
@@ -34,8 +28,7 @@ export const InputForm: React.FC = () => {
         textContent,
         fileData,
         activeInput,
-        analysisMode,
-        forensicMode,
+        analysisAngle,
     } = inputState;
     const { error } = uiState;
 
@@ -43,12 +36,8 @@ export const InputForm: React.FC = () => {
         return isInputReadyForAnalysis(activeInput, textContent, fileData);
     }, [activeInput, textContent, fileData]);
     
-    const handleAnalysisModeChange = (mode: AnalysisMode) => {
-        inputDispatch({ type: actions.SET_ANALYSIS_MODE, payload: mode });
-    };
-
-    const handleForensicModeChange = (mode: ForensicMode) => {
-        inputDispatch({ type: actions.SET_FORENSIC_MODE, payload: mode });
+    const handleAnalysisAngleChange = (angle: AnalysisAngle) => {
+        inputDispatch({ type: actions.SET_ANALYSIS_ANGLE, payload: angle });
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -96,22 +85,12 @@ export const InputForm: React.FC = () => {
                         
                         {activeInput === 'file' && (
                           <OptionGroup
-                              legend="Select Forensic Angle"
-                              options={FORENSIC_ANGLE_OPTIONS}
-                              selectedValue={forensicMode}
-                              onValueChange={handleForensicModeChange}
-                              size="sm"
+                              legend="Select Analysis Angle"
+                              options={ANALYSIS_ANGLE_OPTIONS}
+                              selectedValue={analysisAngle}
+                              onValueChange={handleAnalysisAngleChange}
+                              size="md"
                           />
-                        )}
-
-                        {activeInput === 'text' && (
-                            <OptionGroup
-                                legend="Select Deductive Method"
-                                options={DEDUCTIVE_METHOD_OPTIONS}
-                                selectedValue={analysisMode}
-                                onValueChange={handleAnalysisModeChange}
-                                size="md"
-                            />
                         )}
 
                         {error && (

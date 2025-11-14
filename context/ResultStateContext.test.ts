@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 // FIX: Export `resultReducer` and `initialState` from the context file to make them importable for testing.
 import { resultReducer, initialState } from './ResultStateContext';
 import * as actions from './actions';
-import type { AnalysisEvidence, AnalysisResult, AnalysisMode } from '../types';
+// FIX: Replaced deprecated AnalysisMode with AnalysisAngle.
+import type { AnalysisEvidence, AnalysisResult, AnalysisAngle } from '../types';
 
 describe('resultReducer', () => {
 
@@ -11,32 +12,35 @@ describe('resultReducer', () => {
         expect(resultReducer(undefined, {})).toEqual(initialState);
     });
 
-    it('should handle START_ANALYSIS for deep mode (streaming)', () => {
-        // FIX: Explicitly cast `analysisMode` to `AnalysisMode` to prevent TypeScript from widening the type to a generic `string`, which causes a type mismatch with the reducer's action payload.
+    it('should handle START_ANALYSIS for text input (streaming)', () => {
+        // FIX: Replaced `analysisMode` with `analysisAngle` in the payload.
         const payload = {
             evidence: { type: 'text', content: 'test' } as AnalysisEvidence,
-            analysisMode: 'deep' as AnalysisMode,
+            analysisAngle: 'forensic' as AnalysisAngle,
         };
         // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
         const state = resultReducer(initialState, { type: actions.START_ANALYSIS, payload });
 
         expect(state.analysisEvidence).toEqual(payload.evidence);
-        expect(state.analysisModeUsed).toBe('deep');
+        // FIX: Checked `analysisAngleUsed` instead of the removed `analysisModeUsed`.
+        expect(state.analysisAngleUsed).toBe('forensic');
         expect(state.analysisResult).not.toBeNull();
-        expect(state.analysisResult?.verdict).toBe('Deducing...');
+        expect(state.analysisResult?.verdict).toBe('Deducing ...');
     });
 
-    it('should handle START_ANALYSIS for quick mode (not streaming)', () => {
-        // FIX: Explicitly cast `analysisMode` to `AnalysisMode` to prevent TypeScript from widening the type to a generic `string`, which causes a type mismatch with the reducer's action payload.
+    it('should handle START_ANALYSIS for file input (not streaming)', () => {
+        // FIX: Changed evidence type to 'file' to test non-streaming path.
+        // FIX: Replaced `analysisMode` with `analysisAngle`.
         const payload = {
-            evidence: { type: 'text', content: 'test' } as AnalysisEvidence,
-            analysisMode: 'quick' as AnalysisMode,
+            evidence: { type: 'file', content: 'test' } as AnalysisEvidence,
+            analysisAngle: 'forensic' as AnalysisAngle,
         };
         // FIX: Inlined action object to prevent TypeScript from widening the `type` property to a generic `string`.
         const state = resultReducer(initialState, { type: actions.START_ANALYSIS, payload });
 
         expect(state.analysisEvidence).toEqual(payload.evidence);
-        expect(state.analysisModeUsed).toBe('quick');
+        // FIX: Checked `analysisAngleUsed` instead of the removed `analysisModeUsed`.
+        expect(state.analysisAngleUsed).toBe('forensic');
         expect(state.analysisResult).toBeNull();
     });
 

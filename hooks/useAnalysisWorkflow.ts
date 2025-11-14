@@ -12,9 +12,7 @@ export const useAnalysisWorkflow = () => {
     const { dispatch: uiDispatch } = useUIState();
 
     const performAnalysis = useCallback(async (isReanalysis = false) => {
-        const { activeInput, textContent, fileData, analysisMode, forensicMode } = inputState;
-
-        const currentAnalysisMode = isReanalysis ? 'deep' : analysisMode;
+        const { activeInput, textContent, fileData, analysisAngle } = inputState;
 
         let evidence: AnalysisEvidence;
         if (activeInput === 'text') {
@@ -34,9 +32,10 @@ export const useAnalysisWorkflow = () => {
             uiDispatch({ type: actions.SET_STREAMING, payload: true });
             resultDispatch({ type: actions.START_REANALYSIS });
         } else {
-            const shouldStream = currentAnalysisMode === 'deep';
+            // Streaming is now determined by input type (text) or if it's a provenance check
+            const shouldStream = activeInput === 'text' || analysisAngle === 'provenance';
             uiDispatch({ type: actions.SET_STREAMING, payload: shouldStream });
-            resultDispatch({ type: actions.START_ANALYSIS, payload: { evidence, analysisMode: currentAnalysisMode } });
+            resultDispatch({ type: actions.START_ANALYSIS, payload: { evidence, analysisAngle } });
         }
 
         try {
@@ -51,9 +50,9 @@ export const useAnalysisWorkflow = () => {
                 activeInput,
                 textContent,
                 fileData.map(f => ({ name: f.name, imageBase64: f.imageBase64 as string })),
-                currentAnalysisMode,
-                forensicMode,
-                onStreamUpdate
+                analysisAngle,
+                onStreamUpdate,
+                isReanalysis,
             );
             
             resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result, modelName, isSecondOpinion: isReanalysis } });

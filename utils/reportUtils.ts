@@ -1,4 +1,4 @@
-import type { AnalysisResult, AnalysisEvidence, AnalysisMode } from '../types';
+import type { AnalysisResult, AnalysisEvidence } from '../types';
 
 /**
  * Generates a formatted plain text report from the analysis results.
@@ -7,7 +7,6 @@ import type { AnalysisResult, AnalysisEvidence, AnalysisMode } from '../types';
  * @param evidence The evidence object.
  * @param timestamp The timestamp of the analysis.
  * @param forEmailBody If true, prepends a placeholder for user feedback.
- * @param analysisModeUsed The analysis mode ('quick' or 'deep') used.
  * @param modelUsed The specific Gemini model name used.
  * @returns A formatted string representing the forensic report.
  */
@@ -16,7 +15,6 @@ export const generateShareText = (
     evidence: AnalysisEvidence | null, 
     timestamp: string | null,
     forEmailBody: boolean = false,
-    analysisModeUsed: AnalysisMode | null,
     modelUsed: string | null
 ): string => {
     let evidenceText = '';
@@ -50,9 +48,9 @@ export const generateShareText = (
     }
     
     text += `Analysis by: GenAI Sleuther Vanguard\n`;
-    if (analysisModeUsed && modelUsed) {
-        const modeText = analysisModeUsed === 'deep' ? 'Deep Analysis' : 'Quick Scan';
-        text += `Analysis Method: ${modeText} (${modelUsed})\n`;
+    if (modelUsed) {
+        const analysisType = result.groundingMetadata ? 'Provenance Dossier' : 'Forensic Analysis';
+        text += `Analysis Method: ${analysisType} (${modelUsed})\n`;
     }
     if (timestamp) {
         text += `Date of Analysis: ${timestamp}\n`;
@@ -64,7 +62,9 @@ export const generateShareText = (
     }
 
     text += `VERDICT: ${result.verdict}\n`;
-    text += `AI PROBABILITY: ${Math.round(result.probability)}%\n\n`;
+    if (result.probability > 0) { // Only show probability for forensic analysis
+        text += `AI PROBABILITY: ${Math.round(result.probability)}%\n\n`;
+    }
     text += `EXPLANATION:\n${result.explanation}\n\n`;
     
     if (result.highlights && result.highlights.length > 0) {
@@ -73,6 +73,16 @@ export const generateShareText = (
         text += `- "${h.text}": ${h.reason}\n`;
       });
       text += '\n';
+    }
+
+    if (result.groundingMetadata && result.groundingMetadata.groundingChunks) {
+        text += 'SOURCES FOUND:\n';
+        result.groundingMetadata.groundingChunks.forEach((chunk: any) => {
+            if (chunk.web) {
+                text += `- ${chunk.web.title}: ${chunk.web.uri}\n`;
+            }
+        });
+        text += '\n';
     }
 
     text += 'Analysis performed by GenAI Sleuther Vanguard, powered by Google Gemini.';

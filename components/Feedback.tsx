@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Icon } from './icons/index';
-import type { AnalysisResult, AnalysisEvidence, AnalysisMode } from '../types';
+import type { AnalysisResult, AnalysisEvidence } from '../types';
 import { generateShareText } from '../utils/reportUtils';
 import { FEEDBACK_EMAIL } from '../utils/constants';
 
@@ -8,11 +8,10 @@ interface FeedbackProps {
   result: AnalysisResult;
   evidence: AnalysisEvidence | null;
   timestamp: string | null;
-  analysisModeUsed: AnalysisMode | null;
   modelUsed: string | null;
 }
 
-export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence, timestamp, analysisModeUsed, modelUsed }) => {
+export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence, timestamp, modelUsed }) => {
   const [feedbackGiven, setFeedbackGiven] = useState<'none' | 'positive' | 'report'>('none');
 
   const handlePositiveFeedback = () => {
@@ -21,10 +20,10 @@ export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence,
 
   const mailtoLink = useMemo(() => {
     const reportTitle = encodeURIComponent('Sleuther Vanguard - Feedback');
-    const emailBody = encodeURIComponent(generateShareText(result, evidence, timestamp, true, analysisModeUsed, modelUsed));
+    const emailBody = encodeURIComponent(generateShareText(result, evidence, timestamp, true, modelUsed));
     const recipient = encodeURIComponent(`Sleuther Feedback <${FEEDBACK_EMAIL}>`);
     return `mailto:${recipient}?subject=${reportTitle}&body=${emailBody}`;
-  }, [result, evidence, timestamp, analysisModeUsed, modelUsed]);
+  }, [result, evidence, timestamp, modelUsed]);
 
 
   const renderContent = () => {

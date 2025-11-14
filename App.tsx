@@ -38,6 +38,9 @@ const IconSprite: React.FC = React.memo(() => (
       <symbol id="icon-information-circle" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
       </symbol>
+       <symbol id="icon-magnifying-glass" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+      </symbol>
       <symbol id="icon-link" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
       </symbol>
@@ -95,8 +98,7 @@ const AppContent: React.FC = () => {
           <Card>
             <Loader 
               message={loaderMessage} 
-              analysisMode={analysisModeUsed}
-              analysisEvidenceType={analysisEvidence?.type}
+              analysisModeUsed={analysisModeUsed}
             />
           </Card>
         );

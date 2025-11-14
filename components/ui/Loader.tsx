@@ -1,20 +1,26 @@
 
 import React from 'react';
-import type { AnalysisMode, InputType } from '../../types';
+import type { AnalysisAngle } from '../../types';
 
 interface LoaderProps {
   message?: string;
-  analysisMode?: AnalysisMode | null;
-  analysisEvidenceType?: InputType | null;
+  analysisAngleUsed?: AnalysisAngle | null;
 }
 
-export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Deducing the Digital DNA ... ", analysisMode, analysisEvidenceType }) => {
+export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Deducing the Digital DNA ... ", analysisAngleUsed }) => {
   
   const renderSubtext = () => {
-    if (analysisMode === 'deep') {
+    if (analysisAngleUsed === 'provenance') {
       return (
         <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 animate-fade-in max-w-sm mx-auto">
-            A Deep Dive is underway. This level of scrutiny can take a moment. Thank you for your patience.
+            Cross-referencing global sources... This can take a moment. Thank you for your patience.
+        </p>
+      );
+    }
+     if (analysisAngleUsed === 'forensic') {
+      return (
+        <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 animate-fade-in max-w-sm mx-auto">
+            A deep forensic analysis is underway. This level of scrutiny can take a moment.
         </p>
       );
     }

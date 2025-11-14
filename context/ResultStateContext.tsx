@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, ReactNode, Dispatch } from 'react';
-import type { AnalysisResult, AnalysisEvidence, AnalysisMode } from '../types';
+import type { AnalysisResult, AnalysisEvidence, AnalysisAngle } from '../types';
 import * as actions from './actions';
 
 // State interface
@@ -7,7 +7,7 @@ export interface ResultState {
     analysisResult: AnalysisResult | null;
     analysisTimestamp: string | null;
     analysisEvidence: AnalysisEvidence | null;
-    analysisModeUsed: AnalysisMode | null;
+    analysisAngleUsed: AnalysisAngle | null;
     modelUsed: string | null;
 }
 
@@ -17,13 +17,13 @@ export const initialState: ResultState = {
     analysisResult: null,
     analysisTimestamp: null,
     analysisEvidence: null,
-    analysisModeUsed: null,
+    analysisAngleUsed: null,
     modelUsed: null,
 };
 
 // Action types
 type Action =
-  | { type: typeof actions.START_ANALYSIS; payload: { evidence: AnalysisEvidence; analysisMode: AnalysisMode } }
+  | { type: typeof actions.START_ANALYSIS; payload: { evidence: AnalysisEvidence; analysisAngle: AnalysisAngle } }
   // FIX: Corrected typo from START_REANALysis to START_REANALYSIS
   | { type: typeof actions.START_REANALYSIS }
   | { type: typeof actions.ANALYSIS_SUCCESS; payload: { result: AnalysisResult; modelName: string; isSecondOpinion?: boolean } }
@@ -35,14 +35,13 @@ type Action =
 export const resultReducer = (state: ResultState = initialState, action: Action): ResultState => {
     switch (action.type) {
         case actions.START_ANALYSIS: {
-            const isStreaming = action.payload.analysisMode === 'deep';
+            // Streaming is now determined by input type (text) rather than a mode.
+            const isTextAnalysis = action.payload.evidence.type === 'text';
             return {
                 ...initialState, // Clear previous results completely
                 analysisEvidence: action.payload.evidence,
-                analysisModeUsed: action.payload.analysisMode,
-                // If it's a streaming analysis, create a placeholder result immediately.
-                // This ensures the UI can switch to the streaming view without a race condition.
-                analysisResult: isStreaming
+                analysisAngleUsed: action.payload.analysisAngle,
+                analysisResult: isTextAnalysis
                     ? {
                         probability: 0,
                         verdict: 'Deducing ...',
@@ -64,7 +63,6 @@ export const resultReducer = (state: ResultState = initialState, action: Action)
             };
         case actions.STREAM_ANALYSIS_UPDATE:
             if (!state.analysisResult) {
-                 // This case is now a fallback, as START_ANALYSIS should create the placeholder.
                  return {
                      ...state,
                      analysisResult: {

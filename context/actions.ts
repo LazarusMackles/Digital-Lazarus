@@ -5,8 +5,7 @@ export const SET_TEXT_CONTENT = 'SET_TEXT_CONTENT';
 export const SET_FILE_DATA = 'SET_FILE_DATA';
 export const SET_URL = 'SET_URL';
 export const SET_ACTIVE_INPUT = 'SET_ACTIVE_INPUT';
-export const SET_ANALYSIS_MODE = 'SET_ANALYSIS_MODE';
-export const SET_FORENSIC_MODE = 'SET_FORENSIC_MODE';
+export const SET_ANALYSIS_ANGLE = 'SET_ANALYSIS_ANGLE';
 export const CLEAR_INPUTS = 'CLEAR_INPUTS';
 export const LOAD_SCENARIO = 'LOAD_SCENARIO';
 
