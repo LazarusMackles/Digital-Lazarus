@@ -30,7 +30,7 @@ export const ProvenanceSources: React.FC<ProvenanceSourcesProps> = React.memo(({
 
   return (
     <div className="mt-6 w-full max-w-xl text-left">
-      <h3 className="text-lg font-semibold text-center text-cyan-600 dark:text-cyan-400 mb-4">
+      <h3 className="text-lg font-semibold text-center text-fuchsia-600 dark:text-fuchsia-500 mb-4">
         Sources Found Online
       </h3>
       <div className="space-y-3">
@@ -43,7 +43,7 @@ export const ProvenanceSources: React.FC<ProvenanceSourcesProps> = React.memo(({
                 href={source.web.uri} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="block bg-slate-100 dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-cyan-500 dark:hover:border-cyan-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors group"
+                className="block bg-slate-100 dark:bg-slate-800 p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-cyan-500 dark:hover:border-cyan-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors group"
               >
                 <div className="flex items-center gap-3">
                     <Icon name="link" className="w-4 h-4 text-slate-500 dark:text-slate-400 flex-shrink-0 group-hover:text-cyan-500 dark:group-hover:text-cyan-400 transition-colors" />

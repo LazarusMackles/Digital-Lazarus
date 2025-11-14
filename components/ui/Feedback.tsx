@@ -67,7 +67,7 @@ export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence,
   };
 
   return (
-    <div className="text-sm text-center">
+    <div className="text-sm text-center mt-4">
       {renderContent()}
     </div>
   );
