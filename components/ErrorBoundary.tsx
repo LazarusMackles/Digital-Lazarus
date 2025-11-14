@@ -10,9 +10,10 @@ interface State {
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {
-  // FIX: Replaced the constructor with a class property for state initialization.
-  // This modern syntax is more concise and directly addresses the errors where `state`
-  // and `props` were not being recognized on the component instance.
+  // FIX: Switched to class property syntax for state initialization.
+  // The previous constructor-based approach was failing to resolve inherited
+  // properties like 'state' and 'props'. This more modern syntax explicitly
+  // defines 'state' on the class instance, resolving the type errors.
   state: State = { hasError: false };
 
   static getDerivedStateFromError(_: Error): State {

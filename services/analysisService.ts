@@ -17,7 +17,7 @@ const buildPrompt = (
     
     if (analysisAngle === 'provenance') {
         const primaryEvidence = fileData[0]?.name || 'the primary image';
-        return `You are a digital content investigator. Using your search tool, investigate the provided image "${primaryEvidence}". Your goal is to determine its provenance: its origin, history of circulation, and if it has been fact-checked by reliable sources. Synthesize your findings into a concise summary. CRITICAL FORMATTING RULE: Your entire response MUST be a bulleted list, with each point starting with a hyphen (-). Do not add any conversational filler, introductory text, or a heading. Respond ONLY with the bulleted list.`;
+        return `You are a digital content investigator. Using your search tool, investigate the provided image "${primaryEvidence}". Your goal is to determine its provenance. Synthesize your findings into a concise summary of **no more than 5 key bullet points**. The **very first bullet point** MUST be a definitive statement confirming if the image has been widely debunked as AI-generated or verified as authentic by fact-checkers. CRITICAL FORMATTING RULE: Your entire response MUST be a bulleted list, with each point starting with a hyphen (-). Do not add any conversational filler, introductory text, or a heading. Respond ONLY with the bulleted list.`;
     }
 
     // --- Forensic Analysis Prompt ---
@@ -282,10 +282,10 @@ const finalizeProvenanceVerdict = (response: any): AnalysisResult => {
     let verdict = "Provenance Dossier";
     if (groundingMetadata?.groundingChunks?.length > 0) {
         const fullText = explanation.toLowerCase();
-        if (fullText.includes("ai-generated") || fullText.includes("fake") || fullText.includes("fabricated")) {
-            verdict = "AI-Generated (Debunked)";
-        } else if (fullText.includes("authentic") || fullText.includes("real photo")) {
-            verdict = "Authentic (Verified)";
+        if (fullText.includes("ai-generated") || fullText.includes("fake") || fullText.includes("fabricated") || fullText.includes("debunked")) {
+            verdict = "AI-Generated";
+        } else if (fullText.includes("authentic") || fullText.includes("real photo") || fullText.includes("verified")) {
+            verdict = "Authentic Photograph";
         }
     } else {
         verdict = "No Online History Found";

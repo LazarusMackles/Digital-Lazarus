@@ -30,34 +30,6 @@ const StreamingProgressIndicator: React.FC = () => (
     </div>
 );
 
-const ProvenanceIndicator: React.FC = () => (
-    <div className="relative w-40 h-40">
-        <svg height={160} width={160}>
-            <circle
-                className="stroke-slate-200 dark:stroke-slate-700"
-                fill="transparent"
-                strokeWidth={10}
-                r={75}
-                cx={80}
-                cy={80}
-            />
-             <circle
-                className="stroke-cyan-500"
-                fill="transparent"
-                strokeWidth={10}
-                strokeDasharray="471.24" 
-                style={{ strokeLinecap: 'round' }}
-                r={75}
-                cx={80}
-                cy={80}
-            />
-        </svg>
-        <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-            <Icon name="magnifying-glass" className="w-12 h-12 text-cyan-500 dark:text-cyan-400" />
-        </div>
-    </div>
-);
-
 
 export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probability, verdict, explanation, analysisAngleUsed }) => {
     const { state: uiState } = useUIState();
@@ -89,17 +61,22 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
         return 'text-rose-500 dark:text-rose-400';
     };
     
+    const renderVisualIndicator = () => {
+        if (isStreaming) {
+            return <StreamingProgressIndicator />;
+        }
+        if (!isProvenance) {
+            return <RadialProgress progress={probability} duration={ANIMATION_DURATION} />;
+        }
+        return null; // No icon for finished provenance reports
+    };
+    
     // This is the final result view for all analysis types.
     return (
         <div className="w-full max-w-2xl flex flex-col items-center bg-white dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-lg border border-cyan-500/40 dark:border-cyan-400/40">
-            {isStreaming ? 
-                <StreamingProgressIndicator /> : 
-                isProvenance ?
-                <ProvenanceIndicator /> :
-                <RadialProgress progress={probability} duration={ANIMATION_DURATION} />
-            }
+            {renderVisualIndicator()}
 
-            <div className="h-10 mt-2 flex items-center justify-center">
+            <div className={`flex items-center justify-center mt-2`}>
                 {verdictVisible ? (
                      <h2 className={`text-3xl font-extrabold text-center ${verdictColorClass()} animate-fade-in-up`}>
                         {verdict}
@@ -115,13 +92,13 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
             
             {explanation && (
                 isProvenance ? (
-                     <div className="mt-6 w-full max-w-xl text-left animate-fade-in">
-                        <h3 className="text-lg font-semibold text-center text-cyan-600 dark:text-cyan-400 mb-4">
+                     <div className="mt-3 w-full max-w-xl text-left animate-fade-in">
+                        <h3 className="text-lg font-semibold text-center text-fuchsia-600 dark:text-fuchsia-500 mb-4">
                             Investigation Summary
                         </h3>
                         <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
                             <ul className="space-y-2 text-slate-600 dark:text-slate-300">
-                                {explanation.split('\n').filter(line => line.trim().length > 0).map((line, index) => (
+                                {explanation.split('\n').filter(line => line.trim().length > 0).slice(0, 5).map((line, index) => (
                                     <li key={index} className="flex items-start gap-3">
                                         <span className="text-fuchsia-500 mt-1">&#8226;</span>
                                         <span>{line.replace(/^- /, '')}</span>
