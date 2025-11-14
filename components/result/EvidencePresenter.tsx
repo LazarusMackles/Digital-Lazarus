@@ -1,15 +1,19 @@
 
 import React, { useState } from 'react';
-import type { AnalysisEvidence } from '../../types';
+import type { AnalysisEvidence, AnalysisAngle } from '../../types';
 import { SleuthNote, EvidenceImage, ImageLightbox } from '../ui';
 import { cn } from '../../utils/cn';
 
 interface EvidencePresenterProps {
     evidence: AnalysisEvidence;
     probability: number;
+    analysisAngleUsed?: AnalysisAngle | null;
 }
 
-const getBorderColorClass = (p: number): string => {
+const getBorderColorClass = (p: number, angle?: AnalysisAngle | null): string => {
+    if (angle === 'provenance') {
+        return 'border-cyan-500';
+    }
     if (p < 40) return 'border-teal-400';
     if (p < 80) return 'border-yellow-400';
     return 'border-rose-500';
@@ -32,10 +36,10 @@ const EvidenceItem: React.FC<{ file: { name: string; imageBase64: string }; onIm
 );
 
 
-export const EvidencePresenter: React.FC<EvidencePresenterProps> = ({ evidence, probability }) => {
+export const EvidencePresenter: React.FC<EvidencePresenterProps> = ({ evidence, probability, analysisAngleUsed }) => {
     const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
-    const borderColorClass = getBorderColorClass(probability);
+    const borderColorClass = getBorderColorClass(probability, analysisAngleUsed);
 
     if (!evidence.content) return null;
 

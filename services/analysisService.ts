@@ -17,7 +17,7 @@ const buildPrompt = (
     
     if (analysisAngle === 'provenance') {
         const primaryEvidence = fileData[0]?.name || 'the primary image';
-        return `You are a digital content investigator. Using your search tool, investigate the provided image "${primaryEvidence}". Your goal is to determine its provenance: its origin, history of circulation, and if it has been fact-checked by reliable sources. Synthesize your findings into a concise explanation. Respond ONLY with your text summary. Do not add any conversational filler.`;
+        return `You are a digital content investigator. Using your search tool, investigate the provided image "${primaryEvidence}". Your goal is to determine its provenance: its origin, history of circulation, and if it has been fact-checked by reliable sources. Synthesize your findings into a concise summary. CRITICAL FORMATTING RULE: Your entire response MUST be a bulleted list, with each point starting with a hyphen (-). Do not add any conversational filler, introductory text, or a heading. Respond ONLY with the bulleted list.`;
     }
 
     // --- Forensic Analysis Prompt ---

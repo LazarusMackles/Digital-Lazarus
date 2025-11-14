@@ -12,7 +12,7 @@ export const ResultDisplay: React.FC = () => {
   const { state: resultState } = useResultState();
   const { state: uiState } = useUIState();
   const { handleNewAnalysis, performAnalysis } = useAnalysisWorkflow();
-  const { analysisResult, analysisEvidence, analysisTimestamp, modelUsed } = resultState;
+  const { analysisResult, analysisEvidence, analysisTimestamp, modelUsed, analysisAngleUsed } = resultState;
   const { isStreaming, isReanalyzing } = uiState;
   const [showShareModal, setShowShareModal] = useState(false);
 
@@ -35,12 +35,19 @@ export const ResultDisplay: React.FC = () => {
     <>
       <Card className="flex flex-col items-center">
         
-        {analysisEvidence?.type === 'file' && <EvidencePresenter evidence={analysisEvidence} probability={probability} />}
+        {analysisEvidence?.type === 'file' && (
+            <EvidencePresenter 
+                evidence={analysisEvidence} 
+                probability={probability} 
+                analysisAngleUsed={analysisAngleUsed} 
+            />
+        )}
         
         <VerdictPanel 
             probability={probability} 
             verdict={verdict} 
             explanation={explanation} 
+            analysisAngleUsed={analysisAngleUsed}
         />
 
         {analysisEvidence?.type === 'text' && analysisEvidence.content && (
