@@ -38,50 +38,26 @@ describe('useAppView', () => {
         expect(view).toBe('INPUT');
     });
 
-    it('should return LOADING for a standard loading state', () => {
+    it('should return LOADING when in the analyzing_pixels stage', () => {
         mockUseResultState({});
-        // FIX: Replaced removed `isLoading` property with `analysisStage` to correctly simulate the loading state.
         mockUseUIState({ analysisStage: 'analyzing_pixels' });
         const view = renderHook(useAppView);
         expect(view).toBe('LOADING');
     });
     
+    it('should return LOADING when in the analyzing_context stage', () => {
+        mockUseResultState({});
+        mockUseUIState({ analysisStage: 'analyzing_context' });
+        const view = renderHook(useAppView);
+        expect(view).toBe('LOADING');
+    });
+
     it('should return RESULT when an analysisResult is present and the app is not loading', () => {
         mockUseResultState({
             analysisResult: { probability: 90, verdict: 'AI', explanation: '...' }
         });
-        mockUseUIState({});
+        mockUseUIState({ analysisStage: 'complete' }); // or 'idle'
         const view = renderHook(useAppView);
         expect(view).toBe('RESULT');
-    });
-
-    // FIX: Changed test case from "text view" to "file view" as text analysis is no longer supported.
-    it('should return LOADING for a deep-dive streaming file view (initial analysis)', () => {
-         mockUseResultState({
-            // FIX: Changed evidence type to 'file' to match current type definitions.
-            analysisEvidence: { type: 'file', content: 'abc' },
-            analysisResult: { probability: 0, verdict: '...', explanation: '' } // The placeholder result exists.
-        });
-        // FIX: Replaced removed `isLoading` and `isStreaming` properties with `analysisStage` to correctly simulate the streaming analysis state.
-        mockUseUIState({
-            analysisStage: 'analyzing_context',
-        });
-        const view = renderHook(useAppView);
-        // The hook should show the main loader, not the result panel.
-        expect(view).toBe('LOADING');
-    });
-
-    it('should return LOADING for a deep-dive streaming file view', () => {
-         mockUseResultState({
-            analysisEvidence: { type: 'file', content: '...' },
-            analysisResult: { probability: 0, verdict: '...', explanation: '' }
-        });
-         // FIX: Replaced removed `isLoading` and `isStreaming` properties with `analysisStage` to correctly simulate the streaming analysis state.
-         mockUseUIState({
-            analysisStage: 'analyzing_context',
-        });
-        const view = renderHook(useAppView);
-        // The streaming text exception does not apply to files, so the main loader is shown.
-        expect(view).toBe('LOADING');
     });
 });

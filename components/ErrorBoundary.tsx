@@ -1,5 +1,6 @@
 
 
+
 import React, { ErrorInfo, ReactNode } from 'react';
 import { ErrorFallback } from './ui';
 
@@ -25,8 +26,8 @@ export class ErrorBoundary extends React.Component<Props, State> {
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  // FIX: Changed from an arrow function to a standard class method declaration for the `render` lifecycle method. This ensures `this.props` is correctly typed and accessed from the base `React.Component`.
-  render() {
+  // FIX: The previous implementation as a standard class method was causing a type error where `this.props` was not found. Using an arrow function for the `render` method ensures `this` is lexically bound to the component instance, resolving the type inference issue.
+  render = () => {
     if (this.state.hasError) {
       return <ErrorFallback />;
     }
