@@ -44,9 +44,6 @@ export const EvidencePresenter: React.FC<EvidencePresenterProps> = ({ evidence, 
 
     const renderContent = () => {
         switch (evidence.type) {
-            case 'text':
-                 // Text is now rendered directly in ResultDisplay
-                return null;
             case 'file':
                 try {
                     const file: { name: string; imageBase64: string } = JSON.parse(evidence.content);

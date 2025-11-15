@@ -6,7 +6,7 @@ import type { AnalysisAngle, AnalysisResult } from '../types';
 /**
  * Generates a direct, command-based prompt for the Gemini model.
  */
-const buildPrompt = (
+export const buildPrompt = (
     fileData: { name: string } | null, 
     analysisAngle: AnalysisAngle,
     isReanalysis: boolean,
@@ -48,7 +48,7 @@ This alignment is a primary requirement of your task.`;
 };
 
 
-const finalizeForensicVerdict = (rawResult: any, sightengineScore?: number): AnalysisResult => {
+export const finalizeForensicVerdict = (rawResult: any, sightengineScore?: number): AnalysisResult => {
     let probability = sightengineScore !== undefined ? sightengineScore : Math.round(rawResult.probability || 50);
     let verdict = rawResult.verdict || "Analysis Inconclusive";
     const explanation = rawResult.explanation || "The model did not provide a detailed explanation.";
@@ -78,7 +78,7 @@ const finalizeForensicVerdict = (rawResult: any, sightengineScore?: number): Ana
     };
 };
 
-const finalizeProvenanceVerdict = (response: any): AnalysisResult => {
+export const finalizeProvenanceVerdict = (response: any): AnalysisResult => {
     const explanation = response.text?.trim() || "The investigation did not return a conclusive summary.";
     const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
 
@@ -110,38 +110,4 @@ const finalizeProvenanceVerdict = (response: any): AnalysisResult => {
         highlights: [],
         groundingMetadata,
     };
-};
-
-export const runAnalysis = async (
-    fileData: { name: string; imageBase64: string } | null,
-    analysisAngle: AnalysisAngle,
-    apiKeys: { google: string, sightengine: string | null },
-    onStreamUpdate?: (partialExplanation: string) => void,
-    isReanalysis: boolean = false
-): Promise<{ result: AnalysisResult; modelName: string; }> => {
-    
-    if (!fileData) {
-        throw new Error("No file data provided for analysis.");
-    }
-
-    const modelName = MODELS.PRO;
-    const filesForApi = [fileData];
-    
-    if (analysisAngle === 'provenance') {
-        const prompt = buildPrompt(fileData, 'provenance', isReanalysis);
-        const response = await analyzeWithSearch(prompt, filesForApi, modelName, apiKeys.google);
-        return { result: finalizeProvenanceVerdict(response), modelName };
-    }
-
-    let sightengineScore: number | undefined;
-    if (analysisAngle === 'hybrid') {
-        if (!apiKeys.sightengine) throw new Error("Sightengine API Key is required for Hybrid Analysis.");
-        const sightengineResult = await analyzeWithSightengine(fileData.imageBase64, apiKeys.sightengine);
-        sightengineScore = Math.round(sightengineResult.ai_generated * 100);
-    }
-    
-    const prompt = buildPrompt(fileData, analysisAngle, isReanalysis, sightengineScore);
-    const rawResult = await analyzeContent(prompt, filesForApi, modelName, apiKeys.google);
-    
-    return { result: finalizeForensicVerdict(rawResult, sightengineScore), modelName };
 };

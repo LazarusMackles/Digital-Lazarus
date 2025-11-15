@@ -74,10 +74,11 @@ const AppContent: React.FC = () => {
   const view = useAppView();
 
   const { 
+    analysisResult,
     analysisAngleUsed,
   } = resultState;
   
-  const { showWelcome, isReanalyzing, showSettingsModal } = uiState;
+  const { analysisStage, showWelcome, showSettingsModal } = uiState;
 
   const handleCloseWelcome = () => uiDispatch({ type: actions.SET_SHOW_WELCOME, payload: false });
   const handleCloseSettings = () => uiDispatch({ type: actions.SET_SHOW_SETTINGS_MODAL, payload: false });
@@ -85,9 +86,14 @@ const AppContent: React.FC = () => {
   const renderContent = () => {
     switch (view) {
       case 'LOADING': {
-        const loaderMessage = isReanalyzing 
-          ? "Re-analysing with a critical eye ..." 
-          : "Deducing the Digital DNA ...";
+        let loaderMessage = "Deducing the Digital DNA ...";
+        if (analysisResult?.isSecondOpinion) {
+            loaderMessage = "Re-analysing with a critical eye ...";
+        } else if (analysisStage === 'analyzing_pixels') {
+            loaderMessage = "Scanning pixels...";
+        } else if (analysisStage === 'analyzing_context') {
+            loaderMessage = "Interpreting context...";
+        }
 
         return (
           <Card>

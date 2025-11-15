@@ -1,4 +1,5 @@
 
+
 import { describe, it, expect, vi } from 'vitest';
 import { useAppView } from './useAppView';
 import * as ResultStateContext from '../context/ResultStateContext';
@@ -39,7 +40,8 @@ describe('useAppView', () => {
 
     it('should return LOADING for a standard loading state', () => {
         mockUseResultState({});
-        mockUseUIState({ isLoading: true });
+        // FIX: Replaced removed `isLoading` property with `analysisStage` to correctly simulate the loading state.
+        mockUseUIState({ analysisStage: 'analyzing_pixels' });
         const view = renderHook(useAppView);
         expect(view).toBe('LOADING');
     });
@@ -60,9 +62,9 @@ describe('useAppView', () => {
             analysisEvidence: { type: 'file', content: 'abc' },
             analysisResult: { probability: 0, verdict: '...', explanation: '' } // The placeholder result exists.
         });
+        // FIX: Replaced removed `isLoading` and `isStreaming` properties with `analysisStage` to correctly simulate the streaming analysis state.
         mockUseUIState({
-            isLoading: true,
-            isStreaming: true,
+            analysisStage: 'analyzing_context',
         });
         const view = renderHook(useAppView);
         // The hook should show the main loader, not the result panel.
@@ -74,9 +76,9 @@ describe('useAppView', () => {
             analysisEvidence: { type: 'file', content: '...' },
             analysisResult: { probability: 0, verdict: '...', explanation: '' }
         });
+         // FIX: Replaced removed `isLoading` and `isStreaming` properties with `analysisStage` to correctly simulate the streaming analysis state.
          mockUseUIState({
-            isLoading: true,
-            isStreaming: true,
+            analysisStage: 'analyzing_context',
         });
         const view = renderHook(useAppView);
         // The streaming text exception does not apply to files, so the main loader is shown.

@@ -14,11 +14,10 @@ export const useAppView = (): AppView => {
     const { state: uiState } = useUIState();
     
     const { analysisResult } = resultState;
-    const { isLoading } = uiState;
+    const { analysisStage } = uiState;
 
-    // If the app is in a loading state, always show the main loader.
-    // This takes precedence over showing a partial or placeholder result.
-    if (isLoading) {
+    // If the app is in any analysis stage, show the loader.
+    if (analysisStage === 'analyzing_pixels' || analysisStage === 'analyzing_context') {
         return 'LOADING';
     }
     

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useUIState } from '../../context/UIStateContext';
 import { Icon } from '../icons/index';
@@ -33,24 +34,27 @@ const StreamingProgressIndicator: React.FC = () => (
 
 export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probability, verdict, explanation, analysisAngleUsed }) => {
     const { state: uiState } = useUIState();
-    const { isStreaming } = uiState;
+    const { analysisStage } = uiState;
     const [verdictVisible, setVerdictVisible] = useState(false);
     const ANIMATION_DURATION = 1200; // ms
 
+    const isAnalysisInProgress = analysisStage === 'analyzing_pixels' || analysisStage === 'analyzing_context';
+    const isStreaming = analysisStage === 'analyzing_context';
+
     useEffect(() => {
       // This effect triggers the verdict text animation.
-      // It runs when streaming finishes, or if the analysis was never streaming.
-      if (!isStreaming) {
+      // It runs when the analysis stage becomes 'complete'.
+      if (analysisStage === 'complete') {
         const timer = setTimeout(() => {
           setVerdictVisible(true);
         }, ANIMATION_DURATION); // Fire just after the progress animation.
 
         return () => clearTimeout(timer);
       } else {
-        // If a new streaming session starts (e.g., re-analysis), hide the verdict again.
+        // If a new analysis starts, hide the verdict again.
         setVerdictVisible(false);
       }
-    }, [isStreaming]);
+    }, [analysisStage]);
 
     const isProvenance = analysisAngleUsed === 'provenance';
 
@@ -62,7 +66,7 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
     };
     
     const renderVisualIndicator = () => {
-        if (isStreaming) {
+        if (isAnalysisInProgress) {
             return <StreamingProgressIndicator />;
         }
         if (!isProvenance) {
@@ -85,7 +89,7 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
                     // Placeholder to prevent layout shift while waiting for animation,
                     // or show the streaming status.
                     <h2 className="text-2xl font-bold text-slate-500 dark:text-slate-400 animate-fade-in">
-                        {isStreaming ? 'Deducing ...' : <>&nbsp;</>}
+                        {isAnalysisInProgress ? 'Deducing ...' : <>&nbsp;</>}
                     </h2>
                 )}
             </div>

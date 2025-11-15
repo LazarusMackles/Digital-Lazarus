@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback } from 'react';
 import { useResultState } from '../context/ResultStateContext';
 import { useUIState } from '../context/UIStateContext';
@@ -13,7 +14,7 @@ export const ResultDisplay: React.FC = () => {
   const { state: uiState } = useUIState();
   const { handleNewAnalysis, performAnalysis } = useAnalysisWorkflow();
   const { analysisResult, analysisEvidence, analysisTimestamp, modelUsed, analysisAngleUsed } = resultState;
-  const { isStreaming, isReanalyzing } = uiState;
+  const { analysisStage } = uiState;
   const [showShareModal, setShowShareModal] = useState(false);
 
   const handleReanalyze = useCallback(() => {
@@ -30,7 +31,8 @@ export const ResultDisplay: React.FC = () => {
   }
 
   const { probability, verdict, explanation, highlights, groundingMetadata, isSecondOpinion } = analysisResult;
-  
+  const shouldShowActions = analysisStage === 'complete';
+
   return (
     <>
       <Card className="flex flex-col items-center">
@@ -52,7 +54,7 @@ export const ResultDisplay: React.FC = () => {
         
         {groundingMetadata && <ProvenanceSources groundingMetadata={groundingMetadata} />}
 
-        {(!isStreaming && !isReanalyzing) && (
+        {shouldShowActions && (
             <>
                 <div className="mt-8 border-t border-slate-200 dark:border-slate-700 w-full max-w-xl" />
                 <div className="mt-8 flex w-full flex-col items-center gap-8">
@@ -60,7 +62,6 @@ export const ResultDisplay: React.FC = () => {
                         onReanalyze={handleReanalyze} 
                         isSecondOpinion={isSecondOpinion || false}
                     />
-                    {/* FIX: Passed the missing analysisAngleUsed prop to the Feedback component. */}
                     <Feedback result={analysisResult} evidence={analysisEvidence} timestamp={analysisTimestamp} modelUsed={modelUsed} analysisAngleUsed={analysisAngleUsed} />
                     <ResultActionButtons onNewAnalysis={handleNewAnalysis} onShowShareModal={handleShowShareModal} />
                 </div>
@@ -71,10 +72,6 @@ export const ResultDisplay: React.FC = () => {
       
       {showShareModal && (
         <ShareModal
-          result={analysisResult}
-          evidence={analysisEvidence}
-          timestamp={analysisTimestamp}
-          modelUsed={modelUsed}
           onClose={() => setShowShareModal(false)}
         />
       )}
