@@ -10,9 +10,10 @@ import { ResultStateProvider, useResultState } from './context/ResultStateContex
 import { UIStateProvider, useUIState } from './context/UIStateContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import * as actions from './context/actions';
-import { Card, Loader } from './components/ui';
+import { Card, Loader, SettingsModal } from './components/ui';
 import { useAppView } from './hooks/useAppView';
 import { IntroPanel } from './components/IntroPanel';
+import { ApiKeyProvider } from './context/ApiKeyContext';
 
 const IconSprite: React.FC = React.memo(() => (
   <svg xmlns="http://www.w3.org/2000/svg" className="absolute w-0 h-0">
@@ -26,17 +27,14 @@ const IconSprite: React.FC = React.memo(() => (
       <symbol id="icon-chevron-down" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
       </symbol>
-      <symbol id="icon-composite" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25-2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z" />
-      </symbol>
       <symbol id="icon-envelope" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25-2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
       </symbol>
-      <symbol id="icon-image" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-      </symbol>
       <symbol id="icon-information-circle" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+      </symbol>
+       <symbol id="icon-key" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21 8.25Z" />
       </symbol>
        <symbol id="icon-magnifying-glass" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
@@ -57,9 +55,6 @@ const IconSprite: React.FC = React.memo(() => (
       <symbol id="icon-sun" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
       </symbol>
-      <symbol id="icon-text" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
-      </symbol>
       <symbol id="icon-thumbs-up" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M6.633 10.5c.806 0 1.533-.422 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 3v2.154c0 .414.21 .790.528 1.005 1.454.772 2.756 2.242 3.298 4.03a.75.75 0 01-.42 1.005l-.353.176c-.86.43-1.737.75-2.651.975v.008c.375.362.625.864.625 1.41a2.25 2.25 0 01-2.25 2.25H7.5A2.25 2.25 0 015.25 15V5.25A2.25 2.25 0 017.5 3h.001c.621 0 1.22.218 1.694.604a1.861 1.861 0 00.98 1.106c.343.172.695.31 1.05.409.356.1.71.196 1.064.292V10.5c-1.158-.28-2.327-.518-3.5-.687V15" />
       </symbol>
@@ -79,13 +74,13 @@ const AppContent: React.FC = () => {
   const view = useAppView();
 
   const { 
-    analysisModeUsed,
-    analysisEvidence,
+    analysisAngleUsed,
   } = resultState;
   
-  const { showWelcome, isReanalyzing } = uiState;
+  const { showWelcome, isReanalyzing, showSettingsModal } = uiState;
 
   const handleCloseWelcome = () => uiDispatch({ type: actions.SET_SHOW_WELCOME, payload: false });
+  const handleCloseSettings = () => uiDispatch({ type: actions.SET_SHOW_SETTINGS_MODAL, payload: false });
 
   const renderContent = () => {
     switch (view) {
@@ -98,7 +93,7 @@ const AppContent: React.FC = () => {
           <Card>
             <Loader 
               message={loaderMessage} 
-              analysisModeUsed={analysisModeUsed}
+              analysisAngleUsed={analysisAngleUsed}
             />
           </Card>
         );
@@ -119,6 +114,7 @@ const AppContent: React.FC = () => {
     <>
       <IconSprite />
       {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
+      {showSettingsModal && <SettingsModal onClose={handleCloseSettings} />}
       <div className="min-h-screen grid grid-rows-[auto_1fr] max-w-4xl mx-auto w-full p-4 sm:p-6 md:p-8 dark:text-white transition-colors duration-300">
           <div>
             <Header />
@@ -135,16 +131,17 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <InputStateProvider>
-      <UIStateProvider>
-        <ResultStateProvider>
-          {/* FIX: Removed the confusing autogenerated comment. */}
-          <ErrorBoundary>
-            <AppContent />
-          </ErrorBoundary>
-        </ResultStateProvider>
-      </UIStateProvider>
-    </InputStateProvider>
+    <ApiKeyProvider>
+        <InputStateProvider>
+          <UIStateProvider>
+            <ResultStateProvider>
+              <ErrorBoundary>
+                <AppContent />
+              </ErrorBoundary>
+            </ResultStateProvider>
+          </UIStateProvider>
+        </InputStateProvider>
+    </ApiKeyProvider>
   );
 };
 

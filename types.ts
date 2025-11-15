@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react';
 
-export type AnalysisAngle = 'forensic' | 'provenance';
+export type AnalysisAngle = 'forensic' | 'provenance' | 'hybrid';
 export type Theme = 'light' | 'dark';
-export type InputType = 'text' | 'file';
 
 export interface AnalysisResult {
   probability: number;
@@ -17,7 +16,7 @@ export interface AnalysisResult {
 }
 
 export interface AnalysisEvidence {
-  type: InputType;
+  type: 'file'; // Only file type is supported now
   content: string;
 }
 
@@ -25,9 +24,7 @@ export interface Scenario {
   title: string;
   description: string;
   icon: ReactNode;
-  inputType: InputType;
   payload: {
-    text?: string;
-    file?: { name: string; imageBase64: string };
+    file: { name: string; imageBase64: string };
   };
 }

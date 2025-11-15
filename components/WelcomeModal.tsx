@@ -1,8 +1,9 @@
-
 import React from 'react';
 import { Icon } from './icons/index';
 import { Button } from './ui';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
+import { useUIState } from '../context/UIStateContext';
+import * as actions from '../context/actions';
 
 interface WelcomeModalProps {
   onClose: () => void;
@@ -10,12 +11,14 @@ interface WelcomeModalProps {
 
 export const WelcomeModal: React.FC<WelcomeModalProps> = React.memo(({ onClose }) => {
   useBodyScrollLock();
+  const { dispatch } = useUIState();
+
+  const handleOpenSettings = () => {
+    onClose();
+    dispatch({ type: actions.SET_SHOW_SETTINGS_MODAL, payload: true });
+  }
   
   return (
-    // DEFINITIVE FIX:
-    // The overlay is now a flex container. `justify-center` handles horizontal centering,
-    // and `items-start` handles the vertical top alignment. Padding is added here to
-    // create space from the screen edges. This is a more robust pattern than absolute positioning.
     <div 
       className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex justify-center items-start p-4 sm:p-6 md:p-8 overflow-y-auto modal-overlay-fade-in" 
       aria-modal="true" 
@@ -34,35 +37,36 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = React.memo(({ onClose }
                 Your Mission Briefing
             </h2>
             <p className="mt-4 text-slate-600 dark:text-slate-300">
-                Welcome, fellow detective! Before you begin your first case, a few notes from headquarters:
+                Welcome, detective! Sleuther Vanguard is a powerful image forensics tool. Before you begin your first case:
             </p>
             <ul className="mt-4 space-y-3 text-sm text-slate-600 dark:text-slate-400">
                 <li className="flex items-start gap-3">
                     <span className="text-cyan-500 font-bold mt-0.5">1.</span>
                     <div>
-                        <span className="font-semibold text-slate-800 dark:text-white">Our Goal is Clarity, Not Judgement.</span> This tool is designed to uncover the 'Digital DNA' of content, revealing whether its origins are human, AI, or a collaboration of both.
+                        <span className="font-semibold text-slate-800 dark:text-white">API Keys Required.</span> This tool is powered by large AI models and requires your own API keys to function. You can enter them in the Settings panel.
                     </div>
                 </li>
                 <li className="flex items-start gap-3">
                     <span className="text-cyan-500 font-bold mt-0.5">2.</span>
                     <div>
-                        <span className="font-semibold text-slate-800 dark:text-white">Deductions are Expert Opinions.</span> AI detection is a complex, evolving science. Consider my findings a well-informed probability, not the undisputed truth.
-                    </div>
-                </li>
-                 <li className="flex items-start gap-3">
-                    <span className="text-cyan-500 font-bold mt-0.5">3.</span>
-                    <div>
-                       <span className="font-semibold text-slate-800 dark:text-white">Choose Your Method (For Images).</span> For image analysis, you can perform a 'Forensic Analysis' on the content or a 'Provenance Dossier' to investigate its history online. Text analysis is always performed using my most thorough forensic method.
+                       <span className="font-semibold text-slate-800 dark:text-white">Choose Your Method.</span> Perform a 'Forensic Analysis' on image content, a 'Provenance Dossier' to investigate its web history, or a 'Hybrid Analysis' for maximum accuracy.
                     </div>
                 </li>
                 <li className="flex items-start gap-3">
-                    <span className="text-cyan-500 font-bold mt-0.5">4.</span>
+                    <span className="text-cyan-500 font-bold mt-0.5">3.</span>
                     <div>
-                       <span className="font-semibold text-slate-800 dark:text-white">Powered by Google's Gemini API.</span> This tool uses advanced generative models to perform its analysis. <a href="https://ai.google.dev/gemini-api/docs" target="_blank" rel="noopener noreferrer" className="text-cyan-500 hover:underline">Learn more here</a>.
+                       <span className="font-semibold text-slate-800 dark:text-white">Deductions are Expert Opinions.</span> AI detection is a complex, evolving science. Consider my findings a well-informed probability, not the undisputed truth.
                     </div>
                 </li>
             </ul>
-            <div className="mt-6 flex justify-center">
+            <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
+                 <Button
+                    onClick={handleOpenSettings}
+                    variant="secondary"
+                    className="px-6 py-2"
+                >
+                    Go to Settings
+                </Button>
                 <Button
                     onClick={onClose}
                     className="px-6 py-2"

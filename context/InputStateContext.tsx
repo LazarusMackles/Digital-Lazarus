@@ -1,63 +1,42 @@
 import React, { createContext, useContext, useReducer, ReactNode, Dispatch } from 'react';
-import type { InputType, AnalysisAngle, Scenario } from '../types';
+import type { AnalysisAngle, Scenario } from '../types';
 import * as actions from './actions';
 
 // State interface
 export interface InputState {
-    textContent: string;
     fileData: { name: string; imageBase64?: string | null; content?: string | null } | null;
-    activeInput: InputType;
     analysisAngle: AnalysisAngle;
 }
 
 // Initial state
-// FIX: Export for testing.
 export const initialState: InputState = {
-    textContent: '',
     fileData: null,
-    activeInput: 'file',
     analysisAngle: 'forensic',
 };
 
 // Action types
 type Action =
-  | { type: typeof actions.SET_TEXT_CONTENT; payload: string }
   | { type: typeof actions.SET_FILE_DATA; payload: { name: string; imageBase64?: string | null; content?: string | null } | null }
-  | { type: typeof actions.SET_ACTIVE_INPUT; payload: InputType }
   | { type: typeof actions.SET_ANALYSIS_ANGLE; payload: AnalysisAngle }
   | { type: typeof actions.CLEAR_INPUTS }
   | { type: typeof actions.LOAD_SCENARIO; payload: Scenario };
 
 // Reducer
-// FIX: Export for testing and provide default state.
 export const inputReducer = (state: InputState = initialState, action: Action): InputState => {
     switch (action.type) {
-        case actions.SET_TEXT_CONTENT:
-            return { ...state, textContent: action.payload, fileData: null };
         case actions.SET_FILE_DATA:
-            return { ...state, fileData: action.payload, textContent: '' };
-        case actions.SET_ACTIVE_INPUT:
-            return {
-                ...state,
-                activeInput: action.payload,
-            };
+            return { ...state, fileData: action.payload };
         case actions.SET_ANALYSIS_ANGLE:
             return { ...state, analysisAngle: action.payload };
         case actions.CLEAR_INPUTS:
             return {
-                ...state,
-                textContent: '',
-                fileData: null,
-                activeInput: 'file', // Reset to the new default
-                analysisAngle: 'forensic', 
+                ...initialState
             };
         case actions.LOAD_SCENARIO:
-            const { inputType, payload } = action.payload;
+            const { payload } = action.payload;
             return {
                 ...initialState,
-                activeInput: inputType,
-                textContent: payload.text || '',
-                fileData: payload.file || null,
+                fileData: payload.file,
             };
         default:
             return state;

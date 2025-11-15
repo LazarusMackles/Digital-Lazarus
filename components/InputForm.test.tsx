@@ -6,7 +6,8 @@ import { InputForm } from './InputForm';
 import { InputStateProvider } from '../context/InputStateContext';
 import { UIStateProvider } from '../context/UIStateContext';
 import * as AnalysisWorkflowHook from '../hooks/useAnalysisWorkflow';
-import * as ApiKeyHook from '../hooks/useApiKey';
+// FIX: Corrected typo in import path from useApiKey to useApiKeys.
+import * as ApiKeyHook from '../hooks/useApiKeys';
 
 // --- Mocks ---
 const mockPerformAnalysis = vi.fn();
@@ -15,8 +16,8 @@ const mockSelectApiKey = vi.fn();
 vi.mock('../hooks/useAnalysisWorkflow', () => ({
   useAnalysisWorkflow: vi.fn(),
 }));
-vi.mock('../hooks/useApiKey', () => ({
-  useApiKey: vi.fn(),
+vi.mock('../hooks/useApiKeys', () => ({
+  useApiKeys: vi.fn(),
 }));
 
 // A test harness that renders the component with all necessary providers
@@ -43,7 +44,7 @@ describe('InputForm Component Interaction with React Testing Library', () => {
     });
 
     it('should call performAnalysis when "Begin Deduction" is clicked with valid input and API key', () => {
-        (ApiKeyHook.useApiKey as Mock).mockReturnValue({
+        (ApiKeyHook.useApiKeys as Mock).mockReturnValue({
             hasApiKey: true,
             isChecking: false,
             selectApiKey: mockSelectApiKey,
@@ -60,7 +61,7 @@ describe('InputForm Component Interaction with React Testing Library', () => {
     });
 
     it('should show the "Select API Key" button when no API key is present', () => {
-        (ApiKeyHook.useApiKey as Mock).mockReturnValue({
+        (ApiKeyHook.useApiKeys as Mock).mockReturnValue({
             hasApiKey: false,
             isChecking: false,
             selectApiKey: mockSelectApiKey,
@@ -77,7 +78,7 @@ describe('InputForm Component Interaction with React Testing Library', () => {
     });
 
      it('should show a loading spinner while checking for the API key', () => {
-        (ApiKeyHook.useApiKey as Mock).mockReturnValue({
+        (ApiKeyHook.useApiKeys as Mock).mockReturnValue({
             hasApiKey: false,
             isChecking: true, // Key check is in progress
             selectApiKey: mockSelectApiKey,

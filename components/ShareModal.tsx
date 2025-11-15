@@ -1,33 +1,31 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import type { AnalysisResult, AnalysisEvidence } from '../types';
+import type { AnalysisResult, AnalysisEvidence, AnalysisAngle } from '../types';
 import { Icon } from './icons/index';
 import { generateShareText } from '../utils/reportUtils';
-// FIX: Corrected import path for UI components.
 import { Button } from './ui';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
+import { useResultState } from '../context/ResultStateContext';
 
 interface ShareModalProps {
-  result: AnalysisResult;
   onClose: () => void;
-  evidence: AnalysisEvidence | null;
-  timestamp: string | null;
-  modelUsed: string | null;
 }
 
-export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose, evidence, timestamp, modelUsed }) => {
+export const ShareModal: React.FC<ShareModalProps> = ({ onClose }) => {
+  const { state: resultState } = useResultState();
+  const { analysisResult, analysisEvidence, analysisTimestamp, modelUsed, analysisAngleUsed } = resultState;
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
   const [modalRoot, setModalRoot] = useState<HTMLElement | null>(null);
 
-  // On the client, find the portal root to render into.
   useEffect(() => {
     setModalRoot(document.getElementById('modal-root'));
   }, []);
 
-  // Use the custom hook to lock body scroll when modal is open.
   useBodyScrollLock();
 
-  const shareText = generateShareText(result, evidence, timestamp, false, modelUsed);
+  if (!analysisResult) return null;
+
+  const shareText = generateShareText(analysisResult, analysisEvidence, analysisTimestamp, false, modelUsed, analysisAngleUsed);
   const encodedShareText = encodeURIComponent(shareText);
   const reportTitle = encodeURIComponent('GenAI Sleuther Vanguard Forensic Report');
 
@@ -88,7 +86,6 @@ export const ShareModal: React.FC<ShareModalProps> = ({ result, onClose, evidenc
     </div>
   );
 
-  // Only render the portal if the modalRoot element is available on the client.
   if (!modalRoot) {
     return null;
   }

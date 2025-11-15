@@ -1,40 +1,20 @@
-import type { AnalysisResult, AnalysisEvidence } from '../types';
+import type { AnalysisResult, AnalysisEvidence, AnalysisAngle } from '../types';
 
-/**
- * Generates a formatted plain text report from the analysis results.
- * This is the single source of truth for report formatting.
- * @param result The analysis result object.
- * @param evidence The evidence object.
- * @param timestamp The timestamp of the analysis.
- * @param forEmailBody If true, prepends a placeholder for user feedback.
- * @param modelUsed The specific Gemini model name used.
- * @returns A formatted string representing the forensic report.
- */
 export const generateShareText = (
     result: AnalysisResult, 
     evidence: AnalysisEvidence | null, 
     timestamp: string | null,
     forEmailBody: boolean = false,
-    modelUsed: string | null
+    modelUsed: string | null,
+    analysisAngleUsed: AnalysisAngle | null
 ): string => {
     let evidenceText = '';
     if (evidence) {
-        switch (evidence.type) {
-            case 'file':
-                try {
-                    // Content is now a stringified single file object.
-                    const file: { name: string } = JSON.parse(evidence.content);
-                    evidenceText = `EVIDENCE ANALYSED (FILE): ${file.name}\n`;
-                } catch (e) {
-                    evidenceText = `EVIDENCE ANALYSED (FILE): [Could not parse file data]\n`;
-                }
-                break;
-            case 'text':
-                // Truncate long text for email body clarity
-                const truncatedText = evidence.content.length > 500 ? evidence.content.substring(0, 500) + ' ...' : evidence.content;
-                evidenceText = `EVIDENCE ANALYSED (TEXT):\n---\n${truncatedText}\n---\n\n`;
-                break;
-            // FIX: Removed 'url' case as it is not a valid InputType and was causing a type error.
+        try {
+            const file: { name: string } = JSON.parse(evidence.content);
+            evidenceText = `EVIDENCE ANALYSED (FILE): ${file.name}\n`;
+        } catch (e) {
+            evidenceText = `EVIDENCE ANALYSED (FILE): [Could not parse file data]\n`;
         }
     }
 
@@ -47,7 +27,9 @@ export const generateShareText = (
     
     text += `Analysis by: GenAI Sleuther Vanguard\n`;
     if (modelUsed) {
-        const analysisType = result.groundingMetadata ? 'Provenance Dossier' : 'Forensic Analysis';
+        let analysisType = 'Forensic Analysis';
+        if (analysisAngleUsed === 'provenance') analysisType = 'Provenance Dossier';
+        if (analysisAngleUsed === 'hybrid') analysisType = 'Hybrid Analysis';
         text += `Analysis Method: ${analysisType} (${modelUsed})\n`;
     }
     if (timestamp) {
@@ -60,7 +42,7 @@ export const generateShareText = (
     }
 
     text += `VERDICT: ${result.verdict}\n`;
-    if (result.probability > 0) { // Only show probability for forensic analysis
+    if (result.probability > 0) { 
         text += `AI PROBABILITY: ${Math.round(result.probability)}%\n\n`;
     }
     text += `EXPLANATION:\n${result.explanation}\n\n`;

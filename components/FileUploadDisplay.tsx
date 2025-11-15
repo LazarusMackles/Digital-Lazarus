@@ -75,8 +75,8 @@ export const FileUploadDisplay: React.FC = () => {
                 onDragEnter={(e) => handleDragEvent(e, true)}
                 onDragLeave={(e) => handleDragEvent(e, false)}
                 className={cn(
-                    'relative p-4 border-2 border-dashed rounded-lg transition-colors min-h-[180px]',
-                    'flex flex-col items-center justify-center',
+                    'relative p-4 border-2 border-dashed rounded-lg transition-colors min-h-[340px] max-w-sm mx-auto',
+                    'flex flex-col items-center justify-center w-full',
                     isDragActive 
                         ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/30' 
                         : 'border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-900'
@@ -91,7 +91,7 @@ export const FileUploadDisplay: React.FC = () => {
                         <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">(PNG, JPG, WEBP, GIF)</p>
                     </div>
                 ) : (
-                    <div className="relative group w-full h-full max-w-[164px] aspect-square bg-slate-100 dark:bg-slate-900/50 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700">
+                    <div className="relative group w-full h-full max-w-[280px] aspect-square bg-slate-100 dark:bg-slate-900/50 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700">
                         {fileData.imageBase64 && <EvidenceImage base64Src={fileData.imageBase64} alt={`Preview of ${fileData.name}`} className="w-full h-full object-cover" />}
                         <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-black/60 backdrop-blur-sm text-center">
                             <p className="text-xs text-white truncate">{fileData.name}</p>

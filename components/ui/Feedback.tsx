@@ -1,8 +1,8 @@
 
+
 import React, { useState, useMemo } from 'react';
 import { Icon } from '../icons/index';
-// FIX: Removed unused and deprecated AnalysisMode import.
-import type { AnalysisResult, AnalysisEvidence } from '../../types';
+import type { AnalysisResult, AnalysisEvidence, AnalysisAngle } from '../../types';
 import { generateShareText } from '../../utils/reportUtils';
 import { FEEDBACK_EMAIL } from '../../utils/constants';
 
@@ -10,11 +10,11 @@ interface FeedbackProps {
   result: AnalysisResult;
   evidence: AnalysisEvidence | null;
   timestamp: string | null;
-  // FIX: Removed analysisModeUsed as it's a deprecated property.
   modelUsed: string | null;
+  analysisAngleUsed: AnalysisAngle | null;
 }
 
-export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence, timestamp, modelUsed }) => {
+export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence, timestamp, modelUsed, analysisAngleUsed }) => {
   const [feedbackGiven, setFeedbackGiven] = useState<'none' | 'positive' | 'report'>('none');
 
   const handlePositiveFeedback = () => {
@@ -23,11 +23,10 @@ export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence,
 
   const mailtoLink = useMemo(() => {
     const reportTitle = encodeURIComponent('Sleuther Vanguard - Feedback');
-    // FIX: Corrected arguments passed to generateShareText, removing the deprecated analysisModeUsed.
-    const emailBody = encodeURIComponent(generateShareText(result, evidence, timestamp, true, modelUsed));
+    const emailBody = encodeURIComponent(generateShareText(result, evidence, timestamp, true, modelUsed, analysisAngleUsed));
     const recipient = encodeURIComponent(`Sleuther Feedback <${FEEDBACK_EMAIL}>`);
     return `mailto:${recipient}?subject=${reportTitle}&body=${emailBody}`;
-  }, [result, evidence, timestamp, modelUsed]);
+  }, [result, evidence, timestamp, modelUsed, analysisAngleUsed]);
 
 
   const renderContent = () => {

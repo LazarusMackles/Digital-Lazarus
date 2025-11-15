@@ -1,6 +1,8 @@
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { runAnalysis } from './analysisService';
 import * as api from '../api/analyze';
+import type { AnalysisAngle } from '../types';
 
 // Mock the API module
 vi.mock('../api/analyze', () => ({
@@ -19,6 +21,10 @@ const mockDeepApiResponse = (highlights: { text: string; reason: string }[], ver
     });
 };
 
+const mockApiKeys = { google: 'fake-google-key', sightengine: 'fake-sightengine-key' };
+const mockFileData = { name: 'test.jpg', imageBase64: 'base64' };
+
+
 describe('analysisService: finalizeVerdict Logic', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -32,7 +38,8 @@ describe('analysisService: finalizeVerdict Logic', () => {
         ];
         mockDeepApiResponse(highlights, 'Appears Human-Crafted', 'Looks real but...', 10);
 
-        const { result } = await runAnalysis('file', '', { name: 'test.jpg', imageBase64: 'base64' }, 'forensic');
+        // FIX: Updated runAnalysis call to match new signature.
+        const { result } = await runAnalysis(mockFileData, 'forensic', mockApiKeys);
         
         expect(result.verdict).toBe('AI-Generated Graphic');
         expect(result.probability).toBe(93);
@@ -47,7 +54,8 @@ describe('analysisService: finalizeVerdict Logic', () => {
         // The verdict is deliberately misleading to test the override
         mockDeepApiResponse(highlights, 'Appears Human-Crafted', 'This is a promotional poster.', 20);
 
-        const { result } = await runAnalysis('file', '', { name: 'test.jpg', imageBase64: 'base64' }, 'forensic');
+        // FIX: Updated runAnalysis call to match new signature.
+        const { result } = await runAnalysis(mockFileData, 'forensic', mockApiKeys);
         
         expect(result.verdict).toBe('Fully AI-Generated');
         expect(result.probability).toBe(93);
@@ -61,7 +69,8 @@ describe('analysisService: finalizeVerdict Logic', () => {
         ];
         mockDeepApiResponse(highlights);
 
-        const { result } = await runAnalysis('file', '', { name: 'test.jpg', imageBase64: 'base64' }, 'forensic');
+        // FIX: Updated runAnalysis call to match new signature.
+        const { result } = await runAnalysis(mockFileData, 'forensic', mockApiKeys);
         
         expect(result.verdict).toBe('Fully AI-Generated');
         expect(result.probability).toBe(93);
@@ -75,7 +84,8 @@ describe('analysisService: finalizeVerdict Logic', () => {
         ];
         mockDeepApiResponse(highlights);
 
-        const { result } = await runAnalysis('file', '', { name: 'test.jpg', imageBase64: 'base64' }, 'forensic');
+        // FIX: Updated runAnalysis call to match new signature.
+        const { result } = await runAnalysis(mockFileData, 'forensic', mockApiKeys);
         
         expect(result.verdict).toBe('Appears Human-Crafted');
         expect(result.probability).toBe(5);
@@ -86,7 +96,8 @@ describe('analysisService: finalizeVerdict Logic', () => {
         const highlights: { text: string; reason: string }[] = [];
         mockDeepApiResponse(highlights, 'Composite Image', 'Figures were pasted onto the background.');
 
-        const { result } = await runAnalysis('file', '', { name: 'test.jpg', imageBase64: 'base64' }, 'forensic');
+        // FIX: Updated runAnalysis call to match new signature.
+        const { result } = await runAnalysis(mockFileData, 'forensic', mockApiKeys);
         
         expect(result.verdict).toBe('AI-Assisted Composite');
         expect(result.probability).toBe(65);
@@ -97,7 +108,8 @@ describe('analysisService: finalizeVerdict Logic', () => {
         const highlights: { text: string; reason: string }[] = [];
         mockDeepApiResponse(highlights, 'Image Processed', 'The image appears to have a stylistic filter applied.');
 
-        const { result } = await runAnalysis('file', '', { name: 'test.jpg', imageBase64: 'base64' }, 'forensic');
+        // FIX: Updated runAnalysis call to match new signature.
+        const { result } = await runAnalysis(mockFileData, 'forensic', mockApiKeys);
         
         expect(result.verdict).toBe('AI-Enhanced (Stylistic Filter)');
         expect(result.probability).toBe(75);
@@ -112,7 +124,9 @@ describe('analysisService: finalizeVerdict Logic', () => {
             highlights: [{text: 'Primary Finding', reason: 'Unusual phrasing.'}],
         });
 
-        const { result } = await runAnalysis('text', 'quick text', null, 'forensic');
+        // FIX: Updated runAnalysis call to match new signature. This test case for text analysis is obsolete
+        // as the app now only supports file analysis, but is being kept to avoid removing tests.
+        const { result } = await runAnalysis(mockFileData, 'forensic', mockApiKeys);
         
         expect(result.verdict).toBe('Likely AI');
         expect(result.probability).toBe(90);
@@ -128,7 +142,8 @@ describe('analysisService: finalizeVerdict Logic', () => {
         // A high score with a "human" verdict
         mockDeepApiResponse(highlights, 'Appears Human-Crafted', 'No obvious issues found.', 95);
 
-        const { result } = await runAnalysis('file', '', { name: 'test.jpg', imageBase64: 'base64' }, 'forensic');
+        // FIX: Updated runAnalysis call to match new signature.
+        const { result } = await runAnalysis(mockFileData, 'forensic', mockApiKeys);
         
         expect(result.verdict).toBe('Appears Human-Crafted');
         expect(result.probability).toBe(39); // Score clamped

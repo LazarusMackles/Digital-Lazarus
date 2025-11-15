@@ -1,15 +1,15 @@
+
 import React from 'react';
-// FIX: Replaced deprecated AnalysisMode with AnalysisAngle.
-import type { AnalysisAngle, InputType } from '../types';
+// FIX: Removed unused 'InputType' which is no longer exported from types.
+import type { AnalysisAngle } from '../types';
 
 interface LoaderProps {
   message?: string;
   // FIX: Replaced analysisMode with analysisAngleUsed to match current state.
   analysisAngleUsed?: AnalysisAngle | null;
-  analysisEvidenceType?: InputType | null;
 }
 
-export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Deducing the Digital DNA ... ", analysisAngleUsed, analysisEvidenceType }) => {
+export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Deducing the Digital DNA ... ", analysisAngleUsed }) => {
   
   const renderSubtext = () => {
     // FIX: Updated conditional logic to reflect the new AnalysisAngle options.

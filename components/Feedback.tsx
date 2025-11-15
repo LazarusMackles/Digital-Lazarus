@@ -1,6 +1,8 @@
+
 import React, { useState, useMemo } from 'react';
 import { Icon } from './icons/index';
-import type { AnalysisResult, AnalysisEvidence } from '../types';
+// FIX: Added AnalysisAngle to types import
+import type { AnalysisResult, AnalysisEvidence, AnalysisAngle } from '../types';
 import { generateShareText } from '../utils/reportUtils';
 import { FEEDBACK_EMAIL } from '../utils/constants';
 
@@ -9,9 +11,12 @@ interface FeedbackProps {
   evidence: AnalysisEvidence | null;
   timestamp: string | null;
   modelUsed: string | null;
+  // FIX: Added missing analysisAngleUsed prop
+  analysisAngleUsed: AnalysisAngle | null;
 }
 
-export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence, timestamp, modelUsed }) => {
+// FIX: Added analysisAngleUsed to props destructuring
+export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence, timestamp, modelUsed, analysisAngleUsed }) => {
   const [feedbackGiven, setFeedbackGiven] = useState<'none' | 'positive' | 'report'>('none');
 
   const handlePositiveFeedback = () => {
@@ -20,10 +25,12 @@ export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence,
 
   const mailtoLink = useMemo(() => {
     const reportTitle = encodeURIComponent('Sleuther Vanguard - Feedback');
-    const emailBody = encodeURIComponent(generateShareText(result, evidence, timestamp, true, modelUsed));
+    // FIX: Passed analysisAngleUsed to generateShareText to satisfy its signature.
+    const emailBody = encodeURIComponent(generateShareText(result, evidence, timestamp, true, modelUsed, analysisAngleUsed));
     const recipient = encodeURIComponent(`Sleuther Feedback <${FEEDBACK_EMAIL}>`);
     return `mailto:${recipient}?subject=${reportTitle}&body=${emailBody}`;
-  }, [result, evidence, timestamp, modelUsed]);
+    // FIX: Added analysisAngleUsed to dependency array.
+  }, [result, evidence, timestamp, modelUsed, analysisAngleUsed]);
 
 
   const renderContent = () => {

@@ -1,4 +1,5 @@
 
+export * from './ApiKeyOnboardingModal';
 export * from './Button';
 export * from './Card';
 export * from './ChallengeVerdict';
@@ -9,12 +10,12 @@ export * from './Feedback';
 export * from './HighlightsDisplay';
 export * from './HowItWorks';
 export * from './ImageLightbox';
-export * from './InputTabs';
 export * from './Loader';
 export * from './ModeButton';
 export * from './OptionGroup';
 export * from './ProvenanceSources';
 export * from './RadialProgress';
 export * from './ResultActionButtons';
+export * from './SettingsModal';
 export * from './SleuthNote';
 export * from './ThemeToggle';

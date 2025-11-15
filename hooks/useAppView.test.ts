@@ -1,3 +1,4 @@
+
 import { describe, it, expect, vi } from 'vitest';
 import { useAppView } from './useAppView';
 import * as ResultStateContext from '../context/ResultStateContext';
@@ -52,9 +53,11 @@ describe('useAppView', () => {
         expect(view).toBe('RESULT');
     });
 
-    it('should return LOADING for a deep-dive streaming text view (initial analysis)', () => {
+    // FIX: Changed test case from "text view" to "file view" as text analysis is no longer supported.
+    it('should return LOADING for a deep-dive streaming file view (initial analysis)', () => {
          mockUseResultState({
-            analysisEvidence: { type: 'text', content: 'abc' },
+            // FIX: Changed evidence type to 'file' to match current type definitions.
+            analysisEvidence: { type: 'file', content: 'abc' },
             analysisResult: { probability: 0, verdict: '...', explanation: '' } // The placeholder result exists.
         });
         mockUseUIState({
