@@ -1,13 +1,13 @@
 
 
+
 import React, { useState, useCallback } from 'react';
 import { useResultState } from '../context/ResultStateContext';
 import { useUIState } from '../context/UIStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
 import { VerdictPanel } from './result/VerdictPanel';
 import { EvidencePresenter } from './result/EvidencePresenter';
-import { ShareModal } from './ShareModal';
-import { Card, HighlightsDisplay, Feedback, ResultActionButtons, ChallengeVerdict, ProvenanceSources } from './ui';
+import { Card, HighlightsDisplay, Feedback, ResultActionButtons, ChallengeVerdict, ProvenanceSources, ShareModal } from './ui';
 
 export const ResultDisplay: React.FC = () => {
   const { state: resultState } = useResultState();

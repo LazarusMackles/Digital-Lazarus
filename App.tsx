@@ -1,16 +1,16 @@
 
 
+
 import React from 'react';
 import { Header } from './components/Header';
 import { ResultDisplay } from './components/ResultDisplay';
-import { WelcomeModal } from './components/WelcomeModal';
 import { InputForm } from './components/InputForm';
 import { InputStateProvider } from './context/InputStateContext';
 import { ResultStateProvider, useResultState } from './context/ResultStateContext';
 import { UIStateProvider, useUIState } from './context/UIStateContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import * as actions from './context/actions';
-import { Card, Loader, SettingsModal } from './components/ui';
+import { Card, Loader, SettingsModal, WelcomeModal } from './components/ui';
 import { useAppView } from './hooks/useAppView';
 import { IntroPanel } from './components/IntroPanel';
 import { ApiKeyProvider } from './context/ApiKeyContext';

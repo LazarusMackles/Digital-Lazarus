@@ -1,4 +1,5 @@
 
+
 export * from './ApiKeyOnboardingModal';
 export * from './Button';
 export * from './Card';
@@ -18,4 +19,6 @@ export * from './RadialProgress';
 export * from './ResultActionButtons';
 export * from './SettingsModal';
 export * from './SleuthNote';
+export * from './ShareModal';
 export * from './ThemeToggle';
+export * from './WelcomeModal';
