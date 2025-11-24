@@ -55,6 +55,9 @@ export const useAnalysisWorkflow = () => {
 
             } else { // 'forensic' or 'hybrid'
                 let sightengineScore: number | undefined;
+                
+                // HYBRID FALLBACK STRATEGY
+                // If Sightengine fails, we log it and continue as Forensic Analysis.
                 if (analysisAngle === 'hybrid') {
                     if (!sightengineApiKey) {
                         throw new Error("Sightengine API Key is missing for Hybrid Analysis.");
@@ -64,11 +67,15 @@ export const useAnalysisWorkflow = () => {
                         const sightengineResult = await analyzeWithSightengine(fileData.imageBase64, sightengineApiKey);
                         sightengineScore = Math.round(sightengineResult.ai_generated * 100);
                     } catch (e) {
-                        throw new Error(`Sightengine analysis failed: ${e instanceof Error ? e.message : String(e)}`);
+                        console.warn("Sightengine Analysis Failed. Falling back to Forensic Analysis.", e);
+                        // We do NOT throw here. We let the workflow continue.
+                        // sightengineScore remains undefined, triggering standard forensic logic in buildPrompt.
                     }
                 }
 
                 uiDispatch({ type: actions.START_CONTEXT_ANALYSIS });
+                // If sightengineScore is undefined (because of failure or being in forensic mode),
+                // buildPrompt automatically defaults to the standard forensic instructions.
                 const prompt = buildPrompt(fileData, analysisAngle, isReanalysis, sightengineScore);
                 const rawResult = await analyzeContent(prompt, filesForApi, modelName, googleApiKey);
                 const result = finalizeForensicVerdict(rawResult, sightengineScore);

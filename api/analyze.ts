@@ -66,6 +66,7 @@ export const analyzeContent = async (
       config: {
         responseMimeType: 'application/json',
         responseSchema: schema,
+        temperature: 0.0, // Deterministic output to prevent variance
       },
     });
 
@@ -101,6 +102,7 @@ export const analyzeWithSearch = async (
       contents,
       config: {
         tools: [{googleSearch: {}}],
+        temperature: 0.0, // Deterministic output for consistent provenance checks
       },
     });
 

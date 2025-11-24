@@ -1,5 +1,4 @@
 
-
 import React, { useCallback, useMemo } from 'react';
 import { useInputState } from '../context/InputStateContext';
 import { useUIState } from '../context/UIStateContext';
@@ -39,6 +38,10 @@ export const InputForm: React.FC = () => {
         inputDispatch({ type: actions.SET_ANALYSIS_ANGLE, payload: angle });
     };
 
+    const handleOpenSettings = () => {
+        uiDispatch({ type: actions.SET_SHOW_SETTINGS_MODAL, payload: true });
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         
@@ -51,6 +54,7 @@ export const InputForm: React.FC = () => {
 
         if (!hasGoogleApiKey) {
             uiDispatch({ type: actions.SET_ERROR, payload: 'Please enter your Google API Key in the Settings panel.' });
+            handleOpenSettings();
             return;
         }
 
@@ -74,6 +78,21 @@ export const InputForm: React.FC = () => {
             {showApiKeyOnboarding && <ApiKeyOnboardingModal />}
             <HowItWorks />
             
+            {!hasGoogleApiKey && (
+                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl flex items-center gap-4 shadow-sm">
+                    <div className="p-2 bg-amber-100 dark:bg-amber-800/50 rounded-full text-amber-600 dark:text-amber-400">
+                         <Icon name="key" className="w-6 h-6" />
+                    </div>
+                    <div className="flex-grow">
+                        <h3 className="font-bold text-slate-800 dark:text-slate-200">Authentication Required</h3>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">Sleuther needs your Google API Key to power its engines.</p>
+                    </div>
+                    <Button onClick={handleOpenSettings} variant="secondary" className="whitespace-nowrap px-4 py-2 text-sm">
+                        Connect Key
+                    </Button>
+                </div>
+            )}
+            
             <Card>
                 <form onSubmit={handleSubmit} id="input-area">
                     <div className="p-6 bg-white dark:bg-slate-800/80 rounded-lg border border-slate-200 dark:border-slate-700/50">
@@ -96,7 +115,8 @@ export const InputForm: React.FC = () => {
                         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Button
                                 type="submit"
-                                disabled={!isInputValid}
+                                disabled={!isInputValid || !hasGoogleApiKey}
+                                className="disabled:opacity-50 disabled:grayscale"
                             >
                                 Begin Deduction
                             </Button>

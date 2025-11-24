@@ -10,7 +10,14 @@ export const deepAnalysisSchema = {
     },
     verdict: {
       type: Type.STRING,
-      description: 'A concise verdict from the "Spectrum of Creation". For text, this can be "Fully AI-Generated", "Likely AI-Enhanced", "Composite: Human & AI", or "Appears Human-Crafted". For images, appropriate verdicts like "AI-Assisted Composite" or "AI-Enhanced (Stylistic Filter)" should be used.'
+      enum: [
+        "Fully AI-Generated",
+        "Likely AI-Enhanced",
+        "Composite: Human & AI",
+        "Appears Human-Crafted",
+        "Analysis Inconclusive"
+      ],
+      description: 'A concise verdict selected from the allowed list.'
     },
     explanation: {
       type: Type.STRING,
