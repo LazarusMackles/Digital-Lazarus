@@ -9,13 +9,8 @@ export const generateShareText = (
     analysisAngleUsed: AnalysisAngle | null
 ): string => {
     let evidenceText = '';
-    if (evidence) {
-        try {
-            const file: { name: string } = JSON.parse(evidence.content);
-            evidenceText = `EVIDENCE ANALYSED (FILE): ${file.name}\n`;
-        } catch (e) {
-            evidenceText = `EVIDENCE ANALYSED (FILE): [Could not parse file data]\n`;
-        }
+    if (evidence && evidence.type === 'reference') {
+        evidenceText = `EVIDENCE ANALYSED (FILE): ${evidence.filename}\n`;
     }
 
     let text = '';

@@ -12,7 +12,7 @@ describe('resultReducer', () => {
 
     it('should handle START_ANALYSIS for provenance (streaming)', () => {
         const payload = {
-            evidence: { type: 'file', content: 'test' } as AnalysisEvidence,
+            evidence: { type: 'reference', fileRef: 'input_file', filename: 'test.png' } as AnalysisEvidence,
             analysisAngle: 'provenance' as AnalysisAngle,
         };
         const state = resultReducer(initialState, { type: actions.START_ANALYSIS, payload });
@@ -25,7 +25,7 @@ describe('resultReducer', () => {
 
     it('should handle START_ANALYSIS for forensic input (not streaming)', () => {
         const payload = {
-            evidence: { type: 'file', content: 'test' } as AnalysisEvidence,
+            evidence: { type: 'reference', fileRef: 'input_file', filename: 'test.png' } as AnalysisEvidence,
             analysisAngle: 'forensic' as AnalysisAngle,
         };
         const state = resultReducer(initialState, { type: actions.START_ANALYSIS, payload });

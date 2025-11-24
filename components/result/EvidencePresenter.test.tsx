@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { EvidencePresenter } from './EvidencePresenter';
-import { InputStateProvider } from '../../context/InputStateContext';
+import { InputStateProvider, InputStateContext, initialState } from '../../context/InputStateContext';
 import type { AnalysisEvidence } from '../../types';
 
 // Mock EvidenceImage to avoid canvas/blob issues in JSDOM
@@ -14,18 +14,24 @@ vi.mock('../ui', () => ({
 describe('EvidencePresenter', () => {
     it('renders file evidence correctly', () => {
         const mockEvidence: AnalysisEvidence = {
-            type: 'file',
-            content: JSON.stringify({ name: 'suspect.jpg', imageBase64: 'data:image/jpeg;base64,123' })
+            type: 'reference',
+            fileRef: 'input_file',
+            filename: 'suspect.jpg'
+        };
+
+        const mockInputState = {
+            ...initialState,
+            fileData: { name: 'suspect.jpg', imageBase64: 'data:image/jpeg;base64,123' }
         };
 
         render(
-            <InputStateProvider>
+            <InputStateContext.Provider value={{ state: mockInputState, dispatch: vi.fn() }}>
                 <EvidencePresenter 
                     evidence={mockEvidence} 
                     probability={90} 
                     analysisAngleUsed="forensic" 
                 />
-            </InputStateProvider>
+            </InputStateContext.Provider>
         );
 
         expect(screen.getByText('suspect.jpg')).toBeDefined();
@@ -35,18 +41,24 @@ describe('EvidencePresenter', () => {
 
     it('renders appropriate border color for AI high probability', () => {
         const mockEvidence: AnalysisEvidence = {
-            type: 'file',
-            content: JSON.stringify({ name: 'ai.jpg', imageBase64: '...' })
+            type: 'reference',
+            fileRef: 'input_file',
+            filename: 'ai.jpg'
+        };
+
+        const mockInputState = {
+            ...initialState,
+            fileData: { name: 'ai.jpg', imageBase64: 'data:image/jpeg;base64,123' }
         };
 
         const { container } = render(
-            <InputStateProvider>
+            <InputStateContext.Provider value={{ state: mockInputState, dispatch: vi.fn() }}>
                  <EvidencePresenter 
                     evidence={mockEvidence} 
                     probability={95} 
                     analysisAngleUsed="forensic" 
                 />
-            </InputStateProvider>
+            </InputStateContext.Provider>
         );
 
         // Check for red border class (rose-500)
@@ -55,18 +67,24 @@ describe('EvidencePresenter', () => {
 
     it('renders appropriate border color for Provenance mode', () => {
         const mockEvidence: AnalysisEvidence = {
-            type: 'file',
-            content: JSON.stringify({ name: 'search.jpg', imageBase64: '...' })
+            type: 'reference',
+            fileRef: 'input_file',
+            filename: 'search.jpg'
+        };
+        
+        const mockInputState = {
+            ...initialState,
+            fileData: { name: 'search.jpg', imageBase64: 'data:image/jpeg;base64,123' }
         };
 
         const { container } = render(
-            <InputStateProvider>
+            <InputStateContext.Provider value={{ state: mockInputState, dispatch: vi.fn() }}>
                  <EvidencePresenter 
                     evidence={mockEvidence} 
                     probability={0} 
                     analysisAngleUsed="provenance" 
                 />
-            </InputStateProvider>
+            </InputStateContext.Provider>
         );
 
         // Check for cyan border class

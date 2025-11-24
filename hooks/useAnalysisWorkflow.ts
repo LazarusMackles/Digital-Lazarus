@@ -11,6 +11,7 @@ import {
 } from '../services/analysisService';
 import { analyzeWithSightengine } from '../services/sightengineService';
 import { analyzeContent, analyzeWithSearch } from '../services/geminiService';
+import { aggressivelyCompressImageForAnalysis } from '../utils/imageCompression';
 import { MODELS } from '../utils/constants';
 import type { AnalysisEvidence } from '../types';
 import { useApiKeys } from './useApiKeys';
@@ -29,7 +30,13 @@ export const useAnalysisWorkflow = () => {
             return;
         }
 
-        const evidence: AnalysisEvidence = { type: 'file', content: JSON.stringify(fileData) };
+        // MEMORY OPTIMIZATION: Store only a reference to the file, not the full base64 string.
+        // The ResultDisplay will read the actual image from InputState.
+        const evidence: AnalysisEvidence = { 
+            type: 'reference', 
+            fileRef: 'input_file',
+            filename: fileData.name 
+        };
         
         if (isReanalysis) {
             resultDispatch({ type: actions.START_REANALYSIS });
@@ -42,11 +49,12 @@ export const useAnalysisWorkflow = () => {
                 throw new Error("Google API Key is missing.");
             }
 
-            const filesForApi = [{ name: fileData.name, imageBase64: fileData.imageBase64 }];
+            // PERFORMANCE OPTIMIZATION: Compress image before sending to API to reduce latency.
+            const compressedImage = await aggressivelyCompressImageForAnalysis(fileData.imageBase64);
+            const filesForApi = [{ name: fileData.name, imageBase64: compressedImage }];
 
             if (analysisAngle === 'provenance') {
-                // MODEL OPTIMIZATION: Use Flash for Provenance (Web Search) tasks.
-                // It is faster, cheaper, and sufficiently capable for search summarization.
+                // Use Flash for Provenance
                 const modelName = MODELS.FLASH; 
                 
                 uiDispatch({ type: actions.START_CONTEXT_ANALYSIS });
@@ -56,13 +64,11 @@ export const useAnalysisWorkflow = () => {
                 resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result, modelName, isSecondOpinion: isReanalysis } });
 
             } else { // 'forensic' or 'hybrid'
-                // Use PRO for deep visual analysis and reasoning.
                 const modelName = MODELS.PRO;
 
                 let sightengineScore: number | undefined;
                 
                 // HYBRID FALLBACK STRATEGY
-                // If Sightengine fails, we log it and continue as Forensic Analysis.
                 if (analysisAngle === 'hybrid') {
                     if (!sightengineApiKey) {
                         throw new Error("Sightengine API Key is missing for Hybrid Analysis.");
@@ -73,14 +79,10 @@ export const useAnalysisWorkflow = () => {
                         sightengineScore = Math.round(sightengineResult.ai_generated * 100);
                     } catch (e) {
                         console.warn("Sightengine Analysis Failed. Falling back to Forensic Analysis.", e);
-                        // We do NOT throw here. We let the workflow continue.
-                        // sightengineScore remains undefined, triggering standard forensic logic in buildPrompt.
                     }
                 }
 
                 uiDispatch({ type: actions.START_CONTEXT_ANALYSIS });
-                // If sightengineScore is undefined (because of failure or being in forensic mode),
-                // buildPrompt automatically defaults to the standard forensic instructions.
                 const prompt = buildPrompt(fileData, analysisAngle, isReanalysis, sightengineScore);
                 const rawResult = await analyzeContent(prompt, filesForApi, modelName, googleApiKey);
                 const result = finalizeForensicVerdict(rawResult, sightengineScore);

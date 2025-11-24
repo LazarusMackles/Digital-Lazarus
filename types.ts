@@ -16,8 +16,9 @@ export interface AnalysisResult {
 }
 
 export interface AnalysisEvidence {
-  type: 'file'; // Only file type is supported now
-  content: string;
+  type: 'reference';
+  fileRef: 'input_file';
+  filename: string;
 }
 
 export interface Scenario {
