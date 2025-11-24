@@ -21,6 +21,16 @@ export interface AnalysisEvidence {
   filename: string;
 }
 
+export interface HistoryEntry {
+    id: string;
+    timestamp: string;
+    filename: string;
+    verdict: string;
+    probability: number;
+    analysisAngle: AnalysisAngle;
+    modelUsed: string;
+}
+
 export interface Scenario {
   title: string;
   description: string;

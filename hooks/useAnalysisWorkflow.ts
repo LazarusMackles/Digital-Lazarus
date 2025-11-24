@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { useInputState } from '../context/InputStateContext';
 import { useResultState } from '../context/ResultStateContext';
 import { useUIState } from '../context/UIStateContext';
+import { useHistory } from '../context/HistoryContext';
 import * as actions from '../context/actions';
 import { 
     buildPrompt, 
@@ -20,6 +21,7 @@ export const useAnalysisWorkflow = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
     const { dispatch: resultDispatch } = useResultState();
     const { dispatch: uiDispatch } = useUIState();
+    const { addToHistory } = useHistory();
     const { googleApiKey, sightengineApiKey } = useApiKeys();
 
     const performAnalysis = useCallback(async (isReanalysis = false) => {
@@ -34,7 +36,7 @@ export const useAnalysisWorkflow = () => {
         // The ResultDisplay will read the actual image from InputState.
         const evidence: AnalysisEvidence = { 
             type: 'reference', 
-            fileRef: 'input_file',
+            fileRef: 'input_file', 
             filename: fileData.name 
         };
         
@@ -53,18 +55,20 @@ export const useAnalysisWorkflow = () => {
             const compressedImage = await aggressivelyCompressImageForAnalysis(fileData.imageBase64);
             const filesForApi = [{ name: fileData.name, imageBase64: compressedImage }];
 
+            let result, modelName;
+
             if (analysisAngle === 'provenance') {
                 // Use Flash for Provenance
-                const modelName = MODELS.FLASH; 
+                modelName = MODELS.FLASH; 
                 
                 uiDispatch({ type: actions.START_CONTEXT_ANALYSIS });
                 const prompt = buildPrompt(fileData, 'provenance', isReanalysis);
                 const response = await analyzeWithSearch(prompt, filesForApi, modelName, googleApiKey);
-                const result = finalizeProvenanceVerdict(response);
+                result = finalizeProvenanceVerdict(response);
                 resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result, modelName, isSecondOpinion: isReanalysis } });
 
             } else { // 'forensic' or 'hybrid'
-                const modelName = MODELS.PRO;
+                modelName = MODELS.PRO;
 
                 let sightengineScore: number | undefined;
                 
@@ -85,11 +89,14 @@ export const useAnalysisWorkflow = () => {
                 uiDispatch({ type: actions.START_CONTEXT_ANALYSIS });
                 const prompt = buildPrompt(fileData, analysisAngle, isReanalysis, sightengineScore);
                 const rawResult = await analyzeContent(prompt, filesForApi, modelName, googleApiKey);
-                const result = finalizeForensicVerdict(rawResult, sightengineScore);
+                result = finalizeForensicVerdict(rawResult, sightengineScore);
                 resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result, modelName, isSecondOpinion: isReanalysis } });
             }
             
             uiDispatch({ type: actions.ANALYSIS_COMPLETE });
+            
+            // HISTORY PERSISTENCE: Save the result to local history
+            addToHistory(result, fileData.name, analysisAngle, modelName);
 
         } catch (error) {
             console.error("Analysis workflow error:", error);
@@ -97,7 +104,7 @@ export const useAnalysisWorkflow = () => {
             uiDispatch({ type: actions.SET_ERROR, payload: errorMessage });
         }
 
-    }, [inputState, googleApiKey, sightengineApiKey, resultDispatch, uiDispatch]);
+    }, [inputState, googleApiKey, sightengineApiKey, resultDispatch, uiDispatch, addToHistory]);
 
     const handleNewAnalysis = useCallback(() => {
         resultDispatch({ type: actions.NEW_ANALYSIS });

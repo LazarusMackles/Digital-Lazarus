@@ -1,6 +1,3 @@
-
-
-
 import React from 'react';
 import { Header } from './components/Header';
 import { ResultDisplay } from './components/ResultDisplay';
@@ -14,6 +11,7 @@ import { Card, Loader, SettingsModal, WelcomeModal } from './components/ui';
 import { useAppView } from './hooks/useAppView';
 import { IntroPanel } from './components/IntroPanel';
 import { ApiKeyProvider } from './context/ApiKeyContext';
+import { HistoryProvider } from './context/HistoryContext';
 
 const IconSprite: React.FC = React.memo(() => (
   <svg xmlns="http://www.w3.org/2000/svg" className="absolute w-0 h-0">
@@ -34,16 +32,16 @@ const IconSprite: React.FC = React.memo(() => (
         <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
       </symbol>
        <symbol id="icon-key" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21 8.25Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21 8.25Z" />
       </symbol>
        <symbol id="icon-magnifying-glass" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
       </symbol>
       <symbol id="icon-link" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
       </symbol>
        <symbol id="icon-light-bulb" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.311V21m-3.75 0h-1.5a1.5 1.5 0 0 1-1.5-1.5v-1.5m3.75 0v-1.5a1.5 1.5 0 0 0-1.5-1.5h-1.5m-6.375 7.375a12.057 12.057 0 0 1-4.5 0m3.75 2.311V21m-3.75 0h-1.5a1.5 1.5 0 0 1-1.5-1.5v-1.5m3.75 0v-1.5a1.5 1.5 0 0 0-1.5-1.5h-1.5M9 6.75a3 3 0 0 1 3-3h0a3 3 0 0 1 3 3v.75M9 7.5h6" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.311V21m-3.75 0h-1.5a1.5 1.5 0 0 1-1.5-1.5v-1.5m3.75 0v-1.5a1.5 1.5 0 0 0-1.5-1.5h-1.5m-6.375 7.375a12.057 12.057 0 0 1-4.5 0m3.75 2.311V21m-3.75 0h-1.5a1.5 1.5 0 0 1-1.5-1.5v-1.5m3.75 0v-1.5a1.5 1.5 0 0 0-1.5-1.5h-1.5M9 6.75a3 3 0 0 1 3-3h0a3 3 0 0 1 3 3v.75M9 7.5h6" />
       </symbol>
       <symbol id="icon-moon" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
@@ -63,6 +61,9 @@ const IconSprite: React.FC = React.memo(() => (
       </symbol>
       <symbol id="icon-x-mark" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+      </symbol>
+      <symbol id="icon-clock" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
       </symbol>
     </defs>
   </svg>
@@ -138,6 +139,7 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <ApiKeyProvider>
+      <HistoryProvider>
         <InputStateProvider>
           <UIStateProvider>
             <ResultStateProvider>
@@ -147,6 +149,7 @@ const App: React.FC = () => {
             </ResultStateProvider>
           </UIStateProvider>
         </InputStateProvider>
+      </HistoryProvider>
     </ApiKeyProvider>
   );
 };

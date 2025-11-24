@@ -1,5 +1,3 @@
-
-
 export * from './ApiKeyOnboardingModal';
 export * from './Button';
 export * from './Card';
@@ -9,6 +7,7 @@ export * from './ErrorFallback';
 export * from './EvidenceImage';
 export * from './Feedback';
 export * from './HighlightsDisplay';
+export * from './HistoryModal';
 export * from './HowItWorks';
 export * from './ImageLightbox';
 export * from './Loader';

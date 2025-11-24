@@ -1,16 +1,16 @@
 
-import React from 'react';
-import { ThemeToggle } from './ui';
+import React, { useState } from 'react';
+import { ThemeToggle, HistoryModal } from './ui';
 import { useUIState } from '../context/UIStateContext';
 import { useApiKeys } from '../hooks/useApiKeys';
 import * as actions from '../context/actions';
-// FIX: Corrected import path for Icon component to point to the icons directory's index file.
 import { Icon } from './icons/index';
 import { cn } from '../utils/cn';
 
 export const Header: React.FC = React.memo(() => {
   const { dispatch } = useUIState();
   const { hasGoogleApiKey } = useApiKeys();
+  const [showHistory, setShowHistory] = useState(false);
   
   const handleOpenSettings = () => dispatch({ type: actions.SET_SHOW_SETTINGS_MODAL, payload: true });
 
@@ -18,6 +18,14 @@ export const Header: React.FC = React.memo(() => {
     <>
       <header className="relative text-center">
         <div className="absolute top-0 right-0 flex items-center gap-2">
+          <button
+            onClick={() => setShowHistory(true)}
+            className="p-2 rounded-full border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors duration-300"
+            aria-label="View Case History"
+            title="Case History"
+          >
+            <Icon name="clock" className="w-5 h-5" />
+          </button>
           <button
             onClick={handleOpenSettings}
             className={cn(
@@ -43,6 +51,7 @@ export const Header: React.FC = React.memo(() => {
           GenAI Sleuther Vanguard
         </h1>
       </header>
+      {showHistory && <HistoryModal onClose={() => setShowHistory(false)} />}
     </>
   );
 });
