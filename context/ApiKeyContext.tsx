@@ -17,12 +17,29 @@ interface ApiKeyContextType {
 export const ApiKeyContext = createContext<ApiKeyContextType | undefined>(undefined);
 
 export const ApiKeyProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [googleApiKey, setGoogleApiKey] = useState<string | null>(null);
-    const [sightengineApiKey, setSightengineApiKey] = useState<string | null>(null);
+    // Initialize state lazily from localStorage so it is available immediately on first render.
+    const [googleApiKey, setGoogleApiKey] = useState<string | null>(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem(GOOGLE_API_KEY_STORAGE_KEY);
+        }
+        return null;
+    });
 
+    const [sightengineApiKey, setSightengineApiKey] = useState<string | null>(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem(SIGHTENGINE_API_KEY_STORAGE_KEY);
+        }
+        return null;
+    });
+
+    // Listen for storage events to sync across tabs if necessary
     useEffect(() => {
-        setGoogleApiKey(localStorage.getItem(GOOGLE_API_KEY_STORAGE_KEY));
-        setSightengineApiKey(localStorage.getItem(SIGHTENGINE_API_KEY_STORAGE_KEY));
+        const handleStorageChange = () => {
+             setGoogleApiKey(localStorage.getItem(GOOGLE_API_KEY_STORAGE_KEY));
+             setSightengineApiKey(localStorage.getItem(SIGHTENGINE_API_KEY_STORAGE_KEY));
+        };
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
     }, []);
 
     const saveGoogleApiKey = useCallback((key: string) => {

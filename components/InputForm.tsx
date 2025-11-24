@@ -1,3 +1,5 @@
+
+
 import React, { useCallback, useMemo } from 'react';
 import { useInputState } from '../context/InputStateContext';
 import { useUIState } from '../context/UIStateContext';
@@ -91,13 +93,14 @@ export const InputForm: React.FC = () => {
                             </div>
                         )}
                         
-                        <div className="mt-8 flex items-center justify-center gap-4">
+                        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Button
                                 type="submit"
                                 disabled={!isInputValid}
                             >
                                 Begin Deduction
                             </Button>
+                            
                             {hasInput && (
                                 <Button
                                     type="button"

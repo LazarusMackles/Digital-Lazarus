@@ -1,10 +1,11 @@
 
-
 import React, { createContext, useContext, useReducer, ReactNode, Dispatch, useEffect } from 'react';
 import type { Theme } from '../types';
 import * as actions from './actions';
 
 export type AnalysisStage = 'idle' | 'analyzing_pixels' | 'analyzing_context' | 'complete' | 'error';
+
+const WELCOME_SEEN_KEY = 'sleuther_welcome_seen';
 
 // State interface
 export interface UIState {
@@ -18,7 +19,7 @@ export interface UIState {
 
 // Initial state
 export const initialState: UIState = {
-    showWelcome: true,
+    showWelcome: typeof window !== 'undefined' ? !localStorage.getItem(WELCOME_SEEN_KEY) : true,
     theme: 'dark',
     analysisStage: 'idle',
     error: null,
@@ -43,6 +44,9 @@ type Action =
 const uiReducer = (state: UIState, action: Action): UIState => {
     switch (action.type) {
         case actions.SET_SHOW_WELCOME:
+            if (action.payload === false) {
+                localStorage.setItem(WELCOME_SEEN_KEY, 'true');
+            }
             return { ...state, showWelcome: action.payload };
         case actions.SET_THEME:
             return { ...state, theme: action.payload };

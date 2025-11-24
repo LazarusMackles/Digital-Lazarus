@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import { Icon } from '../icons/index';
 import { Button } from './Button';
@@ -43,7 +45,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = React.memo(({ onClose }
                 <li className="flex items-start gap-3">
                     <span className="text-cyan-500 font-bold mt-0.5">1.</span>
                     <div>
-                        <span className="font-semibold text-slate-800 dark:text-white">API Keys Required.</span> This tool is powered by large AI models and requires your own API keys to function. You can enter them in the Settings panel.
+                        <span className="font-semibold text-slate-800 dark:text-white">API Keys Required.</span> This tool is powered by large AI models and requires your own Google API Key to function. You can enter it in the Settings panel.
                     </div>
                 </li>
                 <li className="flex items-start gap-3">
@@ -65,7 +67,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = React.memo(({ onClose }
                     variant="secondary"
                     className="px-6 py-2"
                 >
-                    Go to Settings
+                    Setup API Keys
                 </Button>
                 <Button
                     onClick={onClose}

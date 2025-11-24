@@ -1,3 +1,5 @@
+
+
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from '../icons/index';
@@ -69,7 +71,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                 <Icon name="x-mark" className="w-6 h-6" />
             </button>
             <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500">
-                Settings
+                Connection Settings
             </h2>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
                 Manage the API keys required to power Sleuther's analysis.
@@ -78,7 +80,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             <div className="mt-6 space-y-4">
                 <ApiKeyInput
                     id="google-api-key"
-                    label="Google AI Studio API Key"
+                    label="Google API Key"
                     placeholder="Enter your Google API Key"
                     value={localGoogleKey}
                     onChange={(e) => setLocalGoogleKey(e.target.value)}
