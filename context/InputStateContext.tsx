@@ -48,7 +48,8 @@ interface InputStateContextType {
     state: InputState;
     dispatch: Dispatch<Action>;
 }
-const InputStateContext = createContext<InputStateContextType | undefined>(undefined);
+// Exporting Context for Testing purposes
+export const InputStateContext = createContext<InputStateContextType | undefined>(undefined);
 
 // Provider
 export const InputStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

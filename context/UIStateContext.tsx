@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, ReactNode, Dispatch, useEffect } from 'react';
 import type { Theme } from '../types';
 import * as actions from './actions';
@@ -78,7 +77,8 @@ interface UIStateContextType {
     state: UIState;
     dispatch: Dispatch<Action>;
 }
-const UIStateContext = createContext<UIStateContextType | undefined>(undefined);
+// Exporting Context for Testing purposes
+export const UIStateContext = createContext<UIStateContextType | undefined>(undefined);
 
 // Provider
 export const UIStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

@@ -94,7 +94,8 @@ interface ResultStateContextType {
     state: ResultState;
     dispatch: Dispatch<Action>;
 }
-const ResultStateContext = createContext<ResultStateContextType | undefined>(undefined);
+// Exporting Context for Testing purposes
+export const ResultStateContext = createContext<ResultStateContextType | undefined>(undefined);
 
 // Provider
 export const ResultStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
