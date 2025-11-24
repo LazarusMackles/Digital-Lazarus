@@ -1,9 +1,6 @@
 
 import React from 'react';
-// FIX: Removed unused 'InputType' which is no longer exported from types.
 import { Icon } from '../icons/index';
-// import { useInputState } from '../../context/InputStateContext';
-// import * as actions from '../../context/actions';
 import { cn } from '../../utils/cn';
 
 const TabButton: React.FC<{
@@ -50,15 +47,6 @@ const TabButton: React.FC<{
 };
 
 export const InputTabs: React.FC = React.memo(() => {
-  // const { state, dispatch } = useInputState();
-  // const { activeInput } = state;
-
-  // const handleTabChange = (inputType: 'file' | 'text') => {
-  //   // FIX: SET_ACTIVE_INPUT action has been removed.
-  //   // dispatch({ type: actions.SET_ACTIVE_INPUT, payload: inputType });
-  // };
-
-  // FIX: This component is obsolete as text input is removed. Hardcoding to 'file' tab.
   return (
     <div className="flex" role="tablist">
       <TabButton

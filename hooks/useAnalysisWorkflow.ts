@@ -1,5 +1,4 @@
 
-
 import { useCallback } from 'react';
 import { useInputState } from '../context/InputStateContext';
 import { useResultState } from '../context/ResultStateContext';
@@ -11,7 +10,7 @@ import {
     finalizeProvenanceVerdict 
 } from '../services/analysisService';
 import { analyzeWithSightengine } from '../services/sightengineService';
-import { analyzeContent, analyzeWithSearch } from '../api/analyze';
+import { analyzeContent, analyzeWithSearch } from '../services/geminiService';
 import { MODELS } from '../utils/constants';
 import type { AnalysisEvidence } from '../types';
 import { useApiKeys } from './useApiKeys';
@@ -43,10 +42,13 @@ export const useAnalysisWorkflow = () => {
                 throw new Error("Google API Key is missing.");
             }
 
-            const modelName = MODELS.PRO;
             const filesForApi = [{ name: fileData.name, imageBase64: fileData.imageBase64 }];
 
             if (analysisAngle === 'provenance') {
+                // MODEL OPTIMIZATION: Use Flash for Provenance (Web Search) tasks.
+                // It is faster, cheaper, and sufficiently capable for search summarization.
+                const modelName = MODELS.FLASH; 
+                
                 uiDispatch({ type: actions.START_CONTEXT_ANALYSIS });
                 const prompt = buildPrompt(fileData, 'provenance', isReanalysis);
                 const response = await analyzeWithSearch(prompt, filesForApi, modelName, googleApiKey);
@@ -54,6 +56,9 @@ export const useAnalysisWorkflow = () => {
                 resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result, modelName, isSecondOpinion: isReanalysis } });
 
             } else { // 'forensic' or 'hybrid'
+                // Use PRO for deep visual analysis and reasoning.
+                const modelName = MODELS.PRO;
+
                 let sightengineScore: number | undefined;
                 
                 // HYBRID FALLBACK STRATEGY

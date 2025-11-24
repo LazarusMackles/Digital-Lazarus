@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useAnalysisWorkflow } from './useAnalysisWorkflow';
-import * as analyzeApi from '../api/analyze';
+import * as geminiService from '../services/geminiService';
 import * as sightengineService from '../services/sightengineService';
 import * as InputStateContext from '../context/InputStateContext';
 import * as ResultStateContext from '../context/ResultStateContext';
@@ -11,11 +11,11 @@ import type { InputState } from '../context/InputStateContext';
 
 // --- Mocks Setup ---
 
-vi.mock('../api/analyze');
+vi.mock('../services/geminiService');
 vi.mock('../services/sightengineService');
 
-const mockAnalyzeContent = vi.mocked(analyzeApi.analyzeContent);
-const mockAnalyzeWithSearch = vi.mocked(analyzeApi.analyzeWithSearch);
+const mockAnalyzeContent = vi.mocked(geminiService.analyzeContent);
+const mockAnalyzeWithSearch = vi.mocked(geminiService.analyzeWithSearch);
 const mockAnalyzeWithSightengine = vi.mocked(sightengineService.analyzeWithSightengine);
 
 // A minimal test harness for React hooks.
@@ -46,6 +46,7 @@ describe('useAnalysisWorkflow', () => {
             saveSightengineApiKey: vi.fn(),
         });
         mockAnalyzeContent.mockResolvedValue({ probability: 90, verdict: 'AI', explanation: 'Looks AI' });
+        // @ts-ignore
         mockAnalyzeWithSearch.mockResolvedValue({ text: 'Found online', candidates: [{ groundingMetadata: { groundingChunks: [{web: {uri: 'test.com'}}] } }] });
         mockAnalyzeWithSightengine.mockResolvedValue({ ai_generated: 0.95 });
     });

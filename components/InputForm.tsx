@@ -11,11 +11,11 @@ import { isInputReadyForAnalysis } from '../utils/validation';
 import type { AnalysisAngle } from '../types';
 import { FileUploadDisplay } from './FileUploadDisplay';
 
-const ANALYSIS_ANGLE_OPTIONS = [
+const ANALYSIS_ANGLE_OPTIONS: ReadonlyArray<{ value: AnalysisAngle; title: string; description: string }> = [
     { value: 'forensic', title: 'Forensic Analysis', description: 'A deep dive into the image\'s content for digital fingerprints and AI artifacts.' },
     { value: 'provenance', title: 'Provenance Dossier', description: 'Investigates the image\'s history and fact-checks across the web.' },
     { value: 'hybrid', title: 'Hybrid Analysis', description: 'Cross-references a pixel scan with Gemini\'s interpretation for the highest accuracy.' },
-] as const;
+];
 
 
 export const InputForm: React.FC = () => {
