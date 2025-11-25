@@ -79,15 +79,15 @@ export const InputForm: React.FC = () => {
             <HowItWorks />
             
             {!hasGoogleApiKey && (
-                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl flex items-center gap-4 shadow-sm">
-                    <div className="p-2 bg-amber-100 dark:bg-amber-800/50 rounded-full text-amber-600 dark:text-amber-400">
-                         <Icon name="key" className="w-6 h-6" />
+                <div className="mx-auto w-full max-w-2xl p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl flex items-center gap-4 shadow-sm">
+                    <div className="p-2 bg-amber-100 dark:bg-amber-800/50 rounded-full text-amber-600 dark:text-amber-400 flex-shrink-0">
+                         <Icon name="key" className="w-5 h-5" />
                     </div>
                     <div className="flex-grow">
-                        <h3 className="font-bold text-slate-800 dark:text-slate-200">Authentication Required</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Sleuther needs your Google API Key to power its engines.</p>
+                        <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm sm:text-base">Authentication Required</h3>
+                        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Sleuther needs your Google API Key to power its engines.</p>
                     </div>
-                    <Button onClick={handleOpenSettings} variant="secondary" className="whitespace-nowrap px-4 py-2 text-sm">
+                    <Button onClick={handleOpenSettings} variant="secondary" className="whitespace-nowrap px-3 py-1.5 text-xs sm:text-sm">
                         Connect Key
                     </Button>
                 </div>
@@ -116,7 +116,6 @@ export const InputForm: React.FC = () => {
                             <Button
                                 type="submit"
                                 disabled={!isInputValid || !hasGoogleApiKey}
-                                className="disabled:opacity-50 disabled:grayscale"
                             >
                                 Begin Deduction
                             </Button>
