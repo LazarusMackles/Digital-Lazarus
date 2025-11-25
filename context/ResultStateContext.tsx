@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useReducer, ReactNode, Dispatch } from 'react';
 import type { AnalysisResult, AnalysisEvidence, AnalysisAngle } from '../types';
 import * as actions from './actions';
@@ -40,7 +41,7 @@ export const resultReducer = (state: ResultState = initialState, action: Action)
                 analysisResult: isProvenance
                     ? {
                         probability: 0,
-                        verdict: 'Deducing ...',
+                        verdict: 'Forensic Scan in Progress.', // Updated Copy
                         explanation: '',
                         isSecondOpinion: false,
                     }
@@ -62,7 +63,7 @@ export const resultReducer = (state: ResultState = initialState, action: Action)
                      ...state,
                      analysisResult: {
                          probability: 0,
-                         verdict: 'Deducing ...',
+                         verdict: 'Forensic Scan in Progress.', // Updated Copy
                          explanation: action.payload.explanation,
                          isSecondOpinion: state.analysisResult?.isSecondOpinion || false,
                      }
