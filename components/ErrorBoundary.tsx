@@ -1,4 +1,4 @@
-import React, { Component, type ErrorInfo, type ReactNode } from 'react';
+import React, { type ErrorInfo, type ReactNode } from 'react';
 import { ErrorFallback } from './ui';
 
 interface Props {
@@ -9,7 +9,7 @@ interface State {
   hasError: boolean;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
+export class ErrorBoundary extends React.Component<Props, State> {
   public state: State = {
     hasError: false
   };

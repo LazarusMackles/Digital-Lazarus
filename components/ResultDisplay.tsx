@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useCallback } from 'react';
 import { useResultState } from '../context/ResultStateContext';
 import { useUIState } from '../context/UIStateContext';
@@ -57,7 +55,7 @@ export const ResultDisplay: React.FC = () => {
         {shouldShowActions && (
             <>
                 <div className="mt-8 border-t border-slate-200 dark:border-slate-700 w-full max-w-xl" />
-                <div className="mt-8 flex w-full flex-col items-center gap-8">
+                <div className="mt-6 flex w-full flex-col items-center gap-6">
                     <ChallengeVerdict 
                         onReanalyze={handleReanalyze} 
                         isSecondOpinion={isSecondOpinion || false}

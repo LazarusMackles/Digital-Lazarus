@@ -30,10 +30,10 @@ export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence,
 
   const renderContent = () => {
     if (feedbackGiven === 'positive') {
-      return <p className="text-cyan-600 dark:text-cyan-400">Merci! Your feedback helps sharpen my deductive skills.</p>;
+      return <p className="text-cyan-600 dark:text-cyan-400 font-medium">Feedback confirmed. Your input helps refine the forensic models.</p>;
     }
     if (feedbackGiven === 'report') {
-       return <p className="text-cyan-600 dark:text-cyan-400">Your email client is opening. Thank you for your feedback!</p>;
+       return <p className="text-cyan-600 dark:text-cyan-400 font-medium">Email client opening. Thank you for your detailed report.</p>;
     }
     return (
       <>
@@ -65,7 +65,7 @@ export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence,
   };
 
   return (
-    <div className="text-sm text-center mt-4">
+    <div className="text-sm text-center">
       {renderContent()}
     </div>
   );
