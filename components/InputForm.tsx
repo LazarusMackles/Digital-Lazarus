@@ -74,7 +74,7 @@ export const InputForm: React.FC = () => {
     }, [handleClearInputs]);
 
     return (
-        <div className="space-y-8 animate-fade-in">
+        <div className="space-y-4 animate-fade-in">
             {showApiKeyOnboarding && <ApiKeyOnboardingModal />}
             <HowItWorks />
             
@@ -95,7 +95,7 @@ export const InputForm: React.FC = () => {
             
             <Card>
                 <form onSubmit={handleSubmit} id="input-area">
-                    <div className="p-6 bg-white dark:bg-slate-800/80 rounded-lg border border-slate-200 dark:border-slate-700/50">
+                    <div className="">
                         <FileUploadDisplay />
                         
                         <OptionGroup

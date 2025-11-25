@@ -29,7 +29,7 @@ export const Button: React.FC<ButtonProps> = ({ variant = 'primary', children, c
           return (
             <div className={cn("relative p-[2px] rounded-full bg-gradient-to-r from-cyan-500 via-purple-500 to-fuchsia-500 opacity-80", className)}>
                 <button 
-                    className="w-full h-full px-12 py-3 rounded-full bg-slate-50 dark:bg-slate-900 text-slate-400 font-bold text-lg cursor-not-allowed"
+                    className="w-full h-full px-12 py-3 rounded-full bg-slate-50 dark:bg-slate-900 text-slate-400 font-bold text-lg cursor-not-allowed relative z-10"
                     disabled={true}
                     {...props}
                 >
