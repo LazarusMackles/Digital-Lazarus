@@ -10,7 +10,7 @@ interface LoaderProps {
   analysisStage?: AnalysisStage;
 }
 
-export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Forensic Scan in Progress...", analysisAngleUsed, isSecondOpinion = false, analysisStage }) => {
+export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Forensic Scan in Progress.", analysisAngleUsed, isSecondOpinion = false, analysisStage }) => {
   
   const renderSubtext = () => {
     // Round 2: Global Re-verify

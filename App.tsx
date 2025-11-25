@@ -85,25 +85,25 @@ const AppContent: React.FC = () => {
   const getLoaderMessage = () => {
     // Round 2: Deep Review (Global)
     if (isSecondOpinion) {
-      return "Conducting Deep Review...";
+      return "Conducting Deep Review.";
     }
 
     // Provenance (Simplified)
     if (analysisAngle === 'provenance') {
-      return "Tracing Digital Footprint...";
+      return "Tracing Digital Footprint.";
     }
 
     // Hybrid Analysis (Detailed Steps)
     if (analysisAngle === 'hybrid') {
       if (analysisStage === 'analyzing_pixels') {
-        return "Analysing Pixel Structure...";
+        return "Analysing Pixel Structure.";
       }
-      return "Correlating Findings...";
+      return "Correlating Findings.";
     }
 
     // Forensic (Simplified)
     // Default fallback for forensic or generic processing
-    return "Forensic Scan in Progress...";
+    return "Forensic Scan in Progress.";
   };
 
   const handleCloseWelcome = () => {
@@ -151,14 +151,19 @@ const AppContent: React.FC = () => {
       {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
       {showSettingsModal && <SettingsModal onClose={handleCloseSettings} />}
       
-      <div className="flex-grow container mx-auto px-4 py-4 sm:py-8 max-w-5xl">
-        <Header />
-        <main className="w-full">
-          <ErrorBoundary>
-            {renderContent()}
-          </ErrorBoundary>
-        </main>
-      </div>
+      {/* 
+          ErrorBoundary Placement:
+          Now wraps the entire main container (Header + Content) to ensure that 
+          even if the Header (which uses Context) fails, the fallback UI is shown.
+      */}
+      <ErrorBoundary>
+        <div className="flex-grow container mx-auto px-4 py-4 sm:py-8 max-w-5xl">
+          <Header />
+          <main className="w-full">
+              {renderContent()}
+          </main>
+        </div>
+      </ErrorBoundary>
       
       <footer className="py-6 text-center text-slate-400 dark:text-slate-600 text-xs">
         <p>&copy; {new Date().getFullYear()} Sleuther Vanguard. All rights reserved.</p>
