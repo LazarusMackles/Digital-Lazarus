@@ -16,13 +16,13 @@ export const ThemeToggle: React.FC = React.memo(() => {
   return (
     <button
       onClick={toggleTheme}
-      className="p-1.5 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
+      className="p-1.5 sm:p-2 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
       aria-label="Toggle theme"
     >
       {theme === 'light' ? (
-        <Icon name="moon" className="w-4 h-4 sm:w-5 sm:h-5" />
+        <Icon name="moon" className="w-5 h-5 sm:w-6 sm:h-6" />
       ) : (
-        <Icon name="sun" className="w-4 h-4 sm:w-5 sm:h-5" />
+        <Icon name="sun" className="w-5 h-5 sm:w-6 sm:h-6" />
       )}
     </button>
   );
