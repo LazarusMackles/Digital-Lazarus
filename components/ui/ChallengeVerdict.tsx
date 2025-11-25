@@ -21,7 +21,7 @@ export const ChallengeVerdict: React.FC<ChallengeVerdictProps> = React.memo(({ o
   // Case 2 (Default): This is the first analysis. Offer a second opinion, regardless of the initial method.
   return (
     <div className="flex flex-col items-center gap-6">
-        <p className="text-lg font-semibold text-cyan-600 dark:text-cyan-400 text-center">Not convinced? A different perspective enlightens.</p>
+        <p className="text-lg font-semibold text-cyan-600 dark:text-cyan-400 text-center">Not convinced?</p>
         <Button
             onClick={onReanalyze}
             variant="primary"

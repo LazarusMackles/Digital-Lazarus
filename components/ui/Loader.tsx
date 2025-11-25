@@ -7,20 +7,20 @@ interface LoaderProps {
   analysisAngleUsed?: AnalysisAngle | null;
 }
 
-export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Forensic Scan in Progress...", analysisAngleUsed }) => {
+export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Forensic Scan in Progress", analysisAngleUsed }) => {
   
   const renderSubtext = () => {
     if (analysisAngleUsed === 'provenance') {
       return (
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-4 animate-fade-in max-w-sm mx-auto font-medium">
-            Cross-referencing global sources...
+            Cross-referencing global sources.
         </p>
       );
     }
      if (analysisAngleUsed === 'forensic' || analysisAngleUsed === 'hybrid') {
       return (
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-4 animate-fade-in max-w-sm mx-auto font-medium">
-            Examining digital artifacts and signal noise...
+            Examining digital artefacts and signal noise.
         </p>
       );
     }

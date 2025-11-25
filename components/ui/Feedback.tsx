@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo } from 'react';
 import { Icon } from '../icons/index';
 import type { AnalysisResult, AnalysisEvidence, AnalysisAngle } from '../../types';
@@ -44,8 +43,8 @@ export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence,
                 <button 
                   onClick={handlePositiveFeedback} 
                   className="p-1.5 text-slate-500 hover:text-green-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:text-green-400 dark:hover:bg-slate-700 rounded-full transition-colors duration-200" 
-                  aria-label="Yes Helpful"
-                  title="Yes Helpful"
+                  aria-label="Yes Helpful."
+                  title="Yes Helpful."
                 >
                   <Icon name="thumbs-up" className="w-4 h-4" />
                 </button>
@@ -54,8 +53,8 @@ export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence,
                   href={mailtoLink}
                   onClick={() => setFeedbackGiven('report')}
                   className="p-1.5 text-slate-500 hover:text-fuchsia-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:text-fuchsia-400 dark:hover:bg-slate-700 rounded-full transition-colors duration-200 inline-block" 
-                  aria-label="Send feedback or suggestion"
-                  title="Send Feedback"
+                  aria-label="No? Send Feedback."
+                  title="No? Send Feedback."
                 >
                   <Icon name="chat-bubble-oval-left-ellipsis" className="w-4 h-4" />
                 </a>

@@ -18,7 +18,7 @@ export const buildPrompt = (
         
         CONTEXTUAL AWARENESS: Today is ${new Date().toDateString()}. If the image depicts an event in the future relative to today, it is likely AI-generated or a prediction. If it depicts a past event, verify it.
         
-        Synthesize your findings into a concise summary of **no more than 5 key bullet points**. 
+        Synthesise your findings into a concise summary of **no more than 5 key bullet points**. 
         The **very first bullet point** MUST be a definitive statement confirming if the image has been widely debunked as AI-generated or verified as authentic by fact-checkers. 
         CRITICAL FORMATTING RULE: Your entire response MUST be a bulleted list, with each point starting with a hyphen (-). Do not add any conversational filler, introductory text, or a heading. Respond ONLY with the bulleted list.`;
     }
@@ -29,7 +29,7 @@ export const buildPrompt = (
     let baseInstruction = `You are a forensic image analyst. 
     CORE PROTOCOL: PRESUMPTION OF INNOCENCE. You must assume this image is a REAL PHOTOGRAPH capturing a genuine physical moment, potentially a chaotic or unusual one. 
     
-    You may ONLY flag this image as AI-Generated if you find DEFINITIVE, IRREFUTABLE DIGITAL ARTIFACTS (e.g., garbled text characters, melted objects, glossy plastic skin texture, mismatched pupils). 
+    You may ONLY flag this image as AI-Generated if you find DEFINITIVE, IRREFUTABLE DIGITAL ARTEFACTS (e.g., garbled text characters, melted objects, glossy plastic skin texture, mismatched pupils). 
     
     Respond ONLY with a JSON object matching the provided schema.`;
     
@@ -38,11 +38,11 @@ export const buildPrompt = (
          if (sightengineScore < 20) {
             // Case: Mathematical model says REAL. Force Gemini to defend the image.
             baseInstruction += `\n\nSCIENTIFIC CONTEXT: Advanced pixel-level analysis (Sightengine) has confirmed this image is AUTHENTIC (${100 - sightengineScore}% confidence). 
-            YOUR MISSION: You are acting as a defense expert. Do NOT look for AI artifacts, as the mathematical model suggests they are not there. Instead, explain the scene assuming it is real. If the image looks chaotic (e.g., weird poses, falling people, blur), explain these as natural physical events or camera artifacts, debunking the suspicion that they are AI glitches.`;
+            YOUR MISSION: You are acting as a defense expert. Do NOT look for AI artefacts, as the mathematical model suggests they are not there. Instead, explain the scene assuming it is real. If the image looks chaotic (e.g., weird poses, falling people, blur), explain these as natural physical events or camera artefacts, debunking the suspicion that they are AI glitches.`;
          } else if (sightengineScore > 80) {
             // Case: Mathematical model says FAKE. Force Gemini to prosecute the image.
             baseInstruction += `\n\nSCIENTIFIC CONTEXT: Advanced pixel-level analysis (Sightengine) has confirmed this image is AI-GENERATED (${sightengineScore}% confidence). 
-            YOUR MISSION: Support this finding. Locate the specific visual evidence (artifacts) that prove it is fake.`;
+            YOUR MISSION: Support this finding. Locate the specific visual evidence (artefacts) that prove it is fake.`;
          } else {
             // Case: Ambiguous.
             baseInstruction += `\n\nSCIENTIFIC CONTEXT: An initial pixel analysis returns a ${sightengineScore}% probability of AI generation. This is inconclusive. You must decide based on visual evidence.`;
@@ -59,7 +59,7 @@ export const buildPrompt = (
     // FORENSIC LOGIC: The "Chaos vs Glitch" Rule (Tuned for the "Falling Man" Edge Case)
     const chaosRule = `DISTINGUISH PHYSICAL CHAOS & LOW RESOLUTION FROM DIGITAL GLITCHES:
     1. THE "BLUR" DEFENSE: Do NOT flag text as "garbled" or "hieroglyphs" just because it is blurry, pixelated, or out of focus. Real low-res photos often have unreadable text. Only flag text if the glyphs are structurally alien/impossible (e.g., merging letters). If it looks like "US NAVY" but is blurry, assume it is "US NAVY".
-    2. DYNAMIC POSES ARE NOT GLITCHES: A person falling, tumbling, or upside down is a physical event. Do NOT flag "awkward limbs" or "impossible angles" as AI artifacts if the scene depicts a fall, accident, or action shot. Assume gravity and momentum are at play.
+    2. DYNAMIC POSES ARE NOT GLITCHES: A person falling, tumbling, or upside down is a physical event. Do NOT flag "awkward limbs" or "impossible angles" as AI artefacts if the scene depicts a fall, accident, or action shot. Assume gravity and momentum are at play.
     3. TEXTURE OVER TOPOLOGY: AI struggles with texture (skin pores, hair strands, fabric weave). If the textures are organic, messy, and imperfect, the image is likely REAL, even if the composition is weird.
     4. WAXY SKIN IS THE KEY: Real humans have texture. AI humans often look "waxy", "glossy", or "airbrushed". If the skin has grit, grain, or harsh shadows, favor "Human-Crafted".
     5. BACKGROUND NOISE: A messy, cluttered background with identifiable trash/objects is often a sign of REALITY. AI tends to blur backgrounds or make them weirdly abstract.
@@ -68,7 +68,7 @@ export const buildPrompt = (
 
     const universalMandate = `UNIVERSAL MANDATE: Report evidence based on DIGITAL SIGNATURES (pixels, noise, compression), not just SCENE PLAUSIBILITY. Real life is often implausible.`;
     
-    let evidenceDescription = `ANALYZE IMAGE EVIDENCE: Your primary goal is to determine the authenticity of "${primaryEvidence}".\n\n${chaosRule}\n\n${universalMandate}`;
+    let evidenceDescription = `ANALYSE IMAGE EVIDENCE: Your primary goal is to determine the authenticity of "${primaryEvidence}".\n\n${chaosRule}\n\n${universalMandate}`;
 
     if(isReanalysis) {
         evidenceDescription += `\n\nPRIORITY DIRECTIVE: SECOND OPINION. Re-evaluate the evidence. If you previously flagged this as AI due to a "weird pose", reconsider if it could be a real action shot. Look closer at the textures.`;
