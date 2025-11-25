@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Header } from './components/Header';
 import { ResultDisplay } from './components/ResultDisplay';
@@ -87,17 +88,17 @@ const AppContent: React.FC = () => {
   const renderContent = () => {
     switch (view) {
       case 'LOADING': {
-        let loaderMessage = "Deducing the Digital DNA ...";
+        let loaderMessage = "Forensic Scan in Progress";
         if (analysisResult?.isSecondOpinion) {
-            loaderMessage = "Re-analysing with a critical eye ...";
+            loaderMessage = "Conducting Deep Review";
         } else if (analysisStage === 'analyzing_pixels') {
-            loaderMessage = "Scanning pixels...";
+            loaderMessage = "Analysing Pixel Data";
         } else if (analysisStage === 'analyzing_context') {
-            loaderMessage = "Interpreting context...";
+            loaderMessage = "Synthesising Context";
         }
 
         return (
-          <Card>
+          <Card className="flex flex-col items-center max-w-2xl mx-auto">
             <Loader 
               message={loaderMessage} 
               analysisAngleUsed={analysisAngleUsed}

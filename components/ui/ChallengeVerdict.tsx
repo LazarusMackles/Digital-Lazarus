@@ -1,7 +1,7 @@
+
 import React from 'react';
 import { Button } from './Button';
 import { SleuthNote } from './SleuthNote';
-// FIX: Removed unused and deprecated AnalysisMode import.
 
 interface ChallengeVerdictProps {
   onReanalyze: () => void;
@@ -13,7 +13,7 @@ export const ChallengeVerdict: React.FC<ChallengeVerdictProps> = React.memo(({ o
   if (isSecondOpinion) {
     return (
         <SleuthNote>
-            This is my second opinion, based on a deeper analysis. Cross-referencing multiple forensic angles can often reveal new insights.
+            Independent review complete. I have re-examined the evidence to verify the integrity of the initial findings.
         </SleuthNote>
     );
   }
