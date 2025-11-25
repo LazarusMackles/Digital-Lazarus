@@ -1,30 +1,38 @@
 
 import React from 'react';
 import type { AnalysisAngle } from '../../types';
+import type { AnalysisStage } from '../../context/UIStateContext';
 
 interface LoaderProps {
   message?: string;
   analysisAngleUsed?: AnalysisAngle | null;
+  isSecondOpinion?: boolean;
+  analysisStage?: AnalysisStage;
 }
 
-export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Forensic Scan in Progress", analysisAngleUsed }) => {
+export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Forensic Scan in Progress...", analysisAngleUsed, isSecondOpinion = false, analysisStage }) => {
   
   const renderSubtext = () => {
+    // Round 2: Global Re-verify
+    if (isSecondOpinion) {
+        return "Re-verifying evidence with stricter parameters.";
+    }
+
+    // Provenance
     if (analysisAngleUsed === 'provenance') {
-      return (
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-4 animate-fade-in max-w-sm mx-auto font-medium">
-            Cross-referencing global sources.
-        </p>
-      );
+      return "Scanning global sources for matches.";
     }
-     if (analysisAngleUsed === 'forensic' || analysisAngleUsed === 'hybrid') {
-      return (
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-4 animate-fade-in max-w-sm mx-auto font-medium">
-            Examining digital artefacts and signal noise.
-        </p>
-      );
+
+    // Hybrid (Detailed)
+    if (analysisAngleUsed === 'hybrid') {
+        if (analysisStage === 'analyzing_pixels') {
+            return "Detecting compression anomalies.";
+        }
+        return "Verifying anomalies with forensic logic.";
     }
-    return null;
+
+    // Forensic (Default)
+    return "Examining digital artefacts.";
   };
 
   return (
@@ -46,7 +54,9 @@ export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Forensic S
         {message}
       </h2>
       
-      {renderSubtext()}
+      <p className="text-sm text-slate-500 dark:text-slate-400 mt-4 animate-fade-in max-w-sm mx-auto font-medium">
+        {renderSubtext()}
+      </p>
     </div>
   );
 });

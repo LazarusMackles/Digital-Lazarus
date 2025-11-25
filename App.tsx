@@ -3,16 +3,16 @@ import React from 'react';
 import { Header } from './components/Header';
 import { ResultDisplay } from './components/ResultDisplay';
 import { InputForm } from './components/InputForm';
-import { InputStateProvider } from './context/InputStateContext';
+import { InputStateProvider, useInputState } from './context/InputStateContext';
 import { ResultStateProvider, useResultState } from './context/ResultStateContext';
 import { UIStateProvider, useUIState } from './context/UIStateContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import * as actions from './context/actions';
-import { Card, Loader, SettingsModal, WelcomeModal } from './components/ui';
+import { Card, Loader, SettingsModal, WelcomeModal, HistoryModal } from './components/ui';
 import { useAppView } from './hooks/useAppView';
 import { IntroPanel } from './components/IntroPanel';
 import { ApiKeyProvider } from './context/ApiKeyContext';
 import { HistoryProvider } from './context/HistoryContext';
+import * as actions from './context/actions';
 
 const IconSprite: React.FC = React.memo(() => (
   <svg xmlns="http://www.w3.org/2000/svg" className="absolute w-0 h-0">
@@ -21,139 +21,166 @@ const IconSprite: React.FC = React.memo(() => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.664 0l3.181-3.183m-3.181-4.991v4.99" />
       </symbol>
       <symbol id="icon-chat-bubble-oval-left-ellipsis" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.76 9.76 0 0 1-2.53-.423l-1.684.732a.75.75 0 0 1-.842-.842l.732-1.684a9.76 9.76 0 0 1-.423-2.53C5.25 7.444 9.28 3.75 14.25 3.75c4.97 0 9 3.694 9 8.25Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.76 9.76 0 0 1-2.53-.423l-1.684.732a.75.75 0 0 1-.8" />
       </symbol>
-      <symbol id="icon-chevron-down" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+      <symbol id="icon-upload" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
       </symbol>
-      <symbol id="icon-envelope" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25-2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-      </symbol>
-      <symbol id="icon-information-circle" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-      </symbol>
-       <symbol id="icon-key" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21 8.25Z" />
-      </symbol>
-       <symbol id="icon-magnifying-glass" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+      <symbol id="icon-text" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
       </symbol>
       <symbol id="icon-link" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
       </symbol>
-       <symbol id="icon-light-bulb" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.311V21m-3.75 0h-1.5a1.5 1.5 0 0 1-1.5-1.5v-1.5m3.75 0v-1.5a1.5 1.5 0 0 0-1.5-1.5h-1.5m-6.375 7.375a12.057 12.057 0 0 1-4.5 0m3.75 2.311V21m-3.75 0h-1.5a1.5 1.5 0 0 1-1.5-1.5v-1.5m3.75 0v-1.5a1.5 1.5 0 0 0-1.5-1.5h-1.5M9 6.75a3 3 0 0 1 3-3h0a3 3 0 0 1 3 3v.75M9 7.5h6" />
+      <symbol id="icon-x-mark" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
       </symbol>
       <symbol id="icon-moon" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-      </symbol>
-      <symbol id="icon-spinner" viewBox="0 0 24 24">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
       </symbol>
       <symbol id="icon-sun" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
       </symbol>
       <symbol id="icon-thumbs-up" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6.633 10.5c.806 0 1.533-.422 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 3v2.154c0 .414.21 .790.528 1.005 1.454.772 2.756 2.242 3.298 4.03a.75.75 0 01-.42 1.005l-.353.176c-.86.43-1.737.75-2.651.975v.008c.375.362.625.864.625 1.41a2.25 2.25 0 01-2.25 2.25H7.5A2.25 2.25 0 015.25 15V5.25A2.25 2.25 0 017.5 3h.001c.621 0 1.22.218 1.694.604a1.861 1.861 0 00.98 1.106c.343.172.695.31 1.05.409.356.1.71.196 1.064.292V10.5c-1.158-.28-2.327-.518-3.5-.687V15" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672v-.63c0-.933.791-1.875 1.96-1.875.781 0 1.578.438 1.98 1.28 1.482 3.107 2.303 7.734 2.303 10.95 0 2.612-1.677 4.657-4.418 5.086C13.937 18.725 13.315 19.125 12.93 19.76c-.543.89-1.663 1.438-2.969 1.438-3.784 0-6.279-3.123-6.279-6.604v-1.034c0-1.213.37-2.327 1.022-3.235l.929-.826z" />
       </symbol>
-      <symbol id="icon-upload" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l-3.75 3.75M12 9.75l3.75 3.75M3 17.25V21h18v-3.75M3.75 16.5a2.25 2.25 0 01-2.25-2.25V6.75c0-1.24 1.01-2.25 2.25-2.25h16.5c1.24 0 2.25 1.01 2.25 2.25v7.5c0 1.24-1.01 2.25-2.25 2.25H3.75z" />
+      <symbol id="icon-thumbs-down" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 15h2.25m8.024-9.75c.011.05.028.1.052.148.591 1.2.924 2.55.924 3.977a8.96 8.96 0 01-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713.518 1.972 1.368.339 1.11.521 2.387.464 3.946-.063 1.745-.525 3.378-1.181 4.831a2.25 2.25 0 01-2.082 1.517H17.25a2.25 2.25 0 01-2.25-2.25V15m0 0h-2.25m0 0h-2.25m-9.75 0h9.75" />
       </symbol>
-      <symbol id="icon-x-mark" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+      <symbol id="icon-chevron-down" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+      </symbol>
+      <symbol id="icon-share" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+      </symbol>
+      <symbol id="icon-key" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+      </symbol>
+      <symbol id="icon-envelope" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+      </symbol>
+      <symbol id="icon-light-bulb" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-4.33c.169-2.643-2.058-4.75-4.665-4.665-2.608.085-4.665 2.32-4.665 4.927 0 2.607 2.057 4.665 4.665 4.665.26 0 .517-.021.765-.06m2.4 4.465a4.49 4.49 0 00.873.485c.29.116.605.176.923.176h2c.318 0 .634-.06.923-.176a4.49 4.49 0 00.873-.485M12 18a3.01 3.01 0 01-3 3h6a3.01 3.01 0 01-3-3m-7.5-5.25a6.01 6.01 0 010-8.486 6.01 6.01 0 018.486 8.486" />
       </symbol>
       <symbol id="icon-clock" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </symbol>
+      <symbol id="icon-spinner" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.664 0l3.181-3.183m-3.181-4.991v4.99" />
       </symbol>
     </defs>
   </svg>
 ));
 
 const AppContent: React.FC = () => {
-  const { state: resultState } = useResultState();
-  const { state: uiState, dispatch: uiDispatch } = useUIState();
   const view = useAppView();
-
-  const { 
-    analysisResult,
-    analysisAngleUsed,
-  } = resultState;
+  const { state: uiState, dispatch: uiDispatch } = useUIState();
+  const { state: inputState } = useInputState();
+  const { state: resultState } = useResultState();
   
-  const { analysisStage, showWelcome, showSettingsModal } = uiState;
+  const { showWelcome, showSettingsModal, analysisStage } = uiState;
+  const { analysisAngle } = inputState;
+  const isSecondOpinion = resultState.analysisResult?.isSecondOpinion || false;
 
-  const handleCloseWelcome = () => uiDispatch({ type: actions.SET_SHOW_WELCOME, payload: false });
-  const handleCloseSettings = () => uiDispatch({ type: actions.SET_SHOW_SETTINGS_MODAL, payload: false });
+  const getLoaderMessage = () => {
+    // Round 2: Deep Review (Global)
+    if (isSecondOpinion) {
+      return "Conducting Deep Review...";
+    }
+
+    // Provenance (Simplified)
+    if (analysisAngle === 'provenance') {
+      return "Tracing Digital Footprint...";
+    }
+
+    // Hybrid Analysis (Detailed Steps)
+    if (analysisAngle === 'hybrid') {
+      if (analysisStage === 'analyzing_pixels') {
+        return "Analysing Pixel Structure...";
+      }
+      return "Correlating Findings...";
+    }
+
+    // Forensic (Simplified)
+    // Default fallback for forensic or generic processing
+    return "Forensic Scan in Progress...";
+  };
+
+  const handleCloseWelcome = () => {
+    uiDispatch({ type: actions.SET_SHOW_WELCOME, payload: false });
+  };
+
+  const handleCloseSettings = () => {
+    uiDispatch({ type: actions.SET_SHOW_SETTINGS_MODAL, payload: false });
+  };
 
   const renderContent = () => {
     switch (view) {
-      case 'LOADING': {
-        let loaderMessage = "Forensic Scan in Progress";
-        if (analysisResult?.isSecondOpinion) {
-            loaderMessage = "Conducting Deep Review";
-        } else if (analysisStage === 'analyzing_pixels') {
-            loaderMessage = "Analysing Pixel Data";
-        } else if (analysisStage === 'analyzing_context') {
-            loaderMessage = "Synthesising Context";
-        }
-
+      case 'LOADING':
         return (
-          <Card className="flex flex-col items-center max-w-2xl mx-auto">
-            <Loader 
-              message={loaderMessage} 
-              analysisAngleUsed={analysisAngleUsed}
-            />
-          </Card>
-        );
-      }
-      case 'RESULT':
-        return (
-          <div className="animate-fade-in-up">
-            <ResultDisplay />
+          <div className="max-w-2xl mx-auto w-full">
+            <Card>
+                <Loader 
+                    message={getLoaderMessage()} 
+                    analysisAngleUsed={analysisAngle}
+                    isSecondOpinion={isSecondOpinion}
+                    analysisStage={analysisStage}
+                />
+            </Card>
           </div>
         );
+      case 'RESULT':
+        return <ResultDisplay />;
       case 'INPUT':
       default:
-        return <InputForm />;
+        return (
+          <>
+            <IntroPanel />
+            <div className="mt-6">
+              <InputForm />
+            </div>
+          </>
+        );
     }
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300 flex flex-col">
       <IconSprite />
+      
       {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
       {showSettingsModal && <SettingsModal onClose={handleCloseSettings} />}
-      <div className="min-h-screen grid grid-rows-[auto_1fr] max-w-4xl mx-auto w-full p-4 sm:p-6 md:p-8 dark:text-white transition-colors duration-300">
-          <div>
-            <Header />
-            {(view === 'INPUT' || view === 'LOADING') && <IntroPanel />}
-          </div>
-          <main className={view === 'RESULT' ? 'mt-8' : 'mt-12'}>
+      
+      <div className="flex-grow container mx-auto px-4 py-4 sm:py-8 max-w-5xl">
+        <Header />
+        <main className="w-full">
+          <ErrorBoundary>
             {renderContent()}
-          </main>
+          </ErrorBoundary>
+        </main>
       </div>
-    </>
+      
+      <footer className="py-6 text-center text-slate-400 dark:text-slate-600 text-xs">
+        <p>&copy; {new Date().getFullYear()} Sleuther Vanguard. All rights reserved.</p>
+      </footer>
+    </div>
   );
 };
-
 
 const App: React.FC = () => {
   return (
     <ApiKeyProvider>
       <HistoryProvider>
-        <InputStateProvider>
-          <UIStateProvider>
+        <UIStateProvider>
+          <InputStateProvider>
             <ResultStateProvider>
-              <ErrorBoundary>
-                <AppContent />
-              </ErrorBoundary>
+              <AppContent />
             </ResultStateProvider>
-          </UIStateProvider>
-        </InputStateProvider>
+          </InputStateProvider>
+        </UIStateProvider>
       </HistoryProvider>
     </ApiKeyProvider>
   );
 };
-
 
 export default App;
