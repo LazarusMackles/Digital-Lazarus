@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from '../icons/index';
@@ -45,7 +44,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
     saveGoogleApiKey(localGoogleKey.trim());
     saveSightengineApiKey(localSightengineKey.trim());
     setSaveStatus('saved');
-    setTimeout(() => setSaveStatus('idle'), 2000);
+    
+    // Wait for a "beat" (1000ms) to let the user see the success state, then auto-close.
+    setTimeout(() => {
+        setSaveStatus('idle');
+        onClose();
+    }, 1000);
   };
 
   const modalRoot = document.getElementById('modal-root');
