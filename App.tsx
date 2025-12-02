@@ -60,16 +60,19 @@ const AppContent: React.FC = () => {
     switch (view) {
       case 'LOADING':
         return (
-          <div className="max-w-2xl mx-auto w-full">
-            <Card>
-                <Loader 
-                    message={getLoaderMessage()} 
-                    analysisAngleUsed={analysisAngle}
-                    isSecondOpinion={isSecondOpinion}
-                    analysisStage={analysisStage}
-                />
-            </Card>
-          </div>
+          <>
+            <IntroPanel />
+            <div className="mt-6 max-w-2xl mx-auto w-full">
+              <Card>
+                  <Loader 
+                      message={getLoaderMessage()} 
+                      analysisAngleUsed={analysisAngle}
+                      isSecondOpinion={isSecondOpinion}
+                      analysisStage={analysisStage}
+                  />
+              </Card>
+            </div>
+          </>
         );
       case 'RESULT':
         return <ResultDisplay />;

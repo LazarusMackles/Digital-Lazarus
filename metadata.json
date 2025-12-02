@@ -1,5 +1,5 @@
 {
   "name": "GenAI Sleuther Vanguard",
-  "description": "An application to analyse images to trace their digital DNA, providing forensic analysis and web-based provenance checks to determine if they were created or enhanced with AI.",
+  "description": "Sleuther Vanguard is a premier digital forensics application designed to restore trust in visual media. By harmonising rigid mathematical pixel analysis with the cognitive reasoning of Artificial Intelligence, it acts as an automated detective.",
   "requestFramePermissions": []
 }
