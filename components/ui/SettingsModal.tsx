@@ -33,7 +33,7 @@ const ApiKeyInput: React.FC<{
 );
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
-  const { googleApiKey, sightengineApiKey, saveGoogleApiKey, saveSightengineApiKey } = useApiKeys();
+  const { googleApiKey, sightengineApiKey, saveGoogleApiKey, saveSightengineApiKey, clearKeys } = useApiKeys();
   const [localGoogleKey, setLocalGoogleKey] = useState(googleApiKey || '');
   const [localSightengineKey, setLocalSightengineKey] = useState(sightengineApiKey || '');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle');
@@ -52,6 +52,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
     }, 1000);
   };
 
+  const handleClear = () => {
+    if (window.confirm('Are you sure you want to clear your stored API keys? This will remove them from your browser\'s local storage.')) {
+        clearKeys();
+        setLocalGoogleKey('');
+        setLocalSightengineKey('');
+    }
+  };
+
   const modalRoot = document.getElementById('modal-root');
   if (!modalRoot) return null;
 
@@ -64,7 +72,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
     >
       <div 
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 animate-fade-in-up mt-8"
+        className="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 animate-fade-in-up mt-8 mb-8"
       >
         <div className="p-6 sm:p-8">
             <button 
@@ -100,14 +108,47 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
 
             <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-end">
                 <Button
+                    variant="outline"
+                    onClick={handleClear}
+                    className="flex-1 sm:flex-none border-red-200 dark:border-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                >
+                    Clear Keys
+                </Button>
+                <Button
                     onClick={handleSave}
                     className="flex-1 sm:flex-none"
                 >
                     {saveStatus === 'idle' ? 'Save Keys' : 'Saved!'}
                 </Button>
             </div>
-             <p className="mt-4 text-xs text-slate-500 dark:text-slate-500 text-center">
-                Your keys are stored securely in your browser's local storage and are never sent to our servers.
+
+            <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Icon name="information-circle" className="w-4 h-4 text-cyan-500" />
+                    Security Best Practices
+                </h3>
+                <ul className="mt-3 space-y-2 text-xs text-slate-600 dark:text-slate-400">
+                    <li className="flex gap-2">
+                        <span className="text-cyan-500 font-bold">•</span>
+                        <span><strong>API Restrictions:</strong> Limit your keys to specific APIs (e.g., Gemini API) in the <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-cyan-500 hover:underline">Google Cloud Console</a>.</span>
+                    </li>
+                    <li className="flex gap-2">
+                        <span className="text-cyan-500 font-bold">•</span>
+                        <span><strong>Environmental Restrictions:</strong> Restrict keys to this application's domain to prevent unauthorized use.</span>
+                    </li>
+                    <li className="flex gap-2">
+                        <span className="text-cyan-500 font-bold">•</span>
+                        <span><strong>Key Rotation:</strong> Decommission and rotate keys every 90 days to minimize risk.</span>
+                    </li>
+                    <li className="flex gap-2">
+                        <span className="text-cyan-500 font-bold">•</span>
+                        <span><strong>Zero-Code Storage:</strong> Never commit these keys to version control or public repositories.</span>
+                    </li>
+                </ul>
+            </div>
+
+             <p className="mt-6 text-[10px] text-slate-400 dark:text-slate-500 text-center leading-relaxed">
+                Your keys are stored locally in your browser and are only used to authenticate requests to Google and Sightengine.
              </p>
         </div>
       </div>
