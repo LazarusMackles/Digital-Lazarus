@@ -15,7 +15,7 @@ export const generateShareText = (
 
     let text = '';
     if (forEmailBody) {
-        text += `[--- PLEASE PROVIDE YOUR FEEDBACK OR SUGGESTION HERE ---]\n\n\n--- AUTOMATED CASE FILE ---\n`;
+        text += `[--- PLEASE PROVIDE YOUR CASE FEEDBACK OR SUGGESTION HERE ---]\n\n\n--- AUTOMATED CASE FILE ---\n`;
     } else {
         text += `--- FORENSIC REPORT ---\n`;
     }

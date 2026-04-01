@@ -21,10 +21,10 @@ export const ResultActionButtons: React.FC<ResultActionButtonsProps> = React.mem
             <button
                 type="button"
                 onClick={onShowShareModal}
-                className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors duration-200"
+                className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-cyan-500 dark:hover:text-cyan-400 transition-all duration-200 group"
             >
-                <Icon name="envelope" className="w-4 h-4" />
-                <span>Email Report</span>
+                <Icon name="envelope" className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <span className="font-medium">Email Forensic Report</span>
             </button>
         </div>
     );
