@@ -50,7 +50,7 @@ export const Feedback: React.FC<FeedbackProps> = React.memo(({ result, evidence,
               aria-label="Yes, case solved!"
               title="Yes, case solved!"
             >
-              <Icon name="thumbs-up" className="w-5 h-5" />
+              <Icon name="check" className="w-5 h-5" />
             </button>
             <div className="border-l border-slate-300 dark:border-slate-600 h-5"></div>
             <a 

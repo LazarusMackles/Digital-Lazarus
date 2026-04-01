@@ -28,6 +28,9 @@ export const IconSprite: React.FC = React.memo(() => (
       <symbol id="icon-sun" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
       </symbol>
+      <symbol id="icon-check" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+      </symbol>
       <symbol id="icon-thumbs-up" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672v-.63c0-.933.791-1.875 1.96-1.875.781 0 1.578.438 1.98 1.28 1.482 3.107 2.303 7.734 2.303 10.95 0 2.612-1.677 4.657-4.418 5.086C13.937 18.725 13.315 19.125 12.93 19.76c-.543.89-1.663 1.438-2.969 1.438-3.784 0-6.279-3.123-6.279-6.604v-1.034c0-1.213.37-2.327 1.022-3.235l.929-.826z" />
       </symbol>
