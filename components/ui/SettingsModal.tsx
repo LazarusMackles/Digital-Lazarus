@@ -18,9 +18,23 @@ const ApiKeyInput: React.FC<{
     value: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     isPassword?: boolean;
-}> = ({ id, label, placeholder, value, onChange, isPassword = true }) => (
+    link?: { label: string; url: string };
+}> = ({ id, label, placeholder, value, onChange, isPassword = true, link }) => (
     <div>
-        <label htmlFor={id} className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{label}</label>
+        <div className="flex justify-between items-center mb-1">
+            <label htmlFor={id} className="block text-sm font-medium text-slate-700 dark:text-slate-300">{label}</label>
+            {link && (
+                <a 
+                    href={link.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-[10px] text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-1"
+                >
+                    {link.label}
+                    <Icon name="arrow-top-right-on-square" className="w-2.5 h-2.5" />
+                </a>
+            )}
+        </div>
         <input
             type={isPassword ? "password" : "text"}
             id={id}
@@ -96,6 +110,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     placeholder="Enter your Google API Key"
                     value={localGoogleKey}
                     onChange={(e) => setLocalGoogleKey(e.target.value)}
+                    link={{ label: "Get Key", url: "https://aistudio.google.com/app/apikey" }}
                 />
                  <ApiKeyInput
                     id="sightengine-api-key"
@@ -103,6 +118,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     placeholder="user_id:secret_key"
                     value={localSightengineKey}
                     onChange={(e) => setLocalSightengineKey(e.target.value)}
+                    link={{ label: "Get Key", url: "https://dashboard.sightengine.com/api-keys" }}
                 />
             </div>
 

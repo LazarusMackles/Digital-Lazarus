@@ -5,7 +5,7 @@ interface IconProps extends React.SVGProps<SVGSVGElement> {
 }
 
 export const Icon: React.FC<IconProps> = ({ name, ...props }) => (
-  <svg fill="none" strokeWidth={1.5} stroke="currentColor" {...props}>
+  <svg fill="none" strokeWidth={1.5} stroke="currentColor" aria-hidden="true" {...props}>
     <use href={`#icon-${name}`} />
   </svg>
 );

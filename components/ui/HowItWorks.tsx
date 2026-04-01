@@ -27,17 +27,17 @@ export const HowItWorks: React.FC = React.memo(() => {
             >
                 <div className="px-4 pb-4 pt-0 text-sm text-slate-600 dark:text-slate-300">
                     <ul className="list-none space-y-3">
-                        <li><strong className="text-slate-700 dark:text-slate-100">1. Submit Your Evidence:</strong> Upload a single image to begin your investigation.</li>
+                        <li><strong className="text-slate-700 dark:text-slate-100">1. Submit Your Evidence:</strong> Upload a single image to begin your digital forensic investigation.</li>
                         <li><strong className="text-slate-700 dark:text-slate-100">2. Choose Your Investigation Angle:</strong>
                             <ul className="list-disc pl-5 mt-1 space-y-1">
-                                <li><strong className="text-cyan-600 dark:text-cyan-400">Forensic Analysis:</strong> A deep dive into the image's content, searching for tell-tale signs of digital synthesis.</li>
-                                <li><strong className="text-cyan-600 dark:text-cyan-400">Provenance Dossier:</strong> An investigation using Google Search to find the image's history online.</li>
-                                <li><strong className="text-cyan-600 dark:text-cyan-400">Hybrid Analysis:</strong> The most accurate method, cross-referencing a specialized pixel scan with Gemini's forensic interpretation. (Requires a Sightengine API Key).</li>
+                                <li><strong className="text-cyan-600 dark:text-cyan-400">Forensic Analysis:</strong> A deep dive into the image's content, searching for tell-tale signs of digital synthesis and AI artefacts.</li>
+                                <li><strong className="text-cyan-600 dark:text-cyan-400">Provenance Dossier:</strong> An investigation using Google Search to find the image's history, first appearance, and public fact-checks.</li>
+                                <li><strong className="text-cyan-600 dark:text-cyan-400">Hybrid Analysis:</strong> The most accurate method, cross-referencing a specialized pixel-level scan with Gemini's forensic interpretation. (Requires a Sightengine API Key).</li>
                             </ul>
                         </li>
-                        <li><strong className="text-slate-700 dark:text-slate-100">3. Provide Your API Keys:</strong> This tool requires your own Google AI Studio and (optionally) Sightengine API keys. Manage them in the Settings panel.</li>
-                        <li><strong className="text-slate-700 dark:text-slate-100">4. Review the Findings:</strong> I'll return a <strong className="text-cyan-600 dark:text-cyan-400">Probability Score</strong> and a <strong className="text-cyan-600 dark:text-cyan-400">Detailed Verdict</strong>.</li>
-                        <li><strong className="text-slate-700 dark:text-slate-100">5. Engage with the Verdict:</strong> Not convinced? You can <strong className="text-cyan-600 dark:text-cyan-400">Request a Second Opinion</strong> for a new analysis.</li>
+                        <li><strong className="text-slate-700 dark:text-slate-100">3. Provide Your API Keys:</strong> This tool requires your own <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-cyan-600 dark:text-cyan-400 underline hover:text-cyan-500">Google AI Studio</a> and (optionally) <a href="https://dashboard.sightengine.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-cyan-600 dark:text-cyan-400 underline hover:text-cyan-500">Sightengine</a> API keys. Manage them in the <strong className="text-cyan-600 dark:text-cyan-400">Settings</strong> panel.</li>
+                        <li><strong className="text-slate-700 dark:text-slate-100">4. Review the Findings:</strong> I'll return a <strong className="text-cyan-600 dark:text-cyan-400">Probability Score</strong> and a <strong className="text-cyan-600 dark:text-cyan-400">Detailed Verdict</strong> based on digital signatures and online history.</li>
+                        <li><strong className="text-slate-700 dark:text-slate-100">5. Engage with the Verdict:</strong> Not convinced? You can trigger an <strong className="text-cyan-600 dark:text-cyan-400">Adversarial Second Opinion</strong> to challenge the initial findings and re-examine the evidence.</li>
                     </ul>
                 </div>
             </div>

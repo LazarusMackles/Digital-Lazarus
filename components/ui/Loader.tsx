@@ -38,7 +38,13 @@ export const Loader: React.FC<LoaderProps> = React.memo(({ message = "Forensic S
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center w-full">
       <div className="relative mb-6">
-        <svg className="animate-spin h-24 w-24" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <svg 
+            className="animate-spin h-24 w-24" 
+            viewBox="0 0 100 100" 
+            xmlns="http://www.w3.org/2000/svg"
+            role="img"
+            aria-label="Loading indicator"
+        >
             <defs>
                 <linearGradient id="spinner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#22d3ee" />
