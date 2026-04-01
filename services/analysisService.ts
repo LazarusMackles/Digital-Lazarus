@@ -71,12 +71,19 @@ export const buildPrompt = (
     let evidenceDescription = `ANALYSE IMAGE EVIDENCE: Your primary goal is to determine the authenticity of "${primaryEvidence}".\n\n${chaosRule}\n\n${universalMandate}`;
 
     if(isReanalysis) {
-        evidenceDescription += `\n\nPRIORITY DIRECTIVE: SECOND OPINION. Re-evaluate the evidence. If you previously flagged this as AI due to a "weird pose", reconsider if it could be a real action shot. Look closer at the textures.`;
+        evidenceDescription += `\n\nPRIORITY DIRECTIVE: SECOND OPINION / ADVERSARIAL REVIEW. You are now a peer reviewer tasked with challenging the initial findings. If the image was previously flagged as AI, look for reasons why it might be a genuine, chaotic photograph. If it was flagged as real, look for subtle artefacts you might have missed. Be extremely critical of your own first impressions.`;
     } else {
          evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. Proceed with caution. Do not confuse a "bad photo" or "weird moment" with a "fake photo".`;
     }
     
-    const modeInstruction = `OUTPUT FORMAT: Conduct a "Deep Dive". Provide a concise explanation and 1-3 specific "highlights" (key indicators).`;
+    const modeInstruction = `OUTPUT FORMAT: Conduct a "Deep Dive". Your response MUST be a valid JSON object matching this structure:
+    {
+      "verdict": "Appears Human-Crafted" | "Likely AI-Enhanced" | "Composite: Human & AI" | "Fully AI-Generated",
+      "probability": number (0-100),
+      "explanation": "string",
+      "highlights": [{"text": "string", "reason": "string"}]
+    }
+    Respond ONLY with the JSON object. No markdown formatting, no preamble.`;
     
     return `${baseInstruction}\n\n${criticalRule}\n\n${evidenceDescription}\n\n${modeInstruction}`;
 };

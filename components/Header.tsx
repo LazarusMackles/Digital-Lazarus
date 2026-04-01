@@ -21,16 +21,16 @@ export const Header: React.FC = React.memo(() => {
           We keep Title and Icons on the same line (flex-row) for ALL devices.
           We scale the font size down on mobile to ensure it fits without wrapping.
       */}
-      <div className="flex flex-row items-center justify-center gap-3 sm:gap-6">
+      <div className="flex flex-row items-center justify-center gap-2 sm:gap-6">
           
           {/* 
               Title:
               - whitespace-nowrap: Never break to a new line.
-              - text-xl: Small enough for iPhone SE (320px) to fit icons next to it.
+              - text-lg: Reduced from text-xl to fit Galaxy Fold (280px).
               - sm:text-5xl: Scales up beautifully on tablets/laptops.
               - py-2: Prevents 'g' descender clipping.
           */}
-          <h1 className="py-2 text-xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-400 dark:to-fuchsia-500 leading-tight tracking-tight whitespace-nowrap">
+          <h1 className="py-2 text-lg sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-400 dark:to-fuchsia-500 leading-tight tracking-tight whitespace-nowrap">
             Sleuther Vanguard
           </h1>
 
@@ -47,7 +47,7 @@ export const Header: React.FC = React.memo(() => {
               aria-label={hasGoogleApiKey ? "Settings (Keys Connected)" : "Settings (Keys Required)"}
               title={hasGoogleApiKey ? "System Ready: Keys Connected" : "Setup Required: Enter API Keys"}
             >
-              <Icon name="key" className="w-5 h-5 sm:w-6 sm:h-6" />
+              <Icon name="cog" className="w-5 h-5 sm:w-6 sm:h-6 group-hover:rotate-90 transition-transform duration-500" />
             </button>
             <ThemeToggle />
           </div>

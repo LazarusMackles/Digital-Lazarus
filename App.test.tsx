@@ -88,8 +88,8 @@ describe('App Integration Test', () => {
         });
 
         // 2. Click Deduction Button
-        const button = screen.getByText('Begin Deduction');
-        expect(button).not.toBeDisabled();
+        const button = screen.getByText('Begin Deduction') as HTMLButtonElement;
+        expect(button.disabled).toBe(false);
         fireEvent.click(button);
 
         // 3. Verify Loading State
