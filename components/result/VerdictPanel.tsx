@@ -36,7 +36,7 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
     const { state: uiState } = useUIState();
     const { analysisStage } = uiState;
     const [verdictVisible, setVerdictVisible] = useState(false);
-    const ANIMATION_DURATION = 1200; // ms
+    const ANIMATION_DURATION = 800; // Reduced for snappier feel
 
     const isAnalysisInProgress = analysisStage === 'analyzing_pixels' || analysisStage === 'analyzing_context';
     const isStreaming = analysisStage === 'analyzing_context';
@@ -45,11 +45,8 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
       // This effect triggers the verdict text animation.
       // It runs when the analysis stage becomes 'complete'.
       if (analysisStage === 'complete') {
-        const timer = setTimeout(() => {
-          setVerdictVisible(true);
-        }, ANIMATION_DURATION); // Fire just after the progress animation.
-
-        return () => clearTimeout(timer);
+        // Show immediately to avoid "empty box" confusion
+        setVerdictVisible(true);
       } else {
         // If a new analysis starts, hide the verdict again.
         setVerdictVisible(false);
@@ -59,7 +56,11 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
     const isProvenance = analysisAngleUsed === 'provenance';
 
     const verdictColorClass = () => {
-        if (isProvenance) return 'text-cyan-500 dark:text-cyan-400';
+        if (isProvenance) {
+            if (verdict === "Authentic Photograph") return 'text-teal-500 dark:text-teal-400';
+            if (verdict === "AI-Generated") return 'text-rose-500 dark:text-rose-400';
+            return 'text-cyan-500 dark:text-cyan-400';
+        }
         if (probability < 40) return 'text-teal-500 dark:text-teal-400';
         if (probability < 80) return 'text-yellow-500 dark:text-yellow-400';
         return 'text-rose-500 dark:text-rose-400';
@@ -102,12 +103,16 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
                         </h3>
                         <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
                             <ul className="space-y-2 text-slate-600 dark:text-slate-300">
-                                {explanation.split('\n').filter(line => line.trim().length > 0).slice(0, 5).map((line, index) => (
-                                    <li key={index} className="flex items-start gap-3">
-                                        <span className="text-fuchsia-500 mt-1">&#8226;</span>
-                                        <span>{line.replace(/^- /, '')}</span>
-                                    </li>
-                                ))}
+                                {explanation.split('\n').filter(line => line.trim().length > 0).slice(0, 8).map((line, index) => {
+                                    const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
+                                    if (!cleanLine) return null;
+                                    return (
+                                        <li key={index} className="flex items-start gap-3">
+                                            <span className="text-fuchsia-500 mt-1 flex-shrink-0">&#8226;</span>
+                                            <span className="leading-relaxed">{cleanLine}</span>
+                                        </li>
+                                    );
+                                })}
                                 {isStreaming && (
                                     <li className="flex items-start gap-3">
                                         <span className="text-fuchsia-500 mt-1">&#8226;</span>

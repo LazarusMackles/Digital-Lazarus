@@ -18,9 +18,12 @@ export const buildPrompt = (
         
         CONTEXTUAL AWARENESS: Today is ${new Date().toDateString()}. If the image depicts an event in the future relative to today, it is likely AI-generated or a prediction. If it depicts a past event, verify it.
         
-        Synthesise your findings into a concise summary of **no more than 5 key bullet points**. 
-        The **very first bullet point** MUST be a definitive statement confirming if the image has been widely debunked as AI-generated or verified as authentic by fact-checkers. 
-        CRITICAL FORMATTING RULE: Your entire response MUST be a bulleted list, with each point starting with a hyphen (-). Do not add any conversational filler, introductory text, or a heading. Respond ONLY with the bulleted list.`;
+        Respond ONLY with a JSON object matching the following structure:
+        {
+          "verdict": "Authentic Photograph" | "AI-Generated" | "No Online History Found" | "Analysis Inconclusive",
+          "explanation": "A concise summary of findings (under 100 words), formatted as a bulleted list if multiple points are needed."
+        }
+        Respond ONLY with the JSON object. No markdown formatting, no preamble.`;
     }
 
     // --- Forensic & Hybrid Analysis Prompts ---
@@ -56,13 +59,15 @@ export const buildPrompt = (
 
     const primaryEvidence = fileData?.name || 'the provided image';
     
-    // FORENSIC LOGIC: The "Chaos vs Glitch" Rule (Tuned for the "Falling Man" Edge Case)
+    // FORENSIC LOGIC: The "Chaos vs Glitch" Rule (Tuned for the "Falling Man" & "Museum" Edge Cases)
     const chaosRule = `DISTINGUISH PHYSICAL CHAOS & LOW RESOLUTION FROM DIGITAL GLITCHES:
     1. THE "BLUR" DEFENSE: Do NOT flag text as "garbled" or "hieroglyphs" just because it is blurry, pixelated, or out of focus. Real low-res photos often have unreadable text. Only flag text if the glyphs are structurally alien/impossible (e.g., merging letters). If it looks like "US NAVY" but is blurry, assume it is "US NAVY".
     2. DYNAMIC POSES ARE NOT GLITCHES: A person falling, tumbling, or upside down is a physical event. Do NOT flag "awkward limbs" or "impossible angles" as AI artefacts if the scene depicts a fall, accident, or action shot. Assume gravity and momentum are at play.
-    3. TEXTURE OVER TOPOLOGY: AI struggles with texture (skin pores, hair strands, fabric weave). If the textures are organic, messy, and imperfect, the image is likely REAL, even if the composition is weird.
-    4. WAXY SKIN IS THE KEY: Real humans have texture. AI humans often look "waxy", "glossy", or "airbrushed". If the skin has grit, grain, or harsh shadows, favor "Human-Crafted".
-    5. BACKGROUND NOISE: A messy, cluttered background with identifiable trash/objects is often a sign of REALITY. AI tends to blur backgrounds or make them weirdly abstract.
+    3. THE "MUSEUM" DEFENSE: If the scene is a museum, gallery, or public square, do NOT flag sculptures, statues, or paintings as "anatomically impossible" or "melted." Art is intentionally stylized and often depicts complex, intertwined, or surreal forms. Only flag digital artefacts on the *people* viewing the art, or the physical environment (e.g., the floor, walls, lighting).
+    4. SOCIAL MEDIA COMPRESSION: Images from Facebook, WhatsApp, or Twitter are heavily compressed. This creates "blocky" noise and "ringing" around edges. Do NOT mistake this for AI-generated "waxy" textures or "hallucinated" details.
+    5. TEXTURE OVER TOPOLOGY: AI struggles with texture (skin pores, hair strands, fabric weave). If the textures are organic, messy, and imperfect, the image is likely REAL, even if the composition is weird.
+    6. WAXY SKIN IS THE KEY: Real humans have texture. AI humans often look "waxy", "glossy", or "airbrushed". If the skin has grit, grain, or harsh shadows, favor "Human-Crafted".
+    7. BACKGROUND NOISE: A messy, cluttered background with identifiable trash/objects is often a sign of REALITY. AI tends to blur backgrounds or make them weirdly abstract.
     
     VERDICT GUIDANCE: If you are unsure, default to "Appears Human-Crafted" with a note about the chaotic nature of the scene. Only use "Fully AI-Generated" for sterile, glossy, chemically perfect images.`;
 
@@ -120,29 +125,9 @@ export const finalizeForensicVerdict = (rawResult: any, sightengineScore?: numbe
 };
 
 export const finalizeProvenanceVerdict = (response: any): AnalysisResult => {
-    const explanation = response.text?.trim() || "The investigation did not return a conclusive summary.";
-    const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
-
-    let verdict = "Provenance Dossier"; // Default verdict
-    if (groundingMetadata?.groundingChunks?.length > 0) {
-        const fullText = explanation.toLowerCase();
-        let score = 0;
-
-        const authenticSignals = ["authentic", "real photo", "verified", "not fake", "not ai-generated", "not fabricated", "captured by"];
-        const aiSignals = ["ai-generated", "fake", "fabricated", "debunked", "not authentic", "not real", "misleading"];
-
-        authenticSignals.forEach(s => { if (fullText.includes(s)) score++; });
-        aiSignals.forEach(s => { if (fullText.includes(s)) score--; });
-
-        if (score > 0) {
-            verdict = "Authentic Photograph";
-        } else if (score < 0) {
-            verdict = "AI-Generated";
-        }
-        
-    } else {
-        verdict = "No Online History Found";
-    }
+    const explanation = response.explanation || "The investigation did not return a conclusive summary.";
+    const verdict = response.verdict || "Analysis Inconclusive";
+    const groundingMetadata = response.groundingMetadata;
 
     return {
         probability: 0,

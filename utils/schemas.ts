@@ -44,3 +44,24 @@ export const deepAnalysisSchema = {
   },
   required: ['probability', 'verdict', 'explanation']
 };
+
+export const provenanceSchema = {
+  type: Type.OBJECT,
+  properties: {
+    verdict: {
+      type: Type.STRING,
+      enum: [
+        "Authentic Photograph",
+        "AI-Generated",
+        "No Online History Found",
+        "Analysis Inconclusive"
+      ],
+      description: 'A concise verdict based on fact-checking and online history.'
+    },
+    explanation: {
+      type: Type.STRING,
+      description: 'A concise summary of findings (under 100 words), formatted as a bulleted list if multiple points are needed.'
+    }
+  },
+  required: ['verdict', 'explanation']
+};

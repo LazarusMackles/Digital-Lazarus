@@ -41,7 +41,7 @@ export const resultReducer = (state: ResultState = initialState, action: Action)
                 analysisResult: isProvenance
                     ? {
                         probability: 0,
-                        verdict: 'Forensic Scan in Progress.', // Updated Copy
+                        verdict: 'Investigation in Progress...', 
                         explanation: '',
                         isSecondOpinion: false,
                     }
@@ -63,7 +63,7 @@ export const resultReducer = (state: ResultState = initialState, action: Action)
                      ...state,
                      analysisResult: {
                          probability: 0,
-                         verdict: 'Forensic Scan in Progress.', // Updated Copy
+                         verdict: 'Investigation in Progress...', 
                          explanation: action.payload.explanation,
                          isSecondOpinion: state.analysisResult?.isSecondOpinion || false,
                      }
