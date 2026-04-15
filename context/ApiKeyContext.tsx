@@ -2,15 +2,17 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 
 const GOOGLE_API_KEY_STORAGE_KEY = 'sleuther_google_api_key';
-const SIGHTENGINE_API_KEY_STORAGE_KEY = 'sleuther_sightengine_api_key';
+const HIVE_ACCESS_KEY_STORAGE_KEY = 'sleuther_hive_access_key';
+const HIVE_SECRET_KEY_STORAGE_KEY = 'sleuther_hive_secret_key';
 
 interface ApiKeyContextType {
     googleApiKey: string | null;
-    sightengineApiKey: string | null;
+    hiveAccessKey: string | null;
+    hiveSecretKey: string | null;
     hasGoogleApiKey: boolean;
-    hasSightengineApiKey: boolean;
+    hasHiveKeys: boolean;
     saveGoogleApiKey: (key: string) => void;
-    saveSightengineApiKey: (key: string) => void;
+    saveHiveKeys: (accessKey: string, secretKey: string) => void;
     clearKeys: () => void;
 }
 
@@ -29,18 +31,27 @@ export const ApiKeyProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         return null;
     });
 
-    const [sightengineApiKey, setSightengineApiKey] = useState<string | null>(() => {
+    const [hiveAccessKey, setHiveAccessKey] = useState<string | null>(() => {
         if (typeof window !== 'undefined') {
-            return localStorage.getItem(SIGHTENGINE_API_KEY_STORAGE_KEY);
+            return localStorage.getItem(HIVE_ACCESS_KEY_STORAGE_KEY);
+        }
+        return null;
+    });
+
+    const [hiveSecretKey, setHiveSecretKey] = useState<string | null>(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem(HIVE_SECRET_KEY_STORAGE_KEY);
         }
         return null;
     });
 
     const clearKeys = useCallback(() => {
         localStorage.removeItem(GOOGLE_API_KEY_STORAGE_KEY);
-        localStorage.removeItem(SIGHTENGINE_API_KEY_STORAGE_KEY);
+        localStorage.removeItem(HIVE_ACCESS_KEY_STORAGE_KEY);
+        localStorage.removeItem(HIVE_SECRET_KEY_STORAGE_KEY);
         setGoogleApiKey((process.env.GEMINI_API_KEY as string) || null);
-        setSightengineApiKey(null);
+        setHiveAccessKey(null);
+        setHiveSecretKey(null);
     }, []);
 
     const saveGoogleApiKey = useCallback((key: string) => {
@@ -52,22 +63,26 @@ export const ApiKeyProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         setGoogleApiKey(key || (process.env.GEMINI_API_KEY as string) || null);
     }, []);
 
-    const saveSightengineApiKey = useCallback((key: string) => {
-        if (key) {
-            localStorage.setItem(SIGHTENGINE_API_KEY_STORAGE_KEY, key);
+    const saveHiveKeys = useCallback((accessKey: string, secretKey: string) => {
+        if (accessKey && secretKey) {
+            localStorage.setItem(HIVE_ACCESS_KEY_STORAGE_KEY, accessKey);
+            localStorage.setItem(HIVE_SECRET_KEY_STORAGE_KEY, secretKey);
         } else {
-            localStorage.removeItem(SIGHTENGINE_API_KEY_STORAGE_KEY);
+            localStorage.removeItem(HIVE_ACCESS_KEY_STORAGE_KEY);
+            localStorage.removeItem(HIVE_SECRET_KEY_STORAGE_KEY);
         }
-        setSightengineApiKey(key || null);
+        setHiveAccessKey(accessKey || null);
+        setHiveSecretKey(secretKey || null);
     }, []);
 
     const value = {
         googleApiKey,
-        sightengineApiKey,
+        hiveAccessKey,
+        hiveSecretKey,
         hasGoogleApiKey: !!googleApiKey,
-        hasSightengineApiKey: !!sightengineApiKey,
+        hasHiveKeys: !!hiveAccessKey && !!hiveSecretKey,
         saveGoogleApiKey,
-        saveSightengineApiKey,
+        saveHiveKeys,
         clearKeys,
     };
 

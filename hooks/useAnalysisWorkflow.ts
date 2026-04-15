@@ -10,7 +10,7 @@ import {
     finalizeForensicVerdict, 
     finalizeProvenanceVerdict 
 } from '../services/analysisService';
-import { analyzeWithSightengine } from '../services/sightengineService';
+import { analyzeWithHive } from '../services/hiveService';
 import { analyzeContent, analyzeWithSearch } from '../services/geminiService';
 import { aggressivelyCompressImageForAnalysis } from '../utils/imageCompression';
 import { MODELS } from '../utils/constants';
@@ -22,7 +22,7 @@ export const useAnalysisWorkflow = () => {
     const { dispatch: resultDispatch } = useResultState();
     const { dispatch: uiDispatch } = useUIState();
     const { addToHistory } = useHistory();
-    const { googleApiKey, sightengineApiKey } = useApiKeys();
+    const { googleApiKey, hiveAccessKey, hasHiveKeys } = useApiKeys();
 
     const performAnalysis = useCallback(async (isReanalysis = false) => {
         const { fileData, analysisAngle } = inputState;
@@ -48,7 +48,11 @@ export const useAnalysisWorkflow = () => {
 
         try {
             if (!googleApiKey) {
-                throw new Error("Google API Key is missing.");
+                throw new Error("Google API Key is missing. Please complete the Vanguard Onboarding.");
+            }
+
+            if (!hasHiveKeys) {
+                throw new Error("Hive API Keys are missing. Please complete the Vanguard Onboarding.");
             }
 
             // PERFORMANCE OPTIMIZATION: Compress image before sending to API to reduce latency.
@@ -74,13 +78,9 @@ export const useAnalysisWorkflow = () => {
                 
                 // HYBRID FALLBACK STRATEGY
                 if (analysisAngle === 'hybrid') {
-                    if (!sightengineApiKey) {
-                        throw new Error("Sightengine API Key is missing for Hybrid Analysis.");
-                    }
                     uiDispatch({ type: actions.START_PIXEL_ANALYSIS });
                      try {
-                        const sightengineResult = await analyzeWithSightengine(fileData.imageBase64, sightengineApiKey);
-                        pixelScore = Math.round(sightengineResult.ai_generated * 100);
+                        pixelScore = await analyzeWithHive(fileData.imageBase64, hiveAccessKey!);
                     } catch (e) {
                         console.warn("Pixel Analysis Failed. Falling back to Forensic Analysis.", e);
                     }
@@ -110,7 +110,7 @@ export const useAnalysisWorkflow = () => {
             uiDispatch({ type: actions.SET_ERROR, payload: errorMessage });
         }
 
-    }, [inputState, googleApiKey, sightengineApiKey, resultDispatch, uiDispatch, addToHistory]);
+    }, [inputState, googleApiKey, hiveAccessKey, hasHiveKeys, resultDispatch, uiDispatch, addToHistory]);
 
     const handleNewAnalysis = useCallback(() => {
         resultDispatch({ type: actions.NEW_ANALYSIS });

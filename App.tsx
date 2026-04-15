@@ -8,9 +8,10 @@ import { ResultStateProvider, useResultState } from './context/ResultStateContex
 import { UIStateProvider, useUIState } from './context/UIStateContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Card, Loader, SettingsModal, WelcomeModal, HistoryModal } from './components/ui';
+import { OnboardingWizard } from './components/setup/OnboardingWizard';
 import { useAppView } from './hooks/useAppView';
 import { IntroPanel } from './components/IntroPanel';
-import { ApiKeyProvider } from './context/ApiKeyContext';
+import { ApiKeyProvider, useApiKeys } from './context/ApiKeyContext';
 import { HistoryProvider } from './context/HistoryContext';
 import { IconSprite } from './components/IconSprite';
 import * as actions from './context/actions';
@@ -20,10 +21,13 @@ const AppContent: React.FC = () => {
   const { state: uiState, dispatch: uiDispatch } = useUIState();
   const { state: inputState } = useInputState();
   const { state: resultState } = useResultState();
+  const { hasGoogleApiKey, hasHiveKeys } = useApiKeys();
   
   const { showWelcome, showSettingsModal, analysisStage } = uiState;
   const { analysisAngle } = inputState;
   const isSecondOpinion = resultState.analysisResult?.isSecondOpinion || false;
+
+  const showOnboarding = !hasGoogleApiKey || !hasHiveKeys;
 
   const getLoaderMessage = () => {
     // Round 2: Deep Review (Global)
@@ -93,8 +97,14 @@ const AppContent: React.FC = () => {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300 flex flex-col">
       <IconSprite />
       
-      {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
-      {showSettingsModal && <SettingsModal onClose={handleCloseSettings} />}
+      {showOnboarding ? (
+        <OnboardingWizard />
+      ) : (
+        <>
+          {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
+          {showSettingsModal && <SettingsModal onClose={handleCloseSettings} />}
+        </>
+      )}
       
       <ErrorBoundary>
         <div className="flex-grow container mx-auto px-4 py-4 sm:py-8 max-w-5xl">

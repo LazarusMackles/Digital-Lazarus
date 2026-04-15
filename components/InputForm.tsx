@@ -5,7 +5,7 @@ import { useUIState } from '../context/UIStateContext';
 import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
 import { useApiKeys } from '../hooks/useApiKeys';
 import * as actions from '../context/actions';
-import { Card, Button, HowItWorks, OptionGroup, ApiKeyOnboardingModal } from './ui';
+import { Card, Button, HowItWorks, OptionGroup } from './ui';
 import { Icon } from './icons/index';
 import { isInputReadyForAnalysis } from '../utils/validation';
 import type { AnalysisAngle } from '../types';
@@ -22,13 +22,13 @@ export const InputForm: React.FC = () => {
     const { state: inputState, dispatch: inputDispatch } = useInputState();
     const { state: uiState, dispatch: uiDispatch } = useUIState();
     const { performAnalysis, handleClearInputs } = useAnalysisWorkflow();
-    const { hasGoogleApiKey, hasSightengineApiKey } = useApiKeys();
+    const { hasGoogleApiKey, hasHiveKeys } = useApiKeys();
 
     const {
         fileData,
         analysisAngle,
     } = inputState;
-    const { error, showApiKeyOnboarding } = uiState;
+    const { error } = uiState;
 
     const isInputValid = useMemo(() => {
         return isInputReadyForAnalysis(fileData);
@@ -52,14 +52,8 @@ export const InputForm: React.FC = () => {
             return;
         }
 
-        if (!hasGoogleApiKey) {
-            uiDispatch({ type: actions.SET_ERROR, payload: 'Please enter your Google API Key in the Settings panel.' });
-            handleOpenSettings();
-            return;
-        }
-
-        if (analysisAngle === 'hybrid' && !hasSightengineApiKey) {
-            uiDispatch({ type: actions.SET_SHOW_API_KEY_ONBOARDING, payload: true });
+        if (!hasGoogleApiKey || !hasHiveKeys) {
+            uiDispatch({ type: actions.SET_ERROR, payload: 'System sensors offline. Please complete the Vanguard Onboarding.' });
             return;
         }
         
@@ -73,22 +67,23 @@ export const InputForm: React.FC = () => {
         handleClearInputs();
     }, [handleClearInputs]);
 
+    const isSystemReady = hasGoogleApiKey && hasHiveKeys;
+
     return (
         <div className="space-y-4 animate-fade-in">
-            {showApiKeyOnboarding && <ApiKeyOnboardingModal />}
             <HowItWorks />
             
-            {!hasGoogleApiKey && (
+            {!isSystemReady && (
                 <div className="mx-auto w-full max-w-2xl p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl flex flex-col sm:flex-row items-center gap-3 sm:gap-4 shadow-sm">
                     <div className="p-2 bg-amber-100 dark:bg-amber-800/50 rounded-full text-amber-600 dark:text-amber-400 flex-shrink-0">
                          <Icon name="key" className="w-5 h-5" />
                     </div>
                     <div className="flex-grow text-center sm:text-left">
-                        <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm sm:text-base">Authentication Required</h3>
-                        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Sleuther needs your Google API Key to power its engines.</p>
+                        <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm sm:text-base">System Sensors Offline</h3>
+                        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Sleuther Vanguard requires active API connections to operate.</p>
                     </div>
                     <Button onClick={handleOpenSettings} variant="secondary" className="whitespace-nowrap px-4 py-2 text-xs sm:text-sm w-full sm:w-auto">
-                        Connect Key
+                        Connect Sensors
                     </Button>
                 </div>
             )}
@@ -115,7 +110,7 @@ export const InputForm: React.FC = () => {
                         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Button
                                 type="submit"
-                                disabled={!isInputValid || !hasGoogleApiKey}
+                                disabled={!isInputValid || !isSystemReady}
                             >
                                 Begin Deduction
                             </Button>

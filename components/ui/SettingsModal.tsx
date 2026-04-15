@@ -47,16 +47,17 @@ const ApiKeyInput: React.FC<{
 );
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
-  const { googleApiKey, sightengineApiKey, saveGoogleApiKey, saveSightengineApiKey, clearKeys } = useApiKeys();
+  const { googleApiKey, hiveAccessKey, hiveSecretKey, saveGoogleApiKey, saveHiveKeys, clearKeys } = useApiKeys();
   const [localGoogleKey, setLocalGoogleKey] = useState(googleApiKey || '');
-  const [localSightengineKey, setLocalSightengineKey] = useState(sightengineApiKey || '');
+  const [localHiveAccessKey, setLocalHiveAccessKey] = useState(hiveAccessKey || '');
+  const [localHiveSecretKey, setLocalHiveSecretKey] = useState(hiveSecretKey || '');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle');
 
   useBodyScrollLock();
   
   const handleSave = () => {
     saveGoogleApiKey(localGoogleKey.trim());
-    saveSightengineApiKey(localSightengineKey.trim());
+    saveHiveKeys(localHiveAccessKey.trim(), localHiveSecretKey.trim());
     setSaveStatus('saved');
     
     // Wait for a "beat" (1000ms) to let the user see the success state, then auto-close.
@@ -70,7 +71,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
     if (window.confirm('Are you sure you want to clear your stored API keys? This will remove them from your browser\'s local storage.')) {
         clearKeys();
         setLocalGoogleKey('');
-        setLocalSightengineKey('');
+        setLocalHiveAccessKey('');
+        setLocalHiveSecretKey('');
     }
   };
 
@@ -112,14 +114,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     onChange={(e) => setLocalGoogleKey(e.target.value)}
                     link={{ label: "Get Key", url: "https://aistudio.google.com/app/apikey" }}
                 />
-                 <ApiKeyInput
-                    id="sightengine-api-key"
-                    label="Sightengine API Key (Optional)"
-                    placeholder="user_id:secret_key"
-                    value={localSightengineKey}
-                    onChange={(e) => setLocalSightengineKey(e.target.value)}
-                    link={{ label: "Get Key", url: "https://dashboard.sightengine.com/api-keys" }}
-                />
+                 <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Hive AI Detection</h3>
+                    <div className="space-y-4">
+                        <ApiKeyInput
+                            id="hive-access-key"
+                            label="Hive Access Key"
+                            placeholder="Enter Hive Access Key"
+                            value={localHiveAccessKey}
+                            onChange={(e) => setLocalHiveAccessKey(e.target.value)}
+                            link={{ label: "Get Key", url: "https://hivemoderation.com/ai-generated-content-detection" }}
+                        />
+                        <ApiKeyInput
+                            id="hive-secret-key"
+                            label="Hive Secret Key"
+                            placeholder="Enter Hive Secret Key"
+                            value={localHiveSecretKey}
+                            onChange={(e) => setLocalHiveSecretKey(e.target.value)}
+                        />
+                    </div>
+                 </div>
             </div>
 
             <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-end">
@@ -146,7 +160,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                 <ul className="mt-3 space-y-2 text-xs text-slate-600 dark:text-slate-400">
                     <li className="flex gap-2">
                         <span className="text-cyan-500 font-bold">•</span>
-                        <span><strong>API Restrictions:</strong> Limit your keys to specific APIs (e.g., Gemini API) in the <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-cyan-500 hover:underline">Google Cloud Console</a>.</span>
+                        <span><strong>API Restrictions:</strong> Limit your keys to specific APIs in the provider consoles.</span>
                     </li>
                     <li className="flex gap-2">
                         <span className="text-cyan-500 font-bold">•</span>
@@ -164,7 +178,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             </div>
 
              <p className="mt-6 text-[10px] text-slate-400 dark:text-slate-500 text-center leading-relaxed">
-                Your keys are stored locally in your browser and are only used to authenticate requests to Google and Sightengine.
+                Your keys are stored locally in your browser and are only used to authenticate requests to Google and Hive.
              </p>
         </div>
       </div>
