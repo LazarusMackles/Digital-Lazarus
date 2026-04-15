@@ -41,7 +41,7 @@ const ApiKeyInput: React.FC<{
             placeholder={placeholder}
             value={value}
             onChange={onChange}
-            className="w-full p-2 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md focus:ring-2 focus:ring-cyan-500 focus:outline-none"
+            className="w-full p-2 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md focus:ring-2 focus:ring-cyan-500 focus:outline-none text-slate-900 dark:text-white"
         />
     </div>
 );

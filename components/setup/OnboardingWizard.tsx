@@ -90,7 +90,7 @@ export const OnboardingWizard: React.FC = () => {
                                 placeholder="Paste your Google API Key here"
                                 value={localGoogleKey}
                                 onChange={(e) => setLocalGoogleKey(e.target.value)}
-                                className="w-full p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-all"
+                                className="w-full p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none transition-all text-slate-900 dark:text-white"
                             />
                         </div>
                         
@@ -125,14 +125,14 @@ export const OnboardingWizard: React.FC = () => {
                                 placeholder="Hive Access Key"
                                 value={localHiveAccessKey}
                                 onChange={(e) => setLocalHiveAccessKey(e.target.value)}
-                                className="w-full p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none"
+                                className="w-full p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none text-slate-900 dark:text-white"
                             />
                             <input 
                                 type="password"
                                 placeholder="Hive Secret Key"
                                 value={localHiveSecretKey}
                                 onChange={(e) => setLocalHiveSecretKey(e.target.value)}
-                                className="w-full p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none"
+                                className="w-full p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none text-slate-900 dark:text-white"
                             />
                         </div>
                         

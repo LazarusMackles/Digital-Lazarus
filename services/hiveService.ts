@@ -17,14 +17,16 @@ export interface HiveResult {
 /**
  * Analyzes an image using Hive's AI Generated Image Detection model.
  */
-export const analyzeWithHive = async (imageBase64: string, apiKey: string): Promise<number> => {
+export const analyzeWithHive = async (imageBase64: string, accessKey: string, secretKey: string): Promise<number> => {
     // Hive expects the base64 string without the data:image/jpeg;base64, prefix
     const base64Data = imageBase64.split(',')[1] || imageBase64;
 
+    // NOTE: Hive's REST API typically uses a single API Key in the 'Authorization: token <KEY>' header.
+    // If provided with an Access Key and Secret Key, we use the Access Key as the primary token.
     const response = await fetch('https://api.thehive.ai/api/v2/models/ai_generated_image_detection/predict', {
         method: 'POST',
         headers: {
-            'Authorization': `token ${apiKey}`,
+            'Authorization': `token ${accessKey}`,
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },

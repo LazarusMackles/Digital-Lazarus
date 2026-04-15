@@ -9,7 +9,8 @@ import { cn } from '../utils/cn';
 
 export const Header: React.FC = React.memo(() => {
   const { dispatch } = useUIState();
-  const { hasGoogleApiKey } = useApiKeys();
+  const { hasGoogleApiKey, hasHiveKeys } = useApiKeys();
+  const isSystemReady = hasGoogleApiKey && hasHiveKeys;
   
   const handleOpenSettings = () => dispatch({ type: actions.SET_SHOW_SETTINGS_MODAL, payload: true });
 
@@ -40,12 +41,12 @@ export const Header: React.FC = React.memo(() => {
               onClick={handleOpenSettings}
               className={cn(
                   "p-1.5 sm:p-2 rounded-full border transition-all duration-300 group",
-                  hasGoogleApiKey 
+                  isSystemReady 
                       ? "bg-emerald-100 dark:bg-emerald-900/30 border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-400"
                       : "bg-amber-100 dark:bg-amber-900/30 border-amber-400 dark:border-amber-600 text-amber-700 dark:text-amber-400"
               )}
-              aria-label={hasGoogleApiKey ? "Settings (Keys Connected)" : "Settings (Keys Required)"}
-              title={hasGoogleApiKey ? "System Ready: Keys Connected" : "Setup Required: Enter API Keys"}
+              aria-label={isSystemReady ? "Settings (System Online)" : "Settings (Sensors Offline)"}
+              title={isSystemReady ? "System Ready: Sensors Online" : "Setup Required: Connect Sensors"}
             >
               <Icon name="cog" className="w-5 h-5 sm:w-6 sm:h-6 group-hover:rotate-90 transition-transform duration-500" />
             </button>

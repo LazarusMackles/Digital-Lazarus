@@ -22,7 +22,7 @@ export const useAnalysisWorkflow = () => {
     const { dispatch: resultDispatch } = useResultState();
     const { dispatch: uiDispatch } = useUIState();
     const { addToHistory } = useHistory();
-    const { googleApiKey, hiveAccessKey, hasHiveKeys } = useApiKeys();
+    const { googleApiKey, hiveAccessKey, hiveSecretKey, hasHiveKeys } = useApiKeys();
 
     const performAnalysis = useCallback(async (isReanalysis = false) => {
         const { fileData, analysisAngle } = inputState;
@@ -80,7 +80,7 @@ export const useAnalysisWorkflow = () => {
                 if (analysisAngle === 'hybrid') {
                     uiDispatch({ type: actions.START_PIXEL_ANALYSIS });
                      try {
-                        pixelScore = await analyzeWithHive(fileData.imageBase64, hiveAccessKey!);
+                        pixelScore = await analyzeWithHive(fileData.imageBase64, hiveAccessKey!, hiveSecretKey!);
                     } catch (e) {
                         console.warn("Pixel Analysis Failed. Falling back to Forensic Analysis.", e);
                     }
@@ -110,7 +110,7 @@ export const useAnalysisWorkflow = () => {
             uiDispatch({ type: actions.SET_ERROR, payload: errorMessage });
         }
 
-    }, [inputState, googleApiKey, hiveAccessKey, hasHiveKeys, resultDispatch, uiDispatch, addToHistory]);
+    }, [inputState, googleApiKey, hiveAccessKey, hiveSecretKey, hasHiveKeys, resultDispatch, uiDispatch, addToHistory]);
 
     const handleNewAnalysis = useCallback(() => {
         resultDispatch({ type: actions.NEW_ANALYSIS });
