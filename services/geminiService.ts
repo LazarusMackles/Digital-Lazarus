@@ -97,7 +97,6 @@ export const analyzeWithSearch = async (
 ) => {
   const ai = new GoogleGenAI({ apiKey });
   const contents = { parts: prepareContentParts(prompt, files) };
-  const schema = provenanceSchema;
 
   try {
     const apiCall = () => ai.models.generateContent({
@@ -105,22 +104,12 @@ export const analyzeWithSearch = async (
       contents,
       config: {
         tools: [{googleSearch: {}}],
-        responseMimeType: 'application/json',
-        responseSchema: schema,
         temperature: 0.0, // Deterministic output for consistent provenance checks
       },
     });
 
     const response = await withRetry<GenerateContentResponse>(apiCall);
-    const responseJson = response.text?.trim();
-    if (!responseJson) throw new Error("Received empty response from Gemini.");
-    
-    // We return the parsed JSON but keep the groundingMetadata from the response
-    const parsed = JSON.parse(responseJson);
-    return {
-        ...parsed,
-        groundingMetadata: response.candidates?.[0]?.groundingMetadata
-    };
+    return response;
     
   } catch (error) {
     console.error(`Error during search-grounded analysis with model ${modelName}:`, error);

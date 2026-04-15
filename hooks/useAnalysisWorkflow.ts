@@ -70,7 +70,7 @@ export const useAnalysisWorkflow = () => {
             } else { // 'forensic' or 'hybrid'
                 modelName = MODELS.PRO;
 
-                let sightengineScore: number | undefined;
+                let pixelScore: number | undefined;
                 
                 // HYBRID FALLBACK STRATEGY
                 if (analysisAngle === 'hybrid') {
@@ -80,16 +80,22 @@ export const useAnalysisWorkflow = () => {
                     uiDispatch({ type: actions.START_PIXEL_ANALYSIS });
                      try {
                         const sightengineResult = await analyzeWithSightengine(fileData.imageBase64, sightengineApiKey);
-                        sightengineScore = Math.round(sightengineResult.ai_generated * 100);
+                        pixelScore = Math.round(sightengineResult.ai_generated * 100);
                     } catch (e) {
-                        console.warn("Sightengine Analysis Failed. Falling back to Forensic Analysis.", e);
+                        console.warn("Pixel Analysis Failed. Falling back to Forensic Analysis.", e);
                     }
                 }
 
                 uiDispatch({ type: actions.START_CONTEXT_ANALYSIS });
-                const prompt = buildPrompt(fileData, analysisAngle, isReanalysis, sightengineScore);
+                const prompt = buildPrompt(fileData, analysisAngle, isReanalysis, pixelScore);
                 const rawResult = await analyzeContent(prompt, filesForApi, modelName, googleApiKey);
-                result = finalizeForensicVerdict(rawResult, sightengineScore);
+                result = finalizeForensicVerdict(rawResult, pixelScore);
+                
+                // Attach the mathematical score for reference
+                if (pixelScore !== undefined) {
+                    result.pixelScore = pixelScore;
+                }
+
                 resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result, modelName, isSecondOpinion: isReanalysis } });
             }
             

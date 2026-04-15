@@ -35,23 +35,11 @@ const StreamingProgressIndicator: React.FC = () => (
 export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probability, verdict, explanation, analysisAngleUsed }) => {
     const { state: uiState } = useUIState();
     const { analysisStage } = uiState;
-    const [verdictVisible, setVerdictVisible] = useState(false);
-    const ANIMATION_DURATION = 800; // Reduced for snappier feel
+    const ANIMATION_DURATION = 800;
 
     const isAnalysisInProgress = analysisStage === 'analyzing_pixels' || analysisStage === 'analyzing_context';
     const isStreaming = analysisStage === 'analyzing_context';
-
-    useEffect(() => {
-      // This effect triggers the verdict text animation.
-      // It runs when the analysis stage becomes 'complete'.
-      if (analysisStage === 'complete') {
-        // Show immediately to avoid "empty box" confusion
-        setVerdictVisible(true);
-      } else {
-        // If a new analysis starts, hide the verdict again.
-        setVerdictVisible(false);
-      }
-    }, [analysisStage]);
+    const isComplete = analysisStage === 'complete';
 
     const isProvenance = analysisAngleUsed === 'provenance';
 
@@ -73,22 +61,22 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
         if (!isProvenance) {
             return <RadialProgress progress={probability} duration={ANIMATION_DURATION} />;
         }
-        return null; // No icon for finished provenance reports
+        return null;
     };
     
-    // This is the final result view for all analysis types.
+    // We show the verdict if it's complete OR if we have a non-placeholder verdict during progress
+    const showVerdict = isComplete || (isAnalysisInProgress && verdict && verdict !== 'Investigation in Progress...');
+    
     return (
         <div className="w-full max-w-2xl flex flex-col items-center bg-white dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-lg border border-cyan-500/40 dark:border-cyan-400/40">
             {renderVisualIndicator()}
 
             <div className={`flex items-center justify-center mt-2`}>
-                {verdictVisible ? (
+                {showVerdict ? (
                      <h2 className={`text-3xl font-extrabold text-center ${verdictColorClass()} animate-fade-in-up`}>
                         {verdict}
                     </h2>
                 ) : (
-                    // Placeholder to prevent layout shift while waiting for animation,
-                    // or show the streaming status.
                     <h2 className="text-2xl font-bold text-slate-500 dark:text-slate-400 animate-fade-in">
                         {isAnalysisInProgress ? 'Deducing ...' : <>&nbsp;</>}
                     </h2>

@@ -13,6 +13,7 @@ export interface AnalysisResult {
   }[];
   groundingMetadata?: any;
   isSecondOpinion?: boolean;
+  pixelScore?: number; // Mathematical score from Sightengine or Hive
 }
 
 export interface AnalysisEvidence {

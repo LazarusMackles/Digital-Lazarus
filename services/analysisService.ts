@@ -1,6 +1,25 @@
 
 import type { AnalysisAngle, AnalysisResult } from '../types';
 
+// --- Forensic Defenses & Chaos Rules ---
+const FORENSIC_DEFENSES = [
+    "THE 'BLUR' DEFENSE: Do NOT flag text as 'garbled' or 'hieroglyphs' just because it is blurry, pixelated, or out of focus. Real low-res photos often have unreadable text. Only flag text if the glyphs are structurally alien/impossible.",
+    "DYNAMIC POSES ARE NOT GLITCHES: A person falling, tumbling, or upside down is a physical event. Do NOT flag 'awkward limbs' as AI artefacts if the scene depicts action. Assume gravity and momentum are at play.",
+    "THE 'MUSEUM' DEFENSE: If the scene is a museum or gallery, do NOT flag sculptures or paintings as 'anatomically impossible.' Art is intentionally stylized. Only flag digital artefacts on the people or the physical environment.",
+    "SOCIAL MEDIA COMPRESSION: Images from Facebook/WhatsApp are heavily compressed. This creates 'blocky' noise. Do NOT mistake this for AI 'waxy' textures.",
+    "THE 'OCCLUSION' DEFENSE: In crowded scenes, heads or limbs may appear 'disembodied' because one person is blocking another. This is a sign of a real photo. If you see a head without a body in a crowd, assume the body is hidden.",
+    "TEXTURE OVER TOPOLOGY: AI struggles with organic texture (skin pores, hair strands). If textures are messy and imperfect, the image is likely REAL.",
+    "WAXY SKIN IS THE KEY: AI humans often look 'waxy' or 'airbrushed'. If the skin has grit, grain, or harsh shadows, favor 'Human-Crafted'.",
+    "BACKGROUND NOISE: A messy, cluttered background with identifiable trash/objects is a sign of REALITY. AI tends to blur backgrounds or make them abstract."
+];
+
+const CHAOS_RULE = `DISTINGUISH PHYSICAL CHAOS & LOW RESOLUTION FROM DIGITAL GLITCHES:
+${FORENSIC_DEFENSES.map((d, i) => `${i + 1}. ${d}`).join('\n')}
+
+STRICT EVIDENCE BAR: "Anatomical anomalies" in a crowd or complex scene are NEVER enough evidence on their own to flag an image as AI. You MUST find supporting digital artefacts (waxy skin, garbled pixels, impossible lighting) to reach a "Fully AI-Generated" verdict.
+
+VERDICT GUIDANCE: If you are unsure, default to "Appears Human-Crafted" with a note about the chaotic nature of the scene. Only use "Fully AI-Generated" for sterile, glossy, chemically perfect images.`;
+
 /**
  * Generates a direct, command-based prompt for the Gemini model.
  */
@@ -8,7 +27,7 @@ export const buildPrompt = (
     fileData: { name: string } | null, 
     analysisAngle: AnalysisAngle,
     isReanalysis: boolean,
-    sightengineScore?: number,
+    pixelScore?: number,
 ): string => {
     
     // --- Provenance Dossier Prompt ---
@@ -18,12 +37,9 @@ export const buildPrompt = (
         
         CONTEXTUAL AWARENESS: Today is ${new Date().toDateString()}. If the image depicts an event in the future relative to today, it is likely AI-generated or a prediction. If it depicts a past event, verify it.
         
-        Respond ONLY with a JSON object matching the following structure:
-        {
-          "verdict": "Authentic Photograph" | "AI-Generated" | "No Online History Found" | "Analysis Inconclusive",
-          "explanation": "A concise summary of findings (under 100 words), formatted as a bulleted list if multiple points are needed."
-        }
-        Respond ONLY with the JSON object. No markdown formatting, no preamble.`;
+        Respond with a definitive verdict and a concise summary of findings (under 5 bullet points).
+        The first line MUST be the verdict, chosen from: "Authentic Photograph", "AI-Generated", "No Online History Found", or "Analysis Inconclusive".
+        Followed by a blank line and then your bulleted summary.`;
     }
 
     // --- Forensic & Hybrid Analysis Prompts ---
@@ -37,18 +53,18 @@ export const buildPrompt = (
     Respond ONLY with a JSON object matching the provided schema.`;
     
     // HYBRID LOGIC: The "Authority" Fix (Split Brain Resolution)
-    if (analysisAngle === 'hybrid' && sightengineScore !== undefined) {
-         if (sightengineScore < 20) {
+    if (analysisAngle === 'hybrid' && pixelScore !== undefined) {
+         if (pixelScore < 20) {
             // Case: Mathematical model says REAL. Force Gemini to defend the image.
-            baseInstruction += `\n\nSCIENTIFIC CONTEXT: Advanced pixel-level analysis (Sightengine) has confirmed this image is AUTHENTIC (${100 - sightengineScore}% confidence). 
+            baseInstruction += `\n\nSCIENTIFIC CONTEXT: Advanced pixel-level analysis has confirmed this image is AUTHENTIC (${100 - pixelScore}% confidence). 
             YOUR MISSION: You are acting as a defense expert. Do NOT look for AI artefacts, as the mathematical model suggests they are not there. Instead, explain the scene assuming it is real. If the image looks chaotic (e.g., weird poses, falling people, blur), explain these as natural physical events or camera artefacts, debunking the suspicion that they are AI glitches.`;
-         } else if (sightengineScore > 80) {
+         } else if (pixelScore > 80) {
             // Case: Mathematical model says FAKE. Force Gemini to prosecute the image.
-            baseInstruction += `\n\nSCIENTIFIC CONTEXT: Advanced pixel-level analysis (Sightengine) has confirmed this image is AI-GENERATED (${sightengineScore}% confidence). 
+            baseInstruction += `\n\nSCIENTIFIC CONTEXT: Advanced pixel-level analysis has confirmed this image is AI-GENERATED (${pixelScore}% confidence). 
             YOUR MISSION: Support this finding. Locate the specific visual evidence (artefacts) that prove it is fake.`;
          } else {
             // Case: Ambiguous.
-            baseInstruction += `\n\nSCIENTIFIC CONTEXT: An initial pixel analysis returns a ${sightengineScore}% probability of AI generation. This is inconclusive. You must decide based on visual evidence.`;
+            baseInstruction += `\n\nSCIENTIFIC CONTEXT: An initial pixel analysis returns a ${pixelScore}% probability of AI generation. This is inconclusive. You must decide based on visual evidence.`;
          }
     }
 
@@ -59,21 +75,9 @@ export const buildPrompt = (
 
     const primaryEvidence = fileData?.name || 'the provided image';
     
-    // FORENSIC LOGIC: The "Chaos vs Glitch" Rule (Tuned for the "Falling Man" & "Museum" Edge Cases)
-    const chaosRule = `DISTINGUISH PHYSICAL CHAOS & LOW RESOLUTION FROM DIGITAL GLITCHES:
-    1. THE "BLUR" DEFENSE: Do NOT flag text as "garbled" or "hieroglyphs" just because it is blurry, pixelated, or out of focus. Real low-res photos often have unreadable text. Only flag text if the glyphs are structurally alien/impossible (e.g., merging letters). If it looks like "US NAVY" but is blurry, assume it is "US NAVY".
-    2. DYNAMIC POSES ARE NOT GLITCHES: A person falling, tumbling, or upside down is a physical event. Do NOT flag "awkward limbs" or "impossible angles" as AI artefacts if the scene depicts a fall, accident, or action shot. Assume gravity and momentum are at play.
-    3. THE "MUSEUM" DEFENSE: If the scene is a museum, gallery, or public square, do NOT flag sculptures, statues, or paintings as "anatomically impossible" or "melted." Art is intentionally stylized and often depicts complex, intertwined, or surreal forms. Only flag digital artefacts on the *people* viewing the art, or the physical environment (e.g., the floor, walls, lighting).
-    4. SOCIAL MEDIA COMPRESSION: Images from Facebook, WhatsApp, or Twitter are heavily compressed. This creates "blocky" noise and "ringing" around edges. Do NOT mistake this for AI-generated "waxy" textures or "hallucinated" details.
-    5. TEXTURE OVER TOPOLOGY: AI struggles with texture (skin pores, hair strands, fabric weave). If the textures are organic, messy, and imperfect, the image is likely REAL, even if the composition is weird.
-    6. WAXY SKIN IS THE KEY: Real humans have texture. AI humans often look "waxy", "glossy", or "airbrushed". If the skin has grit, grain, or harsh shadows, favor "Human-Crafted".
-    7. BACKGROUND NOISE: A messy, cluttered background with identifiable trash/objects is often a sign of REALITY. AI tends to blur backgrounds or make them weirdly abstract.
-    
-    VERDICT GUIDANCE: If you are unsure, default to "Appears Human-Crafted" with a note about the chaotic nature of the scene. Only use "Fully AI-Generated" for sterile, glossy, chemically perfect images.`;
-
     const universalMandate = `UNIVERSAL MANDATE: Report evidence based on DIGITAL SIGNATURES (pixels, noise, compression), not just SCENE PLAUSIBILITY. Real life is often implausible.`;
     
-    let evidenceDescription = `ANALYSE IMAGE EVIDENCE: Your primary goal is to determine the authenticity of "${primaryEvidence}".\n\n${chaosRule}\n\n${universalMandate}`;
+    let evidenceDescription = `ANALYSE IMAGE EVIDENCE: Your primary goal is to determine the authenticity of "${primaryEvidence}".\n\n${CHAOS_RULE}\n\n${universalMandate}`;
 
     if(isReanalysis) {
         evidenceDescription += `\n\nPRIORITY DIRECTIVE: SECOND OPINION / ADVERSARIAL REVIEW. You are now a peer reviewer tasked with challenging the initial findings. If the image was previously flagged as AI, look for reasons why it might be a genuine, chaotic photograph. If it was flagged as real, look for subtle artefacts you might have missed. Be extremely critical of your own first impressions.`;
@@ -94,16 +98,16 @@ export const buildPrompt = (
 };
 
 
-export const finalizeForensicVerdict = (rawResult: any, sightengineScore?: number): AnalysisResult => {
-    let probability = sightengineScore !== undefined ? sightengineScore : Math.round(rawResult.probability || 50);
+export const finalizeForensicVerdict = (rawResult: any, pixelScore?: number): AnalysisResult => {
+    let probability = pixelScore !== undefined ? pixelScore : Math.round(rawResult.probability || 50);
     let verdict = rawResult.verdict || "Analysis Inconclusive";
     const explanation = rawResult.explanation || "The model did not provide a detailed explanation.";
     const highlights = rawResult.highlights || [];
 
-    // If using Sightengine's score, align the verdict to it.
-    if (sightengineScore !== undefined) {
-        if (sightengineScore > 80) verdict = "Fully AI-Generated";
-        else if (sightengineScore > 40) verdict = "Likely AI-Enhanced";
+    // If using a mathematical score, align the verdict to it.
+    if (pixelScore !== undefined) {
+        if (pixelScore > 80) verdict = "Fully AI-Generated";
+        else if (pixelScore > 40) verdict = "Likely AI-Enhanced";
         else verdict = "Appears Human-Crafted";
     }
 
@@ -125,14 +129,28 @@ export const finalizeForensicVerdict = (rawResult: any, sightengineScore?: numbe
 };
 
 export const finalizeProvenanceVerdict = (response: any): AnalysisResult => {
-    const explanation = response.explanation || "The investigation did not return a conclusive summary.";
-    const verdict = response.verdict || "Analysis Inconclusive";
-    const groundingMetadata = response.groundingMetadata;
+    const text = response.text?.trim() || "";
+    const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
+
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    
+    let verdict = "Analysis Inconclusive";
+    let explanation = text;
+
+    if (lines.length > 0) {
+        const firstLine = lines[0].replace(/^[#\*\-]\s*/, '').trim();
+        const allowedVerdicts = ["Authentic Photograph", "AI-Generated", "No Online History Found", "Analysis Inconclusive"];
+        
+        if (allowedVerdicts.some(v => firstLine.includes(v))) {
+            verdict = allowedVerdicts.find(v => firstLine.includes(v))!;
+            explanation = lines.slice(1).join('\n');
+        }
+    }
 
     return {
         probability: 0,
         verdict,
-        explanation,
+        explanation: explanation || "The investigation did not return a conclusive summary.",
         highlights: [],
         groundingMetadata,
     };
