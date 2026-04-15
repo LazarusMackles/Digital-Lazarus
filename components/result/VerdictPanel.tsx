@@ -11,6 +11,7 @@ interface VerdictPanelProps {
     verdict: string;
     explanation: string;
     analysisAngleUsed?: AnalysisAngle | null;
+    pixelScore?: number;
 }
 
 const StreamingProgressIndicator: React.FC = () => (
@@ -32,7 +33,7 @@ const StreamingProgressIndicator: React.FC = () => (
 );
 
 
-export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probability, verdict, explanation, analysisAngleUsed }) => {
+export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probability, verdict, explanation, analysisAngleUsed, pixelScore }) => {
     const { state: uiState } = useUIState();
     const { analysisStage } = uiState;
     const ANIMATION_DURATION = 800;
@@ -42,6 +43,7 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
     const isComplete = analysisStage === 'complete';
 
     const isProvenance = analysisAngleUsed === 'provenance';
+    const isHybrid = analysisAngleUsed === 'hybrid';
 
     const verdictColorClass = () => {
         if (isProvenance) {
@@ -71,7 +73,7 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
         <div className="w-full max-w-2xl flex flex-col items-center bg-white dark:bg-slate-800/50 p-6 sm:p-8 rounded-2xl shadow-lg border border-cyan-500/40 dark:border-cyan-400/40">
             {renderVisualIndicator()}
 
-            <div className={`flex items-center justify-center mt-2`}>
+            <div className={`flex flex-col items-center justify-center mt-2`}>
                 {showVerdict ? (
                      <h2 className={`text-3xl font-extrabold text-center ${verdictColorClass()} animate-fade-in-up`}>
                         {verdict}
@@ -80,6 +82,16 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
                     <h2 className="text-2xl font-bold text-slate-500 dark:text-slate-400 animate-fade-in">
                         {isAnalysisInProgress ? 'Deducing ...' : <>&nbsp;</>}
                     </h2>
+                )}
+
+                {/* Sensor Status Readout (Vanguard Calibration) */}
+                {isComplete && isHybrid && pixelScore !== undefined && (
+                    <div className="mt-2 flex items-center gap-2 px-3 py-1 bg-slate-100 dark:bg-slate-900 rounded-full border border-slate-200 dark:border-slate-700 animate-fade-in">
+                        <div className={`w-1.5 h-1.5 rounded-full ${pixelScore < 20 ? 'bg-green-500' : pixelScore > 80 ? 'bg-red-500' : 'bg-amber-500'}`} />
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                            Pixel Sensor: {pixelScore}% AI
+                        </span>
+                    </div>
                 )}
             </div>
             

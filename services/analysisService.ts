@@ -10,7 +10,9 @@ const FORENSIC_DEFENSES = [
     "THE 'OCCLUSION' DEFENSE: In crowded scenes, heads or limbs may appear 'disembodied' because one person is blocking another. This is a sign of a real photo. If you see a head without a body in a crowd, assume the body is hidden.",
     "TEXTURE OVER TOPOLOGY: AI struggles with organic texture (skin pores, hair strands). If textures are messy and imperfect, the image is likely REAL.",
     "WAXY SKIN IS THE KEY: AI humans often look 'waxy' or 'airbrushed'. If the skin has grit, grain, or harsh shadows, favor 'Human-Crafted'.",
-    "BACKGROUND NOISE: A messy, cluttered background with identifiable trash/objects is a sign of REALITY. AI tends to blur backgrounds or make them abstract."
+    "BACKGROUND NOISE: A messy, cluttered background with identifiable trash/objects is a sign of REALITY. AI tends to blur backgrounds or make them abstract.",
+    "THE 'STROBE' DEFENSE: Professional photographers often use off-camera flashes or strobes. This creates lighting that does NOT match the ambient environment (e.g., a brightly lit subject against a dark background). Do NOT flag this as 'impossible lighting' if the subject has sharp, consistent shadows indicating a physical light source.",
+    "LARGE FORMAT CHARACTERISTICS: High-end film photography (4x5, 8x10) can produce extreme detail combined with shallow depth-of-field 'blur' that may look like AI waxy textures. If you see film branding (Kodak, Fujifilm) or authentic grain, be extremely cautious."
 ];
 
 const CHAOS_RULE = `DISTINGUISH PHYSICAL CHAOS & LOW RESOLUTION FROM DIGITAL GLITCHES:
@@ -37,6 +39,8 @@ export const buildPrompt = (
         
         CONTEXTUAL AWARENESS: Today is ${new Date().toDateString()}. If the image depicts an event in the future relative to today, it is likely AI-generated or a prediction. If it depicts a past event, verify it.
         
+        BRANDING WARNING: AI models often simulate film borders (Kodak, Fujifilm) and grain to appear authentic. Do NOT treat a film border as a certificate of authenticity. You MUST find the specific photographer or publication to confirm provenance.
+        
         Respond with a definitive verdict and a concise summary of findings (under 5 bullet points).
         The first line MUST be the verdict, chosen from: "Authentic Photograph", "AI-Generated", "No Online History Found", or "Analysis Inconclusive".
         Followed by a blank line and then your bulleted summary.`;
@@ -52,13 +56,13 @@ export const buildPrompt = (
     
     Respond ONLY with a JSON object matching the provided schema.`;
     
-    // HYBRID LOGIC: The "Authority" Fix (Split Brain Resolution)
+    // HYBRID LOGIC: The "Vanguard Absolute Authority" Fix
     if (analysisAngle === 'hybrid' && pixelScore !== undefined) {
-         if (pixelScore < 20) {
+         if (pixelScore < 15) {
             // Case: Mathematical model says REAL. Force Gemini to defend the image.
             baseInstruction += `\n\nSCIENTIFIC CONTEXT: Advanced pixel-level analysis has confirmed this image is AUTHENTIC (${100 - pixelScore}% confidence). 
-            YOUR MISSION: You are acting as a defense expert. Do NOT look for AI artefacts, as the mathematical model suggests they are not there. Instead, explain the scene assuming it is real. If the image looks chaotic (e.g., weird poses, falling people, blur), explain these as natural physical events or camera artefacts, debunking the suspicion that they are AI glitches.`;
-         } else if (pixelScore > 80) {
+            VANGUARD ABSOLUTE AUTHORITY: The mathematical sensor has ruled this image as REAL. Your mission is to explain WHY it is real. Look for artistic choices (off-camera flash, large-format film, intentional blur) that might trick a standard AI detector. You are FORBIDDEN from flagging this as AI unless you find a literal digital glitch (e.g., a sixth finger or garbled text). Impossible lighting is NOT enough, as it may be a professional strobe.`;
+         } else if (pixelScore > 85) {
             // Case: Mathematical model says FAKE. Force Gemini to prosecute the image.
             baseInstruction += `\n\nSCIENTIFIC CONTEXT: Advanced pixel-level analysis has confirmed this image is AI-GENERATED (${pixelScore}% confidence). 
             YOUR MISSION: Support this finding. Locate the specific visual evidence (artefacts) that prove it is fake.`;

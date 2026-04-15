@@ -28,7 +28,7 @@ export const ResultDisplay: React.FC = () => {
     return null; 
   }
 
-  const { probability, verdict, explanation, highlights, groundingMetadata, isSecondOpinion } = analysisResult;
+  const { probability, verdict, explanation, highlights, groundingMetadata, isSecondOpinion, pixelScore } = analysisResult;
   const shouldShowActions = analysisStage === 'complete';
 
   return (
@@ -46,6 +46,7 @@ export const ResultDisplay: React.FC = () => {
             verdict={verdict} 
             explanation={explanation} 
             analysisAngleUsed={analysisAngleUsed}
+            pixelScore={pixelScore}
         />
         
         {highlights && highlights.length > 0 && <HighlightsDisplay highlights={highlights} />}
