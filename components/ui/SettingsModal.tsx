@@ -112,7 +112,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     placeholder="Enter your Google API Key"
                     value={localGoogleKey}
                     onChange={(e) => setLocalGoogleKey(e.target.value)}
-                    link={{ label: "Get Key", url: "https://aistudio.google.com/app/apikey" }}
+                    link={{ label: "Get Key (Google Account)", url: "https://aistudio.google.com/app/apikey" }}
                 />
                  <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
                     <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Hive AI Detection</h3>
@@ -123,7 +123,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             placeholder="Enter Hive Access Key"
                             value={localHiveAccessKey}
                             onChange={(e) => setLocalHiveAccessKey(e.target.value)}
-                            link={{ label: "Get Key", url: "https://hivemoderation.com/ai-generated-content-detection" }}
+                            link={{ label: "Get Keys (Hive Account)", url: "https://dashboard.thehive.ai/" }}
                         />
                         <ApiKeyInput
                             id="hive-secret-key"

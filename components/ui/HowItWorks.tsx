@@ -30,15 +30,25 @@ export const HowItWorks: React.FC = React.memo(() => {
                         <li><strong className="text-slate-700 dark:text-slate-100">1. Submit Your Evidence:</strong> Upload a single image to begin your digital forensic investigation.</li>
                         <li><strong className="text-slate-700 dark:text-slate-100">2. Choose Your Investigation Angle:</strong>
                             <ul className="list-disc pl-5 mt-1 space-y-1">
-                                <li><strong className="text-cyan-600 dark:text-cyan-400">Forensic Analysis:</strong> A deep dive into the image's content, searching for tell-tale signs of digital synthesis and AI artefacts.</li>
-                                <li><strong className="text-cyan-600 dark:text-cyan-400">Hybrid Analysis:</strong> The most accurate method, cross-referencing a specialized pixel-level scan with a silent provenance check and Gemini's forensic interpretation.</li>
+                                <li><strong className="text-cyan-600 dark:text-cyan-400">Forensic Analysis:</strong> A deep dive into the image's content, searching for tell-tale signs of digital synthesis.</li>
+                                <li><strong className="text-cyan-600 dark:text-cyan-400">Hybrid Analysis:</strong> Our most rigorous method, cross-referencing pixel-level scans with a silent provenance check.</li>
                             </ul>
                         </li>
-                        <li><strong className="text-slate-700 dark:text-slate-100">3. Provide Your API Keys:</strong> This tool requires your own <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-cyan-600 dark:text-cyan-400 underline hover:text-cyan-500">Google AI Studio</a> and <a href="https://dashboard.thehive.ai/" target="_blank" rel="noopener noreferrer" className="text-cyan-600 dark:text-cyan-400 underline hover:text-cyan-500">Hive</a> API keys. Manage them in the <strong className="text-cyan-600 dark:text-cyan-400">Settings</strong> panel.</li>
-                        <li><strong className="text-slate-700 dark:text-slate-100">4. Review the Findings:</strong> I'll return a <strong className="text-cyan-600 dark:text-cyan-400">Probability Score</strong> and a <strong className="text-cyan-600 dark:text-cyan-400">Detailed Verdict</strong> based on digital signatures and online history.</li>
-                        <li><strong className="text-slate-700 dark:text-slate-100">5. Engage with the Verdict:</strong> Not convinced? You can trigger an <strong className="text-cyan-600 dark:text-cyan-400">Adversarial Second Opinion</strong> to challenge the initial findings and re-examine the evidence.</li>
-                        <li className="pt-2 border-t border-slate-200 dark:border-slate-800 italic text-xs">
-                            <strong className="text-slate-700 dark:text-slate-100 not-italic">Note:</strong> AI detection is a complex, evolving science. Consider my findings a well-informed probability, not an undisputed truth.
+                        <li><strong className="text-slate-700 dark:text-slate-100">3. Review the Findings:</strong> I'll return a <strong className="text-cyan-600 dark:text-cyan-400">Probability Score</strong> and a <strong className="text-cyan-600 dark:text-cyan-400">Detailed Verdict</strong> based on digital signatures and online history.</li>
+                        <li><strong className="text-slate-700 dark:text-slate-100">4. Engage with the Verdict:</strong> Not convinced? Trigger an <strong className="text-cyan-600 dark:text-cyan-400">Adversarial Second Opinion</strong> to challenge the initial findings.</li>
+                        
+                        <li className="pt-3 mt-3 border-t border-slate-200 dark:border-slate-800">
+                            <p className="italic text-xs mb-3">
+                                <strong className="text-slate-700 dark:text-slate-100 not-italic">Note:</strong> AI detection is a complex, evolving science. Consider my findings a well-informed probability, not an undisputed truth.
+                            </p>
+                            <div className="p-3 bg-slate-200/50 dark:bg-slate-800/50 rounded-lg border border-slate-300 dark:border-slate-700">
+                                <p className="text-[11px] leading-relaxed">
+                                    <strong className="text-slate-800 dark:text-slate-200">System Configuration:</strong> Sleuther is powered by your own API keys. You will need a <strong className="text-slate-800 dark:text-slate-200">Google Account</strong> to generate a key at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-cyan-600 dark:text-cyan-400 underline">AI Studio</a> and a <strong className="text-slate-800 dark:text-slate-200">Hive Account</strong> for keys at the <a href="https://dashboard.thehive.ai/" target="_blank" rel="noopener noreferrer" className="text-cyan-600 dark:text-cyan-400 underline">Hive Dashboard</a>.
+                                </p>
+                                <p className="text-[10px] mt-2 text-slate-500 dark:text-slate-400 italic">
+                                    Manage these sensors at any time via the Settings (cog) icon.
+                                </p>
+                            </div>
                         </li>
                     </ul>
                 </div>

@@ -1,9 +1,9 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 
-const GOOGLE_API_KEY_STORAGE_KEY = 'sleuther_google_api_key';
-const HIVE_ACCESS_KEY_STORAGE_KEY = 'sleuther_hive_access_key';
-const HIVE_SECRET_KEY_STORAGE_KEY = 'sleuther_hive_secret_key';
+const GOOGLE_API_KEY_STORAGE_KEY = 'sleuther_google_api_key_v2';
+const HIVE_ACCESS_KEY_STORAGE_KEY = 'sleuther_hive_access_key_v2';
+const HIVE_SECRET_KEY_STORAGE_KEY = 'sleuther_hive_secret_key_v2';
 
 interface ApiKeyContextType {
     googleApiKey: string | null;

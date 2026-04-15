@@ -82,7 +82,7 @@ export const OnboardingWizard: React.FC = () => {
                                     rel="noopener noreferrer"
                                     className="text-xs text-fuchsia-500 hover:underline flex items-center gap-1"
                                 >
-                                    Get Key <Icon name="arrow-top-right-on-square" className="w-3 h-3" />
+                                    Get Key (Google Account) <Icon name="arrow-top-right-on-square" className="w-3 h-3" />
                                 </a>
                             </div>
                             <input 
@@ -112,12 +112,12 @@ export const OnboardingWizard: React.FC = () => {
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-bold uppercase tracking-wider text-cyan-500">Hive Moderation</span>
                                 <a 
-                                    href="https://hivemoderation.com/ai-generated-content-detection" 
+                                    href="https://dashboard.thehive.ai/" 
                                     target="_blank" 
                                     rel="noopener noreferrer"
                                     className="text-xs text-fuchsia-500 hover:underline flex items-center gap-1"
                                 >
-                                    Get Keys <Icon name="arrow-top-right-on-square" className="w-3 h-3" />
+                                    Get Keys (Hive Account) <Icon name="arrow-top-right-on-square" className="w-3 h-3" />
                                 </a>
                             </div>
                             <input 
