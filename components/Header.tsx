@@ -36,7 +36,7 @@ export const Header: React.FC = React.memo(() => {
             </button>
           )}
 
-          <h1 className="py-2 text-lg sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-400 dark:to-fuchsia-500 leading-tight tracking-tight whitespace-nowrap">
+          <h1 className="py-2 text-base sm:text-lg md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-400 dark:to-fuchsia-500 leading-tight tracking-tight truncate max-w-[120px] xs:max-w-none xs:whitespace-nowrap">
             Sleuther Vanguard
           </h1>
 

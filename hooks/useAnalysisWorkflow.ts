@@ -7,7 +7,7 @@ import { useHistory } from '../context/HistoryContext';
 import * as actions from '../context/actions';
 import { 
     buildPrompt, 
-    finalizeForensicVerdict 
+    finaliseForensicVerdict 
 } from '../services/analysisService';
 import { analyzeWithHive } from '../services/hiveService';
 import { analyzeContent, analyzeWithSearch } from '../services/geminiService';
@@ -92,7 +92,7 @@ export const useAnalysisWorkflow = () => {
             uiDispatch({ type: actions.START_CONTEXT_ANALYSIS });
             const prompt = buildPrompt(fileData, analysisAngle, isReanalysis, pixelScore, provenanceData);
             const rawResult = await analyzeContent(prompt, filesForApi, modelName, googleApiKey);
-            result = finalizeForensicVerdict(rawResult, pixelScore, groundingMetadata);
+            result = finaliseForensicVerdict(rawResult, pixelScore, groundingMetadata);
             
             resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result, modelName, isSecondOpinion: isReanalysis } });
             

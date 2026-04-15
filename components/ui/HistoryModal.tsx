@@ -21,6 +21,12 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
   const { history, clearHistory } = useHistory();
   useBodyScrollLock();
 
+  const handleClear = () => {
+    if (window.confirm('Are you sure you want to clear all forensic case history? This action cannot be undone.')) {
+        clearHistory();
+    }
+  };
+
   const modalRoot = document.getElementById('modal-root');
   if (!modalRoot) return null;
 
@@ -86,8 +92,12 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
             
             {history.length > 0 && (
                 <div className="mt-6 flex justify-end">
-                    <Button variant="secondary" onClick={clearHistory} className="text-sm px-4 py-2">
-                        Clear History
+                    <Button 
+                        variant="clear" 
+                        onClick={handleClear} 
+                        className="text-xs px-4 py-2 text-red-500 dark:text-red-400 border-red-200 dark:border-red-900/30"
+                    >
+                        Clear All History
                     </Button>
                 </div>
             )}

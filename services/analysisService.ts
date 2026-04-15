@@ -5,7 +5,7 @@ import type { AnalysisAngle, AnalysisResult } from '../types';
 const FORENSIC_DEFENSES = [
     "THE 'BLUR' DEFENSE: Do NOT flag text as 'garbled' or 'hieroglyphs' just because it is blurry, pixelated, or out of focus. Real low-res photos often have unreadable text. Only flag text if the glyphs are structurally alien/impossible.",
     "DYNAMIC POSES ARE NOT GLITCHES: A person falling, tumbling, or upside down is a physical event. Do NOT flag 'awkward limbs' as AI artefacts if the scene depicts action. Assume gravity and momentum are at play.",
-    "THE 'MUSEUM' DEFENSE: If the scene is a museum or gallery, do NOT flag sculptures or paintings as 'anatomically impossible.' Art is intentionally stylized. Only flag digital artefacts on the people or the physical environment.",
+    "THE 'MUSEUM' DEFENSE: If the scene is a museum or gallery, do NOT flag sculptures or paintings as 'anatomically impossible.' Art is intentionally stylised. Only flag digital artefacts on the people or the physical environment.",
     "SOCIAL MEDIA COMPRESSION: Images from Facebook/WhatsApp are heavily compressed. This creates 'blocky' noise. Do NOT mistake this for AI 'waxy' textures.",
     "THE 'OCCLUSION' DEFENSE: In crowded scenes, heads or limbs may appear 'disembodied' because one person is blocking another. This is a sign of a real photo. If you see a head without a body in a crowd, assume the body is hidden.",
     "TEXTURE OVER TOPOLOGY: AI struggles with organic texture (skin pores, hair strands). If textures are messy and imperfect, the image is likely REAL.",
@@ -77,7 +77,14 @@ export const buildPrompt = (
     let evidenceDescription = `ANALYSE IMAGE EVIDENCE: Your primary goal is to determine the authenticity of "${primaryEvidence}".\n\n${CHAOS_RULE}\n\n${universalMandate}`;
 
     if(isReanalysis) {
-        evidenceDescription += `\n\nPRIORITY DIRECTIVE: SECOND OPINION / ADVERSARIAL REVIEW. You are now a peer reviewer tasked with challenging the initial findings. If the image was previously flagged as AI, look for reasons why it might be a genuine, chaotic photograph. If it was flagged as real, look for subtle artefacts you might have missed. Be extremely critical of your own first impressions.`;
+        evidenceDescription += `\n\nPRIORITY DIRECTIVE: ADVERSARIAL SECOND OPINION. You are a senior peer reviewer tasked with challenging the initial findings. 
+        
+        CHAIN OF THOUGHT REQUIREMENT:
+        1. List 3 specific reasons why the previous verdict might be incorrect.
+        2. Re-examine the image for subtle artefacts (or lack thereof) that support a different conclusion.
+        3. Only then, provide your final verdict.
+        
+        Be extremely critical of first impressions. If the image was previously flagged as AI, look for reasons why it might be a genuine, chaotic photograph. If it was flagged as real, look for subtle digital signatures you might have missed.`;
     } else {
          evidenceDescription += `\n\nPRIORITY DIRECTIVE: STANDARD ANALYSIS. Proceed with caution. Do not confuse a "bad photo" or "weird moment" with a "fake photo".`;
     }
@@ -95,7 +102,7 @@ export const buildPrompt = (
 };
 
 
-export const finalizeForensicVerdict = (rawResult: any, pixelScore?: number, groundingMetadata?: any): AnalysisResult => {
+export const finaliseForensicVerdict = (rawResult: any, pixelScore?: number, groundingMetadata?: any): AnalysisResult => {
     let probability = pixelScore !== undefined ? pixelScore : Math.round(rawResult.probability || 50);
     let verdict = rawResult.verdict || "Analysis Inconclusive";
     const explanation = rawResult.explanation || "The model did not provide a detailed explanation.";

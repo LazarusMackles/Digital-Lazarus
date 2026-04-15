@@ -13,7 +13,6 @@ import { useAppView } from './hooks/useAppView';
 import { IntroPanel } from './components/IntroPanel';
 import { ApiKeyProvider, useApiKeys } from './context/ApiKeyContext';
 import { HistoryProvider } from './context/HistoryContext';
-import { IconSprite } from './components/IconSprite';
 import * as actions from './context/actions';
 
 const AppContent: React.FC = () => {
@@ -86,7 +85,6 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300 flex flex-col">
-      <IconSprite />
       
       {showOnboarding ? (
         <OnboardingWizard />
