@@ -138,7 +138,7 @@ export const OnboardingWizard: React.FC = () => {
                         
                         <div className="flex gap-4">
                             <Button variant="secondary" onClick={prevStep} className="flex-1">Back</Button>
-                            <Button onClick={nextStep} disabled={!localHiveAccessKey || !localHiveSecretKey} className="flex-1">Finalize</Button>
+                            <Button onClick={nextStep} disabled={!localHiveAccessKey || !localHiveSecretKey} className="flex-1">Finalise</Button>
                         </div>
                     </div>
                 );
@@ -147,7 +147,7 @@ export const OnboardingWizard: React.FC = () => {
                     <div className="animate-fade-in text-center">
                         <div className="flex justify-center mb-6">
                             <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center">
-                                <Icon name="thumbs-up" className="w-12 h-12 text-green-500" />
+                                <Icon name="shield-check" className="w-12 h-12 text-green-500" />
                             </div>
                         </div>
                         <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
