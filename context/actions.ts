@@ -15,7 +15,6 @@ export const STREAM_ANALYSIS_UPDATE = 'STREAM_ANALYSIS_UPDATE';
 
 
 // Global/UI State Actions
-export const SET_SHOW_WELCOME = 'SET_SHOW_WELCOME';
 export const SET_THEME = 'SET_THEME';
 export const SET_ERROR = 'SET_ERROR';
 export const CLEAR_ERROR = 'CLEAR_ERROR';

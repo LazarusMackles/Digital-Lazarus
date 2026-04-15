@@ -33,14 +33,18 @@ export const ApiKeyProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     const [hiveAccessKey, setHiveAccessKey] = useState<string | null>(() => {
         if (typeof window !== 'undefined') {
-            return localStorage.getItem(HIVE_ACCESS_KEY_STORAGE_KEY);
+            const stored = localStorage.getItem(HIVE_ACCESS_KEY_STORAGE_KEY);
+            if (stored) return stored;
+            return (process.env.VITE_HIVE_ACCESS_KEY as string) || null;
         }
         return null;
     });
 
     const [hiveSecretKey, setHiveSecretKey] = useState<string | null>(() => {
         if (typeof window !== 'undefined') {
-            return localStorage.getItem(HIVE_SECRET_KEY_STORAGE_KEY);
+            const stored = localStorage.getItem(HIVE_SECRET_KEY_STORAGE_KEY);
+            if (stored) return stored;
+            return (process.env.VITE_HIVE_SECRET_KEY as string) || null;
         }
         return null;
     });
@@ -50,8 +54,8 @@ export const ApiKeyProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         localStorage.removeItem(HIVE_ACCESS_KEY_STORAGE_KEY);
         localStorage.removeItem(HIVE_SECRET_KEY_STORAGE_KEY);
         setGoogleApiKey((process.env.GEMINI_API_KEY as string) || null);
-        setHiveAccessKey(null);
-        setHiveSecretKey(null);
+        setHiveAccessKey((process.env.VITE_HIVE_ACCESS_KEY as string) || null);
+        setHiveSecretKey((process.env.VITE_HIVE_SECRET_KEY as string) || null);
     }, []);
 
     const saveGoogleApiKey = useCallback((key: string) => {
@@ -71,8 +75,8 @@ export const ApiKeyProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             localStorage.removeItem(HIVE_ACCESS_KEY_STORAGE_KEY);
             localStorage.removeItem(HIVE_SECRET_KEY_STORAGE_KEY);
         }
-        setHiveAccessKey(accessKey || null);
-        setHiveSecretKey(secretKey || null);
+        setHiveAccessKey(accessKey || (process.env.VITE_HIVE_ACCESS_KEY as string) || null);
+        setHiveSecretKey(secretKey || (process.env.VITE_HIVE_SECRET_KEY as string) || null);
     }, []);
 
     const value = {

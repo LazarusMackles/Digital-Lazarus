@@ -33,19 +33,11 @@ type Action =
 export const resultReducer = (state: ResultState = initialState, action: Action): ResultState => {
     switch (action.type) {
         case actions.START_ANALYSIS: {
-            const isProvenance = action.payload.analysisAngle === 'provenance';
             return {
                 ...initialState, // Clear previous results completely
                 analysisEvidence: action.payload.evidence,
                 analysisAngleUsed: action.payload.analysisAngle,
-                analysisResult: isProvenance
-                    ? {
-                        probability: 0,
-                        verdict: 'Investigation in Progress...', 
-                        explanation: '',
-                        isSecondOpinion: false,
-                    }
-                    : null,
+                analysisResult: null,
             };
         }
         case actions.START_REANALYSIS:

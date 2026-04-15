@@ -82,7 +82,7 @@ export const analyzeContent = async (
             throw new Error('The Google API key is not valid. Please check it in Settings.');
         }
         if (error.message.includes('429')) {
-             throw new Error('Sleuther is in high demand! The analysis could not be completed at this time. Please try again in a moment.');
+             throw new Error('Sleuther is in high demand! You have reached the temporary limit for AI analysis. Please wait a few minutes for the sensors to cool down before trying again.');
         }
     }
     throw new Error('The analysis could not be completed due to an unexpected API error.');
@@ -118,7 +118,7 @@ export const analyzeWithSearch = async (
             throw new Error('The Google API key is not valid. Please check it in Settings.');
         }
         if (error.message.includes('429')) {
-             throw new Error('Sleuther is in high demand! The analysis could not be completed at this time. Please try again in a moment.');
+             throw new Error('Sleuther is in high demand! You have reached the temporary limit for AI analysis. Please wait a few minutes for the sensors to cool down before trying again.');
         }
     }
     throw new Error('The provenance analysis could not be completed due to an unexpected API error.');

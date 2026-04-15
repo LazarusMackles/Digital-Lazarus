@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-export type AnalysisAngle = 'forensic' | 'provenance' | 'hybrid';
+export type AnalysisAngle = 'forensic' | 'hybrid';
 export type Theme = 'light' | 'dark';
 
 export interface AnalysisResult {

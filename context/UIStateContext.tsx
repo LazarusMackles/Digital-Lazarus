@@ -4,11 +4,8 @@ import * as actions from './actions';
 
 export type AnalysisStage = 'idle' | 'analyzing_pixels' | 'analyzing_context' | 'complete' | 'error';
 
-const WELCOME_SEEN_KEY = 'sleuther_welcome_seen';
-
 // State interface
 export interface UIState {
-    showWelcome: boolean;
     theme: Theme;
     analysisStage: AnalysisStage;
     error: string | null;
@@ -18,7 +15,6 @@ export interface UIState {
 
 // Initial state
 export const initialState: UIState = {
-    showWelcome: typeof window !== 'undefined' ? !localStorage.getItem(WELCOME_SEEN_KEY) : true,
     theme: 'dark',
     analysisStage: 'idle',
     error: null,
@@ -28,7 +24,6 @@ export const initialState: UIState = {
 
 // Action types
 type Action =
-  | { type: typeof actions.SET_SHOW_WELCOME; payload: boolean }
   | { type: typeof actions.SET_THEME; payload: Theme }
   | { type: typeof actions.SET_ERROR; payload: string | null }
   | { type: typeof actions.CLEAR_ERROR }
@@ -42,11 +37,6 @@ type Action =
 // Reducer
 const uiReducer = (state: UIState, action: Action): UIState => {
     switch (action.type) {
-        case actions.SET_SHOW_WELCOME:
-            if (action.payload === false) {
-                localStorage.setItem(WELCOME_SEEN_KEY, 'true');
-            }
-            return { ...state, showWelcome: action.payload };
         case actions.SET_THEME:
             return { ...state, theme: action.payload };
         case actions.SET_ERROR:

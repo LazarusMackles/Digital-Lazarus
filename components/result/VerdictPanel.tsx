@@ -42,15 +42,9 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
     const isStreaming = analysisStage === 'analyzing_context';
     const isComplete = analysisStage === 'complete';
 
-    const isProvenance = analysisAngleUsed === 'provenance';
     const isHybrid = analysisAngleUsed === 'hybrid';
 
     const verdictColorClass = () => {
-        if (isProvenance) {
-            if (verdict === "Authentic Photograph") return 'text-teal-500 dark:text-teal-400';
-            if (verdict === "AI-Generated") return 'text-rose-500 dark:text-rose-400';
-            return 'text-cyan-500 dark:text-cyan-400';
-        }
         if (probability < 40) return 'text-teal-500 dark:text-teal-400';
         if (probability < 80) return 'text-yellow-500 dark:text-yellow-400';
         return 'text-rose-500 dark:text-rose-400';
@@ -60,10 +54,7 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
         if (isAnalysisInProgress) {
             return <StreamingProgressIndicator />;
         }
-        if (!isProvenance) {
-            return <RadialProgress progress={probability} duration={ANIMATION_DURATION} />;
-        }
-        return null;
+        return <RadialProgress progress={probability} duration={ANIMATION_DURATION} />;
     };
     
     // We show the verdict if it's complete OR if we have a non-placeholder verdict during progress
@@ -96,40 +87,12 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = React.memo(({ probabili
             </div>
             
             {explanation && (
-                isProvenance ? (
-                     <div className="mt-3 w-full max-w-xl text-left animate-fade-in">
-                        <h3 className="text-lg font-semibold text-center text-fuchsia-600 dark:text-fuchsia-500 mb-4">
-                            Investigation Summary
-                        </h3>
-                        <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                            <ul className="space-y-2 text-slate-600 dark:text-slate-300">
-                                {explanation.split('\n').filter(line => line.trim().length > 0).slice(0, 8).map((line, index) => {
-                                    const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
-                                    if (!cleanLine) return null;
-                                    return (
-                                        <li key={index} className="flex items-start gap-3">
-                                            <span className="text-fuchsia-500 mt-1 flex-shrink-0">&#8226;</span>
-                                            <span className="leading-relaxed">{cleanLine}</span>
-                                        </li>
-                                    );
-                                })}
-                                {isStreaming && (
-                                    <li className="flex items-start gap-3">
-                                        <span className="text-fuchsia-500 mt-1">&#8226;</span>
-                                        <span className="inline-block w-20 h-5 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" aria-hidden="true"></span>
-                                    </li>
-                                )}
-                            </ul>
-                        </div>
-                     </div>
-                ) : (
-                     <p className="mt-4 text-center max-w-xl text-slate-600 dark:text-slate-300 whitespace-pre-wrap animate-fade-in">
-                        {explanation}
-                        {isStreaming && (
-                            <span className="inline-block w-2 h-5 bg-cyan-500 animate-pulse ml-1" aria-hidden="true"></span>
-                        )}
-                    </p>
-                )
+                 <p className="mt-4 text-center max-w-xl text-slate-600 dark:text-slate-300 whitespace-pre-wrap animate-fade-in">
+                    {explanation}
+                    {isStreaming && (
+                        <span className="inline-block w-2 h-5 bg-cyan-500 animate-pulse ml-1" aria-hidden="true"></span>
+                    )}
+                </p>
             )}
         </div>
     );

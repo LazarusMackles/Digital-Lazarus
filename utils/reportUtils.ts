@@ -23,7 +23,6 @@ export const generateShareText = (
     text += `Analysis by: GenAI Sleuther Vanguard\n`;
     if (modelUsed) {
         let analysisType = 'Forensic Analysis';
-        if (analysisAngleUsed === 'provenance') analysisType = 'Provenance Dossier';
         if (analysisAngleUsed === 'hybrid') analysisType = 'Hybrid Analysis';
         text += `Analysis Method: ${analysisType} (${modelUsed})\n`;
     }

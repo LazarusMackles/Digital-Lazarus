@@ -21,6 +21,12 @@ export const useAppView = (): AppView => {
         return 'LOADING';
     }
     
+    // If there's an error, we want to show the input form (which displays the error)
+    // unless we are currently in the middle of a re-analysis.
+    if (analysisStage === 'error') {
+        return 'INPUT';
+    }
+    
     // If there's a result and we are not loading, show the result display.
     if (analysisResult) {
         return 'RESULT';

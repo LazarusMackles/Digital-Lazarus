@@ -30,23 +30,8 @@ export const buildPrompt = (
     analysisAngle: AnalysisAngle,
     isReanalysis: boolean,
     pixelScore?: number,
+    provenanceData?: string,
 ): string => {
-    
-    // --- Provenance Dossier Prompt ---
-    if (analysisAngle === 'provenance') {
-        const primaryEvidence = fileData?.name || 'the provided image';
-        return `You are a digital content investigator. Using your search tool, investigate the provided image "${primaryEvidence}". Your goal is to determine its provenance.
-        
-        CONTEXTUAL AWARENESS: Today is ${new Date().toDateString()}. If the image depicts an event in the future relative to today, it is likely AI-generated or a prediction. If it depicts a past event, verify it.
-        
-        BRANDING WARNING: AI models often simulate film borders (Kodak, Fujifilm) and grain to appear authentic. Do NOT treat a film border as a certificate of authenticity. You MUST find the specific photographer or publication to confirm provenance.
-        
-        Respond with a definitive verdict and a concise summary of findings (under 5 bullet points).
-        The first line MUST be the verdict, chosen from: "Authentic Photograph", "AI-Generated", "No Online History Found", or "Analysis Inconclusive".
-        Followed by a blank line and then your bulleted summary.`;
-    }
-
-    // --- Forensic & Hybrid Analysis Prompts ---
     
     // BASE PROTOCOL: PRESUMPTION OF INNOCENCE
     let baseInstruction = `You are a forensic image analyst. 
@@ -55,6 +40,14 @@ export const buildPrompt = (
     You may ONLY flag this image as AI-Generated if you find DEFINITIVE, IRREFUTABLE DIGITAL ARTEFACTS (e.g., garbled text characters, melted objects, glossy plastic skin texture, mismatched pupils). 
     
     Respond ONLY with a JSON object matching the provided schema.`;
+
+    // PROVENANCE DATA: The "Truth Anchor"
+    if (provenanceData) {
+        baseInstruction += `\n\nPROVENANCE DATA (TRUTH ANCHOR): A background search for this image has returned the following findings:
+        "${provenanceData}"
+        
+        Use this data to verify if the image is a known photograph by a specific artist or has a documented history. If this data confirms the image is real, your visual analysis should focus on explaining the artistic or technical choices that make it look unique.`;
+    }
     
     // HYBRID LOGIC: The "Vanguard Absolute Authority" Fix
     if (analysisAngle === 'hybrid' && pixelScore !== undefined) {
@@ -102,7 +95,7 @@ export const buildPrompt = (
 };
 
 
-export const finalizeForensicVerdict = (rawResult: any, pixelScore?: number): AnalysisResult => {
+export const finalizeForensicVerdict = (rawResult: any, pixelScore?: number, groundingMetadata?: any): AnalysisResult => {
     let probability = pixelScore !== undefined ? pixelScore : Math.round(rawResult.probability || 50);
     let verdict = rawResult.verdict || "Analysis Inconclusive";
     const explanation = rawResult.explanation || "The model did not provide a detailed explanation.";
@@ -115,13 +108,11 @@ export const finalizeForensicVerdict = (rawResult: any, pixelScore?: number): An
         else verdict = "Appears Human-Crafted";
     }
 
-    // With the new ENUM schema, we trust the model's verdict for Forensic mode.
-    // We only perform sanity clamping if the numbers are wildly divergent (e.g., Verdict "Human" but Probability 99).
-    
+    // Sanity clamping
     if (verdict === "Appears Human-Crafted" && probability > 40) {
-        probability = 35; // Correct misaligned probability
+        probability = 35; 
     } else if (verdict === "Fully AI-Generated" && probability < 80) {
-        probability = 85; // Correct misaligned probability
+        probability = 85; 
     }
 
     return {
@@ -129,33 +120,6 @@ export const finalizeForensicVerdict = (rawResult: any, pixelScore?: number): An
         verdict,
         explanation,
         highlights,
-    };
-};
-
-export const finalizeProvenanceVerdict = (response: any): AnalysisResult => {
-    const text = response.text?.trim() || "";
-    const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
-
-    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    
-    let verdict = "Analysis Inconclusive";
-    let explanation = text;
-
-    if (lines.length > 0) {
-        const firstLine = lines[0].replace(/^[#\*\-]\s*/, '').trim();
-        const allowedVerdicts = ["Authentic Photograph", "AI-Generated", "No Online History Found", "Analysis Inconclusive"];
-        
-        if (allowedVerdicts.some(v => firstLine.includes(v))) {
-            verdict = allowedVerdicts.find(v => firstLine.includes(v))!;
-            explanation = lines.slice(1).join('\n');
-        }
-    }
-
-    return {
-        probability: 0,
-        verdict,
-        explanation: explanation || "The investigation did not return a conclusive summary.",
-        highlights: [],
         groundingMetadata,
     };
 };

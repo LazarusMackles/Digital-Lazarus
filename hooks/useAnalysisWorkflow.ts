@@ -7,8 +7,7 @@ import { useHistory } from '../context/HistoryContext';
 import * as actions from '../context/actions';
 import { 
     buildPrompt, 
-    finalizeForensicVerdict, 
-    finalizeProvenanceVerdict 
+    finalizeForensicVerdict 
 } from '../services/analysisService';
 import { analyzeWithHive } from '../services/hiveService';
 import { analyzeContent, analyzeWithSearch } from '../services/geminiService';
@@ -61,43 +60,41 @@ export const useAnalysisWorkflow = () => {
 
             let result, modelName;
 
-            if (analysisAngle === 'provenance') {
-                // Use Flash for Provenance
-                modelName = MODELS.FLASH; 
-                
-                uiDispatch({ type: actions.START_CONTEXT_ANALYSIS });
-                const prompt = buildPrompt(fileData, 'provenance', isReanalysis);
-                const response = await analyzeWithSearch(prompt, filesForApi, modelName, googleApiKey);
-                result = finalizeProvenanceVerdict(response);
-                resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result, modelName, isSecondOpinion: isReanalysis } });
+            modelName = MODELS.PRO;
 
-            } else { // 'forensic' or 'hybrid'
-                modelName = MODELS.PRO;
-
-                let pixelScore: number | undefined;
-                
-                // HYBRID FALLBACK STRATEGY
-                if (analysisAngle === 'hybrid') {
-                    uiDispatch({ type: actions.START_PIXEL_ANALYSIS });
-                     try {
-                        pixelScore = await analyzeWithHive(fileData.imageBase64, hiveAccessKey!, hiveSecretKey!);
-                    } catch (e) {
-                        console.warn("Pixel Analysis Failed. Falling back to Forensic Analysis.", e);
-                    }
+            let pixelScore: number | undefined;
+            let groundingMetadata: any | undefined;
+            let provenanceData: string | undefined;
+            
+            // HYBRID ANALYSIS: The Vanguard Protocol
+            if (analysisAngle === 'hybrid') {
+                // Step 1: Pixel Analysis (Math)
+                uiDispatch({ type: actions.START_PIXEL_ANALYSIS });
+                try {
+                    pixelScore = await analyzeWithHive(fileData.imageBase64, hiveAccessKey!, hiveSecretKey!);
+                } catch (e) {
+                    console.warn("Pixel Analysis Failed. Falling back to Cognitive Analysis.", e);
                 }
 
-                uiDispatch({ type: actions.START_CONTEXT_ANALYSIS });
-                const prompt = buildPrompt(fileData, analysisAngle, isReanalysis, pixelScore);
-                const rawResult = await analyzeContent(prompt, filesForApi, modelName, googleApiKey);
-                result = finalizeForensicVerdict(rawResult, pixelScore);
-                
-                // Attach the mathematical score for reference
-                if (pixelScore !== undefined) {
-                    result.pixelScore = pixelScore;
+                // Step 2: Truth Anchor (Silent Background Search)
+                // We use Flash for speed for the silent search
+                try {
+                    const searchPrompt = `Investigate the provenance of this image. Look for specific photographer attributions, film branding (like Kodak), or known viral history. Respond with a concise summary.`;
+                    const searchResponse = await analyzeWithSearch(searchPrompt, filesForApi, MODELS.FLASH, googleApiKey);
+                    groundingMetadata = searchResponse.candidates?.[0]?.groundingMetadata;
+                    provenanceData = searchResponse.text;
+                } catch (e) {
+                    console.warn("Truth Anchor search failed. Proceeding without provenance data.", e);
                 }
-
-                resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result, modelName, isSecondOpinion: isReanalysis } });
             }
+
+            // Step 3: Cognitive Analysis (Physics & Logic)
+            uiDispatch({ type: actions.START_CONTEXT_ANALYSIS });
+            const prompt = buildPrompt(fileData, analysisAngle, isReanalysis, pixelScore, provenanceData);
+            const rawResult = await analyzeContent(prompt, filesForApi, modelName, googleApiKey);
+            result = finalizeForensicVerdict(rawResult, pixelScore, groundingMetadata);
+            
+            resultDispatch({ type: actions.ANALYSIS_SUCCESS, payload: { result, modelName, isSecondOpinion: isReanalysis } });
             
             uiDispatch({ type: actions.ANALYSIS_COMPLETE });
             
@@ -117,6 +114,13 @@ export const useAnalysisWorkflow = () => {
         uiDispatch({ type: actions.RESET_ANALYSIS_STATE });
         window.scrollTo(0, 0);
     }, [resultDispatch, uiDispatch]);
+
+    const handleReset = useCallback(() => {
+        resultDispatch({ type: actions.NEW_ANALYSIS });
+        inputDispatch({ type: actions.CLEAR_INPUTS });
+        uiDispatch({ type: actions.RESET_ANALYSIS_STATE });
+        window.scrollTo(0, 0);
+    }, [resultDispatch, inputDispatch, uiDispatch]);
     
     const handleClearInputs = useCallback(() => {
         inputDispatch({ type: actions.CLEAR_INPUTS });
@@ -124,5 +128,5 @@ export const useAnalysisWorkflow = () => {
         window.scrollTo(0, 0);
     }, [inputDispatch, uiDispatch]);
 
-    return { performAnalysis, handleNewAnalysis, handleClearInputs };
+    return { performAnalysis, handleNewAnalysis, handleClearInputs, handleReset };
 };

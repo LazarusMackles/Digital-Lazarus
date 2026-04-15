@@ -10,10 +10,7 @@ interface EvidencePresenterProps {
     analysisAngleUsed?: AnalysisAngle | null;
 }
 
-const getBorderColorClass = (p: number, angle?: AnalysisAngle | null): string => {
-    if (angle === 'provenance') {
-        return 'border-cyan-500';
-    }
+const getBorderColorClass = (p: number): string => {
     if (p < 40) return 'border-teal-400';
     if (p < 80) return 'border-yellow-400';
     return 'border-rose-500';
@@ -40,7 +37,7 @@ export const EvidencePresenter: React.FC<EvidencePresenterProps> = ({ evidence, 
     const { state: inputState } = useInputState();
     const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
-    const borderColorClass = getBorderColorClass(probability, analysisAngleUsed);
+    const borderColorClass = getBorderColorClass(probability);
 
     const renderContent = () => {
         if (evidence.type === 'reference' && evidence.fileRef === 'input_file') {

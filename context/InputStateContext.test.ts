@@ -16,7 +16,7 @@ describe('inputReducer', () => {
     });
 
     it('should handle SET_ANALYSIS_ANGLE', () => {
-        const payload: AnalysisAngle = 'provenance';
+        const payload: AnalysisAngle = 'hybrid';
         const expectedState = { ...initialState, analysisAngle: payload };
         expect(inputReducer(initialState, { type: actions.SET_ANALYSIS_ANGLE, payload })).toEqual(expectedState);
     });
@@ -25,7 +25,7 @@ describe('inputReducer', () => {
         const currentState = {
             ...initialState,
             fileData: { name: 'file.jpg', imageBase64: 'base64' },
-            analysisAngle: 'provenance' as AnalysisAngle,
+            analysisAngle: 'hybrid' as AnalysisAngle,
         };
         expect(inputReducer(currentState, { type: actions.CLEAR_INPUTS })).toEqual(initialState);
     });

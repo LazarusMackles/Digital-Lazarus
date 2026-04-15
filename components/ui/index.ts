@@ -19,4 +19,3 @@ export * from './SettingsModal';
 export * from './SleuthNote';
 export * from './ShareModal';
 export * from './ThemeToggle';
-export * from './WelcomeModal';

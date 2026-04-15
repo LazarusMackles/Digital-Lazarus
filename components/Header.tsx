@@ -3,6 +3,8 @@ import React from 'react';
 import { ThemeToggle } from './ui';
 import { useUIState } from '../context/UIStateContext';
 import { useApiKeys } from '../hooks/useApiKeys';
+import { useAppView } from '../hooks/useAppView';
+import { useAnalysisWorkflow } from '../hooks/useAnalysisWorkflow';
 import * as actions from '../context/actions';
 import { Icon } from './icons/index';
 import { cn } from '../utils/cn';
@@ -10,27 +12,30 @@ import { cn } from '../utils/cn';
 export const Header: React.FC = React.memo(() => {
   const { dispatch } = useUIState();
   const { hasGoogleApiKey, hasHiveKeys } = useApiKeys();
+  const view = useAppView();
+  const { handleReset } = useAnalysisWorkflow();
   const isSystemReady = hasGoogleApiKey && hasHiveKeys;
   
   const handleOpenSettings = () => dispatch({ type: actions.SET_SHOW_SETTINGS_MODAL, payload: true });
 
+  const showHome = view !== 'INPUT';
+
   return (
     <header className="w-full mb-6 flex items-center justify-center min-h-[3rem]">
       
-      {/* 
-          Layout Strategy: Compact Unified Row
-          We keep Title and Icons on the same line (flex-row) for ALL devices.
-          We scale the font size down on mobile to ensure it fits without wrapping.
-      */}
       <div className="flex flex-row items-center justify-center gap-2 sm:gap-6">
           
-          {/* 
-              Title:
-              - whitespace-nowrap: Never break to a new line.
-              - text-lg: Reduced from text-xl to fit Galaxy Fold (280px).
-              - sm:text-5xl: Scales up beautifully on tablets/laptops.
-              - py-2: Prevents 'g' descender clipping.
-          */}
+          {showHome && (
+            <button
+              onClick={handleReset}
+              className="p-1.5 sm:p-2 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-cyan-500 dark:hover:text-cyan-400 transition-all duration-300 group"
+              aria-label="Back to Home"
+              title="Back to Home"
+            >
+              <Icon name="home" className="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" />
+            </button>
+          )}
+
           <h1 className="py-2 text-lg sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-400 dark:to-fuchsia-500 leading-tight tracking-tight whitespace-nowrap">
             Sleuther Vanguard
           </h1>

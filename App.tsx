@@ -7,7 +7,7 @@ import { InputStateProvider, useInputState } from './context/InputStateContext';
 import { ResultStateProvider, useResultState } from './context/ResultStateContext';
 import { UIStateProvider, useUIState } from './context/UIStateContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { Card, Loader, SettingsModal, WelcomeModal, HistoryModal } from './components/ui';
+import { Card, Loader, SettingsModal, HistoryModal } from './components/ui';
 import { OnboardingWizard } from './components/setup/OnboardingWizard';
 import { useAppView } from './hooks/useAppView';
 import { IntroPanel } from './components/IntroPanel';
@@ -23,7 +23,7 @@ const AppContent: React.FC = () => {
   const { state: resultState } = useResultState();
   const { hasGoogleApiKey, hasHiveKeys } = useApiKeys();
   
-  const { showWelcome, showSettingsModal, analysisStage } = uiState;
+  const { showSettingsModal, analysisStage } = uiState;
   const { analysisAngle } = inputState;
   const isSecondOpinion = resultState.analysisResult?.isSecondOpinion || false;
 
@@ -33,11 +33,6 @@ const AppContent: React.FC = () => {
     // Round 2: Deep Review (Global)
     if (isSecondOpinion) {
       return "Conducting Deep Review.";
-    }
-
-    // Provenance (Simplified)
-    if (analysisAngle === 'provenance') {
-      return "Tracing Digital Footprint.";
     }
 
     // Hybrid Analysis (Detailed Steps)
@@ -50,10 +45,6 @@ const AppContent: React.FC = () => {
 
     // Forensic (Simplified)
     return "Forensic Scan in Progress.";
-  };
-
-  const handleCloseWelcome = () => {
-    uiDispatch({ type: actions.SET_SHOW_WELCOME, payload: false });
   };
 
   const handleCloseSettings = () => {
@@ -101,7 +92,6 @@ const AppContent: React.FC = () => {
         <OnboardingWizard />
       ) : (
         <>
-          {showWelcome && <WelcomeModal onClose={handleCloseWelcome} />}
           {showSettingsModal && <SettingsModal onClose={handleCloseSettings} />}
         </>
       )}
